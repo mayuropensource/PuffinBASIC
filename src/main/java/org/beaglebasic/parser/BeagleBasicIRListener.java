@@ -453,6 +453,11 @@ public class BeagleBasicIRListener extends BeagleBasicBaseListener {
     }
 
     @Override
+    public void exitExprParen(BeagleBasicParser.ExprParenContext ctx) {
+        nodeToInstruction.put(ctx, lookupInstruction(ctx.expr()));
+    }
+
+    @Override
     public void exitExprNumber(BeagleBasicParser.ExprNumberContext ctx) {
         var instruction = nodeToInstruction.get(ctx.number());
         if (ctx.MINUS() != null) {

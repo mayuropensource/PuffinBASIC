@@ -27,6 +27,16 @@ public class IntegrationTest {
         runTest("nested_forloop.bas", "nested_forloop.bas.output");
     }
 
+    @Test
+    public void testScalarVariable() {
+        runTest("scalar_var.bas", "scalar_var.bas.output");
+    }
+
+    @Test
+    public void testArrayVariable() {
+        runTest("array_var.bas", "array_var.bas.output");
+    }
+
     private void runTest(String source, String output) {
         var bos = new ByteArrayOutputStream();
         var out = new PrintStream(bos);
