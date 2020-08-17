@@ -135,7 +135,7 @@
         <artifactId>exec-maven-plugin</artifactId>
 	<version>3.0.0</version>
         <configuration>
-            <mainClass>org.beaglebasic.Main</mainClass>
+            <mainClass>org.beaglebasic.BeagleBasicInterpreterMain</mainClass>
         </configuration>
       </plugin>
       <plugin>
