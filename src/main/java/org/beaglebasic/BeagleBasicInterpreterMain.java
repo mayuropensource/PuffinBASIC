@@ -23,6 +23,7 @@ import org.beaglebasic.parser.LinenumberListener.ThrowOnDuplicate;
 import org.beaglebasic.runtime.BeagleBasicRuntime;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -37,7 +38,13 @@ import static org.beaglebasic.parser.LinenumberListener.ThrowOnDuplicate.THROW;
 public final class BeagleBasicInterpreterMain {
 
     public static void main(String... args) {
-        interpretAndRun(parseCommandLineArgs(args));
+        var userOptions = parseCommandLineArgs(args);
+
+        Instant t0 = Instant.now();
+        var sourceCode = loadSource(userOptions.filename);
+        logTimeTaken("LOAD", t0, userOptions.timing);
+
+        interpretAndRun(userOptions, sourceCode, System.out);
     }
 
     private static UserOptions parseCommandLineArgs(String... args) {
@@ -77,7 +84,7 @@ public final class BeagleBasicInterpreterMain {
         );
     }
 
-    private static String loadSource(String filename) {
+    public static String loadSource(String filename) {
         var sb = new StringBuilder();
         try (Stream<String> stream = Files.lines(Paths.get(filename), StandardCharsets.US_ASCII)) {
             stream.forEach(s -> sb.append(s).append(System.lineSeparator()));
@@ -90,11 +97,11 @@ public final class BeagleBasicInterpreterMain {
         return sb.toString();
     }
 
-    public static void interpretAndRun(UserOptions userOptions) {
-        Instant t0 = Instant.now();
-        var sourceCode = loadSource(userOptions.filename);
-        logTimeTaken("LOAD", t0, userOptions.timing);
-
+    public static void interpretAndRun(
+            UserOptions userOptions,
+            String sourceCode,
+            PrintStream out)
+    {
         Instant t1 = Instant.now();
         var sortedInput = syntaxCheckAndSortByLineNumber(sourceCode,
                 userOptions.logOnDuplicate ? LOG : THROW);
@@ -120,7 +127,7 @@ public final class BeagleBasicInterpreterMain {
 
         log("RUN", userOptions.timing);
         Instant t3 = Instant.now();
-        run(ir);
+        run(ir, out);
         logTimeTaken("RUN", t3, userOptions.timing);
     }
 
@@ -136,8 +143,8 @@ public final class BeagleBasicInterpreterMain {
         log("[" + tag + "] time taken = " + timeSec + " s", log);
     }
 
-    private static void run(BeagleBasicIR ir) {
-        var runtime = new BeagleBasicRuntime(ir);
+    private static void run(BeagleBasicIR ir, PrintStream out) {
+        var runtime = new BeagleBasicRuntime(ir, out);
         runtime.run();
     }
 
@@ -210,7 +217,14 @@ public final class BeagleBasicInterpreterMain {
 
     }
 
-    private static final class UserOptions {
+    public static final class UserOptions {
+
+        public static UserOptions ofTest() {
+            return new UserOptions(
+                    false, false, false, false, null
+            );
+        }
+
         public final boolean logOnDuplicate;
         public final boolean listSourceCode;
         public final boolean printIR;

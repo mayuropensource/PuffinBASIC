@@ -14,6 +14,7 @@ import org.beaglebasic.runtime.Arrays.ArrayState;
 import org.beaglebasic.runtime.Formatter.FormatterCache;
 import org.beaglebasic.runtime.Statements.ReadData;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -43,9 +44,11 @@ public class BeagleBasicRuntime {
     private FormatterCache formatterCache;
     private BeagleBasicFiles files;
     private ReadData readData;
+    private final PrintStream out;
 
-    public BeagleBasicRuntime(BeagleBasicIR ir) {
+    public BeagleBasicRuntime(BeagleBasicIR ir, PrintStream out) {
         this.ir = ir;
+        this.out = out;
     }
 
     private Int2IntMap computeLabelToInstructionNumber(List<Instruction> instructions) {
@@ -98,7 +101,7 @@ public class BeagleBasicRuntime {
         this.random = new Random();
         this.formatterCache = new FormatterCache();
         this.instr0 = new ArrayList<>(4);
-        this.files = new BeagleBasicFiles(new SystemInputOutputFile(System.in, System.out));
+        this.files = new BeagleBasicFiles(new SystemInputOutputFile(System.in, out));
         this.readData = processDataInstructions(instructions);
 
         var numInstructions = instructions.size();
