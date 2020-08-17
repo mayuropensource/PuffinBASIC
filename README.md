@@ -1,7 +1,7 @@
 # BeagleBasic
 BASIC interpreter written in Java.
 
-![Image](https://github.com/mayuropensource/BeagleBasic/blob/master/images/beagle.png?raw=true)
+![Image](https://github.com/mayuropensource/BeagleBasic/blob/master/images/beagle.jpg?raw=true)
 
 ## Version
 
