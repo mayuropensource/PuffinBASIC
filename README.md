@@ -1,6 +1,8 @@
 # BeagleBasic
 BASIC interpreter written in Java.
 
+![Image](images/beagle.png)
+
 ## Version
 
 0.1 experimental
