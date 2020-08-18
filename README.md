@@ -20,7 +20,7 @@ language from the 1960s.
 50   NEXT J%
 60 NEXT I%
 ```
-### Print first n prime numbers
+### Print prime numbers from 1 to 100
 
 ```
 10 FOR I% = 1 TO 100
