@@ -1,4 +1,4 @@
-# BeagleBasic
+# PuffinBASIC
 BASIC interpreter written in Java.
 
 ## Version

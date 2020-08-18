@@ -4,11 +4,11 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>org.beaglebasic</groupId>
-  <artifactId>beaglebasic</artifactId>
+  <groupId>org.puffinbasic</groupId>
+  <artifactId>puffinbasic</artifactId>
   <version>0.1-SNAPSHOT</version>
 
-  <name>beaglebasic</name>
+  <name>puffinbasic</name>
   <url></url>
 
   <properties>
@@ -135,7 +135,7 @@
         <artifactId>exec-maven-plugin</artifactId>
 	<version>3.0.0</version>
         <configuration>
-            <mainClass>org.beaglebasic.BeagleBasicInterpreterMain</mainClass>
+            <mainClass>org.puffinbasic.PuffinBasicInterpreterMain</mainClass>
         </configuration>
       </plugin>
       <plugin>
@@ -144,7 +144,7 @@
         <configuration>
 	  <archive>
 	    <manifest>
-	      <mainClass>org.beaglebasic.Main</mainClass>
+	      <mainClass>org.puffinbasic.PuffinBasicInterpreterMain</mainClass>
 	      <classpathPrefix>dependency-jars/</classpathPrefix>
 	    </manifest>
 	  </archive>
