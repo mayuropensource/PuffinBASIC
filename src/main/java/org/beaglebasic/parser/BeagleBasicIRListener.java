@@ -286,23 +286,24 @@ public class BeagleBasicIRListener extends BeagleBasicBaseListener {
         if (ctx.integer() != null) {
             final boolean isLong = ctx.integer().AT() != null;
             final String strValue;
+            final int base;
             if (ctx.integer().HEXADECIMAL() != null) {
-                strValue = "0x" + ctx.integer().HEXADECIMAL().getText().substring(2);
+                strValue = ctx.integer().HEXADECIMAL().getText().substring(2);
+                base = 16;
             } else if (ctx.integer().OCTAL() != null) {
                 var octalStr = ctx.integer().OCTAL().getText();
-                strValue = "0" + (octalStr.startsWith("&o") || octalStr.startsWith("&O")
-                        ? octalStr.substring(2) : octalStr.substring(1));
+                strValue = (octalStr.startsWith("&O") ? octalStr.substring(2) : octalStr.substring(1));
+                base = 8;
             } else {
                 strValue = ctx.integer().DECIMAL().getText();
+                base = 10;
             }
             if (isLong) {
                 id = ir.getSymbolTable().addTmp(INT64,
-                        entry -> entry.getValue().setInt64(Numbers.parseInt64(strValue, () -> getCtxString(ctx))));
-
+                        entry -> entry.getValue().setInt64(Numbers.parseInt64(strValue, base, () -> getCtxString(ctx))));
             } else {
                 id = ir.getSymbolTable().addTmp(INT32,
-                        entry -> entry.getValue().setInt32(Numbers.parseInt32(strValue, () -> getCtxString(ctx))));
-
+                        entry -> entry.getValue().setInt32(Numbers.parseInt32(strValue, base, () -> getCtxString(ctx))));
             }
         } else if (ctx.FLOAT() != null) {
             var floatStr = ctx.FLOAT().getText();

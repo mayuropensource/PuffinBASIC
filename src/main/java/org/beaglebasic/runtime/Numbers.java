@@ -20,9 +20,33 @@ public class Numbers {
         }
     }
 
+    public static int parseInt32(String value, int base, Supplier<String> lineSupplier) {
+        try {
+            return Integer.parseInt(value, base);
+        } catch (NumberFormatException e) {
+            throw new BeagleBasicSemanticError(
+                    BAD_NUMBER,
+                    lineSupplier.get(),
+                    "Failed to parse number as int32: " + value
+            );
+        }
+    }
+
     public static long parseInt64(String value, Supplier<String> lineSupplier) {
         try {
             return Long.parseLong(value);
+        } catch (NumberFormatException e) {
+            throw new BeagleBasicSemanticError(
+                    BAD_NUMBER,
+                    lineSupplier.get(),
+                    "Failed to parse number as int64: " + value
+            );
+        }
+    }
+
+    public static long parseInt64(String value, int base, Supplier<String> lineSupplier) {
+        try {
+            return Long.parseLong(value, base);
         } catch (NumberFormatException e) {
             throw new BeagleBasicSemanticError(
                     BAD_NUMBER,
