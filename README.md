@@ -2,7 +2,8 @@
 BASIC interpreter written in Java.
 
 BASIC (Beginners' All-purpose Symbolic Instruction Code) is a general-purpose high-level
-language from the 1960s.
+language from the 1960s. PuffinBASIC is an implementation of the BASIC language specification.
+PuffinBASIC conforms most closely to GWBASIC.
 
 ## Version
 
