@@ -10,6 +10,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 
 import static org.beaglebasic.BeagleBasicInterpreterMain.interpretAndRun;
 import static org.beaglebasic.error.BeagleBasicRuntimeError.ErrorCode.IO_ERROR;
@@ -35,6 +38,56 @@ public class IntegrationTest {
     @Test
     public void testArrayVariable() {
         runTest("array_var.bas", "array_var.bas.output");
+    }
+
+    @Test
+    public void testWhile() {
+        runTest("while.bas", "while.bas.output");
+    }
+
+    @Test
+    public void testExpr() {
+        runTest("expr.bas", "expr.bas.output");
+    }
+
+    @Test
+    public void testFunc() {
+        runTest("func.bas", "func.bas.output");
+    }
+
+    @Test
+    public void testIf() {
+        runTest("if.bas", "if.bas.output");
+    }
+
+    @Test
+    public void testReadData() {
+        runTest("readdata.bas", "readdata.bas.output");
+    }
+
+    @Test
+    public void testGosub() {
+        runTest("gosub.bas", "gosub.bas.output");
+    }
+
+    @Test
+    public void testDef() {
+        runTest("def.bas", "def.bas.output");
+    }
+
+    @Test
+    public void testUdf() {
+        runTest("udf.bas", "udf.bas.output");
+    }
+
+    @Test
+    public void testStrStmt() {
+        runTest("strstmt.bas", "strstmt.bas.output");
+    }
+
+    @Test
+    public void testPrintUsing() {
+        runTest("printusing.bas", "printusing.bas.output");
     }
 
     private void runTest(String source, String output) {

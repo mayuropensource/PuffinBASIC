@@ -322,41 +322,6 @@ public class Statements {
         random.setSeed(seed);
     }
 
-    public static void defint(
-            BeagleBasicSymbolTable symbolTable,
-            Instruction instruction) {
-        var letter = symbolTable.get(instruction.op1).getValue().getString();
-        symbolTable.setDefaultDataType(letter.charAt(0), INT32);
-    }
-
-    public static void deflng(
-            BeagleBasicSymbolTable symbolTable,
-            Instruction instruction) {
-        var letter = symbolTable.get(instruction.op1).getValue().getString();
-        symbolTable.setDefaultDataType(letter.charAt(0), INT64);
-    }
-
-    public static void defsng(
-            BeagleBasicSymbolTable symbolTable,
-            Instruction instruction) {
-        var letter = symbolTable.get(instruction.op1).getValue().getString();
-        symbolTable.setDefaultDataType(letter.charAt(0), FLOAT);
-    }
-
-    public static void defdbl(
-            BeagleBasicSymbolTable symbolTable,
-            Instruction instruction) {
-        var letter = symbolTable.get(instruction.op1).getValue().getString();
-        symbolTable.setDefaultDataType(letter.charAt(0), DOUBLE);
-    }
-
-    public static void defstr(
-            BeagleBasicSymbolTable symbolTable,
-            Instruction instruction) {
-        var letter = symbolTable.get(instruction.op1).getValue().getString();
-        symbolTable.setDefaultDataType(letter.charAt(0), STRING);
-    }
-
     public static void input(
             BeagleBasicFiles files,
             BeagleBasicSymbolTable symbolTable,

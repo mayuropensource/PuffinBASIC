@@ -13,6 +13,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.beaglebasic.antlr4.BeagleBasicBaseListener;
 import org.beaglebasic.antlr4.BeagleBasicParser;
 import org.beaglebasic.domain.STObjects;
+import org.beaglebasic.domain.STObjects.BeagleBasicDataType;
 import org.beaglebasic.domain.STObjects.STUDF;
 import org.beaglebasic.domain.Variable;
 import org.beaglebasic.domain.Variable.VariableName;
@@ -833,7 +834,7 @@ public class BeagleBasicIRListener extends BeagleBasicBaseListener {
     public void exitFuncLog(BeagleBasicParser.FuncLogContext ctx) {
         nodeToInstruction.put(ctx, addFuncWithExprInstruction(OpCode.LOG, ctx, ctx.expr(),
                 NumericOrString.NUMERIC,
-                ir.getSymbolTable().addTmp(INT64, c -> {})));
+                ir.getSymbolTable().addTmp(DOUBLE, c -> {})));
     }
 
     @Override
@@ -1079,6 +1080,15 @@ public class BeagleBasicIRListener extends BeagleBasicBaseListener {
     //
     // Stmt
     //
+
+
+    @Override
+    public void exitComment(BeagleBasicParser.CommentContext ctx) {
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.COMMENT, NULL_ID, NULL_ID, NULL_ID
+        );
+    }
 
     @Override
     public void exitLetstmt(BeagleBasicParser.LetstmtContext ctx) {
@@ -1956,27 +1966,27 @@ public class BeagleBasicIRListener extends BeagleBasicBaseListener {
 
     @Override
     public void exitDefintstmt(BeagleBasicParser.DefintstmtContext ctx) {
-        handleDefTypeStmt(ctx, ctx.LETTER(), ctx.LETTERRANGE(), OpCode.DEFINT);
+        handleDefTypeStmt(ctx.LETTERRANGE(), INT32);
     }
 
     @Override
     public void exitDeflngstmt(BeagleBasicParser.DeflngstmtContext ctx) {
-        handleDefTypeStmt(ctx, ctx.LETTER(), ctx.LETTERRANGE(), OpCode.DEFLNG);
+        handleDefTypeStmt(ctx.LETTERRANGE(), INT64);
     }
 
     @Override
     public void exitDefsngstmt(BeagleBasicParser.DefsngstmtContext ctx) {
-        handleDefTypeStmt(ctx, ctx.LETTER(), ctx.LETTERRANGE(), OpCode.DEFSNG);
+        handleDefTypeStmt(ctx.LETTERRANGE(), FLOAT);
     }
 
     @Override
     public void exitDefdblstmt(BeagleBasicParser.DefdblstmtContext ctx) {
-        handleDefTypeStmt(ctx, ctx.LETTER(), ctx.LETTERRANGE(), OpCode.DEFDBL);
+        handleDefTypeStmt(ctx.LETTERRANGE(), DOUBLE);
     }
 
     @Override
     public void exitDefstrstmt(BeagleBasicParser.DefstrstmtContext ctx) {
-        handleDefTypeStmt(ctx, ctx.LETTER(), ctx.LETTERRANGE(), OpCode.DEFSTR);
+        handleDefTypeStmt(ctx.LETTERRANGE(), STRING);
     }
 
     @Override
@@ -2201,24 +2211,15 @@ public class BeagleBasicIRListener extends BeagleBasicBaseListener {
     }
 
     private void handleDefTypeStmt(
-            ParserRuleContext parent,
-            List<TerminalNode> letters,
             List<TerminalNode> letterRanges,
-            OpCode opCode) {
-        List<String> defs = new ArrayList<>();
-        letters.stream().map(ParseTree::getText).forEach(l -> defs.add(l.substring(0, 1)));
+            BeagleBasicDataType dataType) {
+        List<Character> defs = new ArrayList<>();
         letterRanges.stream().map(ParseTree::getText).forEach(lr -> {
             for (char i = lr.charAt(0); i <= lr.charAt(2); i++) {
-                defs.add(new String(new byte[]{(byte) i}));
+                defs.add(i);
             }
         });
-        defs.forEach(def ->
-                ir.addInstruction(
-                        currentLineNumber, parent.start.getStartIndex(), parent.stop.getStopIndex(),
-                        opCode,
-                        ir.getSymbolTable().addTmp(STRING, e -> e.getValue().setString(def)),
-                        NULL_ID, NULL_ID
-                ));
+        defs.forEach(def -> ir.getSymbolTable().setDefaultDataType(def, dataType));
     }
 
     private static FileOpenMode getFileOpenMode(BeagleBasicParser.Filemode1Context filemode1) {

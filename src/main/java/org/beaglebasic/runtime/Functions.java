@@ -10,6 +10,7 @@ import org.beaglebasic.file.BeagleBasicFiles;
 import org.beaglebasic.parser.BeagleBasicIR.Instruction;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -135,25 +136,25 @@ public class Functions {
 
     public static void mkidlr(BeagleBasicSymbolTable symbolTable, Instruction instruction) {
         int value = symbolTable.get(instruction.op1).getValue().getInt32();
-        String str = new String(ByteBuffer.allocate(4).putInt(value).array());
+        String str = new String(ByteBuffer.allocate(4).putInt(value).array(), StandardCharsets.ISO_8859_1);
         symbolTable.get(instruction.result).getValue().setString(str);
     }
 
     public static void mkldlr(BeagleBasicSymbolTable symbolTable, Instruction instruction) {
         long value = symbolTable.get(instruction.op1).getValue().getInt64();
-        String str = new String(ByteBuffer.allocate(8).putLong(value).array());
+        String str = new String(ByteBuffer.allocate(8).putLong(value).array(), StandardCharsets.ISO_8859_1);
         symbolTable.get(instruction.result).getValue().setString(str);
     }
 
     public static void mksdlr(BeagleBasicSymbolTable symbolTable, Instruction instruction) {
         float value = symbolTable.get(instruction.op1).getValue().getFloat32();
-        String str = new String(ByteBuffer.allocate(4).putFloat(value).array());
+        String str = new String(ByteBuffer.allocate(4).putFloat(value).array(), StandardCharsets.ISO_8859_1);
         symbolTable.get(instruction.result).getValue().setString(str);
     }
 
     public static void mkddlr(BeagleBasicSymbolTable symbolTable, Instruction instruction) {
         double value = symbolTable.get(instruction.op1).getValue().getFloat64();
-        String str = new String(ByteBuffer.allocate(8).putDouble(value).array());
+        String str = new String(ByteBuffer.allocate(8).putDouble(value).array(), StandardCharsets.ISO_8859_1);
         symbolTable.get(instruction.result).getValue().setString(str);
     }
 
@@ -165,7 +166,7 @@ public class Functions {
                     "CVI$: value: " + value + " length must be 4, found: " + value.length()
             );
         }
-        int intValue = ByteBuffer.wrap(value.getBytes(), 0, 4).getInt();
+        int intValue = ByteBuffer.wrap(value.getBytes(StandardCharsets.ISO_8859_1), 0, 4).getInt();
         symbolTable.get(instruction.result).getValue().setInt32(intValue);
     }
 
@@ -177,7 +178,7 @@ public class Functions {
                     "CVL$: value: " + value + " length must be 8, found: " + value.length()
             );
         }
-        long longValue = ByteBuffer.wrap(value.getBytes(), 0, 8).getLong();
+        long longValue = ByteBuffer.wrap(value.getBytes(StandardCharsets.ISO_8859_1), 0, 8).getLong();
         symbolTable.get(instruction.result).getValue().setInt64(longValue);
     }
 
@@ -189,7 +190,7 @@ public class Functions {
                     "CVS$: value: " + value + " length must be 4, found: " + value.length()
             );
         }
-        float floatValue = ByteBuffer.wrap(value.getBytes(), 0, 4).getFloat();
+        float floatValue = ByteBuffer.wrap(value.getBytes(StandardCharsets.ISO_8859_1), 0, 4).getFloat();
         symbolTable.get(instruction.result).getValue().setFloat32(floatValue);
     }
 
@@ -201,7 +202,7 @@ public class Functions {
                     "CVD$: value: " + value + " length must be 8, found: " + value.length()
             );
         }
-        double doubleValue = ByteBuffer.wrap(value.getBytes(), 0, 8).getDouble();
+        double doubleValue = ByteBuffer.wrap(value.getBytes(StandardCharsets.ISO_8859_1), 0, 8).getDouble();
         symbolTable.get(instruction.result).getValue().setFloat64(doubleValue);
     }
 

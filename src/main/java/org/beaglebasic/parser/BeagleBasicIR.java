@@ -13,6 +13,7 @@ import java.util.Objects;
 public class BeagleBasicIR {
 
     public enum OpCode {
+        COMMENT("comment"),
         VARIABLE("var"),
         VALUE("val"),
         ASSIGN(":="),
@@ -108,11 +109,6 @@ public class BeagleBasicIR {
         EOF("eof"),
         RANDOMIZE("randomize"),
         RANDOMIZE_TIMER("randomize_timer"),
-        DEFINT("defint"),
-        DEFLNG("deflng"),
-        DEFSNG("defsng"),
-        DEFDBL("defdbl"),
-        DEFSTR("defstr"),
         LSET("lset"),
         RSET("rset"),
         INPUTDLR("input$"),

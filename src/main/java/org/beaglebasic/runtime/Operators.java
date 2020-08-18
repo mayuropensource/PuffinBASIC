@@ -64,10 +64,10 @@ public class Operators {
         switch (opCode) {
             case MOD:
                 result.setInt32(v1.getRoundedInt32() % v2.getRoundedInt32());
-                break;
+                return;
             case IDIV:
                 result.setInt32(v1.getRoundedInt32() / v2.getRoundedInt32());
-                break;
+                return;
         }
 
         var dt = result.getDataType();

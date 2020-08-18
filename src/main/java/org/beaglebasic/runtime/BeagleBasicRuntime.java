@@ -126,6 +126,8 @@ public class BeagleBasicRuntime {
         int nextProgramCounter = programCounter + 1;
 
         switch (instruction.opCode) {
+            case COMMENT:
+                break;
             case VARIABLE:
                 break;
             case VALUE:
@@ -396,21 +398,6 @@ public class BeagleBasicRuntime {
                 break;
             case RANDOMIZE_TIMER:
                 Statements.randomizeTimer(random);
-                break;
-            case DEFINT:
-                Statements.defint(ir.getSymbolTable(), instruction);
-                break;
-            case DEFLNG:
-                Statements.deflng(ir.getSymbolTable(), instruction);
-                break;
-            case DEFSNG:
-                Statements.defsng(ir.getSymbolTable(), instruction);
-                break;
-            case DEFDBL:
-                Statements.defdbl(ir.getSymbolTable(), instruction);
-                break;
-            case DEFSTR:
-                Statements.defstr(ir.getSymbolTable(), instruction);
                 break;
             case SGN:
                 Functions.sgn(ir.getSymbolTable(), instruction);

@@ -3,10 +3,10 @@ package org.beaglebasic.domain;
 import it.unimi.dsi.fastutil.chars.Char2ObjectMap;
 import it.unimi.dsi.fastutil.chars.Char2ObjectOpenHashMap;
 import org.beaglebasic.domain.STObjects.BeagleBasicDataType;
-import org.beaglebasic.error.BeagleBasicInternalError;
 import org.beaglebasic.domain.STObjects.STEntry;
 import org.beaglebasic.domain.STObjects.STVariable;
 import org.beaglebasic.domain.Variable.VariableName;
+import org.beaglebasic.error.BeagleBasicInternalError;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;

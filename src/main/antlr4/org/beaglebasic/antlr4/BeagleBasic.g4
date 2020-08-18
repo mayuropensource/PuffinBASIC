@@ -97,8 +97,8 @@ func
     | ASC  LPAREN expr RPAREN                               # FuncAsc
     | SIN  LPAREN expr RPAREN                               # FuncSin
     | COS  LPAREN expr RPAREN                               # FuncCos
-    | TAN  LPAREN expr RPAREN                               # FuncAtn
-    | ATN  LPAREN expr RPAREN                               # FuncTan
+    | TAN  LPAREN expr RPAREN                               # FuncTan
+    | ATN  LPAREN expr RPAREN                               # FuncAtn
     | SQR  LPAREN expr RPAREN                               # FuncSqr
     | CINT LPAREN expr RPAREN                               # FuncCint
     | CLNG LPAREN expr RPAREN                               # FuncClng
@@ -325,23 +325,23 @@ randomizetimerstmt
     ;
 
 defintstmt
-    : DEFINT lr=(LETTER | LETTERRANGE) (COMMA lr=(LETTER | LETTERRANGE))*
+    : DEFINT LETTERRANGE (COMMA LETTERRANGE)*
     ;
 
 deflngstmt
-    : DEFLNG lr=(LETTER | LETTERRANGE) (COMMA lr=(LETTER | LETTERRANGE))*
+    : DEFLNG LETTERRANGE (COMMA LETTERRANGE)*
     ;
 
 defsngstmt
-    : DEFSNG lr=(LETTER | LETTERRANGE) (COMMA lr=(LETTER | LETTERRANGE))*
+    : DEFSNG LETTERRANGE (COMMA LETTERRANGE)*
     ;
 
 defdblstmt
-    : DEFDBL lr=(LETTER | LETTERRANGE) (COMMA lr=(LETTER | LETTERRANGE))*
+    : DEFDBL LETTERRANGE (COMMA LETTERRANGE)*
     ;
 
 defstrstmt
-    : DEFSTR lr=(LETTER | LETTERRANGE) (COMMA lr=(LETTER | LETTERRANGE))*
+    : DEFSTR LETTERRANGE (COMMA LETTERRANGE)*
     ;
 
 middlrstmt

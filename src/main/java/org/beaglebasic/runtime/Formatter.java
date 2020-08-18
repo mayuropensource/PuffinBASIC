@@ -221,7 +221,7 @@ public class Formatter {
                 result = (isNegative ? '-' : '+') + result;
             }
             // Add minus prefix
-            if (isNegative && !minusSuffix) {
+            if (isNegative && !minusSuffix && !result.startsWith("-")) {
                 result = '-' + result;
             }
             // Add sign suffix
