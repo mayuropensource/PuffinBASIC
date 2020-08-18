@@ -128,6 +128,7 @@ func
     | INSTR LPAREN expr COMMA expr (COMMA expr)? RPAREN     # FuncInstr
     | RND                                                   # FuncRnd
     | SGN LPAREN expr RPAREN                                # FuncSgn
+    | ENVIRONDLR LPAREN expr RPAREN                         # FuncEnvironDlr
     | TIMER                                                 # FuncTimer
     | STRINGDLR LPAREN expr COMMA expr RPAREN               # FuncStringDlr
     | EOFFN LPAREN expr RPAREN                              # FuncEof
@@ -145,7 +146,7 @@ returnstmt
     ;
 
 printhashusingstmt
-    : PRINTHASH filenum=expr COMMA (USING format=expr SEMICOLON)? printlist
+    : PRINTHASH filenum=expr COMMA USING format=expr SEMICOLON printlist
     ;
 
 printusingstmt
@@ -153,7 +154,7 @@ printusingstmt
     ;
 
 printhashstmt
-    : PRINTHASH filenum=expr COMMA (USING format=expr SEMICOLON)? printlist
+    : PRINTHASH filenum=expr COMMA printlist
     ;
 
 printstmt
@@ -713,6 +714,10 @@ DEFSTR
     : D E F S T R
     ;
 
+ENVIRONDLR
+    : E N V I R O N DOLLAR
+    ;
+
 string
     : STRING
     ;
@@ -846,7 +851,7 @@ number
     ;
 
 integer
-    : (DECIMAL | HEXADECIMAL | OCTAL) AT?
+    : (DECIMAL | HEXADECIMAL | OCTAL) (PERCENT | AT | HASH | EXCLAMATION)?
     ;
 
 PLUS

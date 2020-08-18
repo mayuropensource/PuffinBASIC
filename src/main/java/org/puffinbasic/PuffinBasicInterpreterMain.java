@@ -20,6 +20,8 @@ import org.puffinbasic.parser.PuffinBasicIR;
 import org.puffinbasic.parser.PuffinBasicIRListener;
 import org.puffinbasic.parser.LinenumberListener;
 import org.puffinbasic.parser.LinenumberListener.ThrowOnDuplicate;
+import org.puffinbasic.runtime.Environment;
+import org.puffinbasic.runtime.Environment.SystemEnv;
 import org.puffinbasic.runtime.PuffinBasicRuntime;
 
 import java.io.IOException;
@@ -44,7 +46,7 @@ public final class PuffinBasicInterpreterMain {
         var sourceCode = loadSource(userOptions.filename);
         logTimeTaken("LOAD", t0, userOptions.timing);
 
-        interpretAndRun(userOptions, sourceCode, System.out);
+        interpretAndRun(userOptions, sourceCode, System.out, new SystemEnv());
     }
 
     private static UserOptions parseCommandLineArgs(String... args) {
@@ -100,7 +102,8 @@ public final class PuffinBasicInterpreterMain {
     public static void interpretAndRun(
             UserOptions userOptions,
             String sourceCode,
-            PrintStream out)
+            PrintStream out,
+            Environment env)
     {
         Instant t1 = Instant.now();
         var sortedInput = syntaxCheckAndSortByLineNumber(sourceCode,
@@ -127,7 +130,7 @@ public final class PuffinBasicInterpreterMain {
 
         log("RUN", userOptions.timing);
         Instant t3 = Instant.now();
-        run(ir, out);
+        run(ir, out, env);
         logTimeTaken("RUN", t3, userOptions.timing);
     }
 
@@ -143,8 +146,8 @@ public final class PuffinBasicInterpreterMain {
         log("[" + tag + "] time taken = " + timeSec + " s", log);
     }
 
-    private static void run(PuffinBasicIR ir, PrintStream out) {
-        var runtime = new PuffinBasicRuntime(ir, out);
+    private static void run(PuffinBasicIR ir, PrintStream out, Environment env) {
+        var runtime = new PuffinBasicRuntime(ir, out, env);
         runtime.run();
     }
 

@@ -87,9 +87,9 @@ public class PuffinBasicIR {
         RIGHTDLR("right$"),
         INSTR0("instr0"),
         INSTR("instr"),
-        MIDDLR0("middlr0"),
-        MIDDLR("middlr"),
-        MIDDLR_STMT("middlr_stmt"),
+        MIDDLR0("mid$0"),
+        MIDDLR("mid$"),
+        MIDDLR_STMT("mid$_stmt"),
         RND("rnd"),
         SGN("sgn"),
         TIMER("timer"),
@@ -118,6 +118,7 @@ public class PuffinBasicIR {
         RESTORE("restore"),
         DATA("data"),
         READ("read"),
+        ENVIRONDLR("environ$"),
         ;
 
         public final String repr;

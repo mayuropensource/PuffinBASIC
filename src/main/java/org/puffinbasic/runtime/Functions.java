@@ -522,6 +522,16 @@ public class Functions {
         symbolTable.get(instruction.result).getValue().setString(new String(read));
     }
 
+    public static void environdlr(
+            Environment env,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var envvar = symbolTable.get(instruction.op1).getValue().getString();
+        var result = env.get(envvar);
+        symbolTable.get(instruction.result).getValue().setString(result);
+    }
+
     private static void throwUnsupportedType(PuffinBasicDataType type) {
         throw new PuffinBasicInternalError(
                 "Data type " + type + " is not supported"

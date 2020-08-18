@@ -48,6 +48,7 @@ import static org.puffinbasic.error.PuffinBasicSemanticError.ErrorCode.NEXT_WITH
 import static org.puffinbasic.error.PuffinBasicSemanticError.ErrorCode.WHILE_WITHOUT_WEND;
 import static org.puffinbasic.file.PuffinBasicFile.DEFAULT_RECORD_LEN;
 import static org.puffinbasic.parser.LinenumberListener.parseLinenum;
+import static org.puffinbasic.runtime.Types.unquote;
 
 /**
  * <PRE>
@@ -285,6 +286,8 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         final int id;
         if (ctx.integer() != null) {
             final boolean isLong = ctx.integer().AT() != null;
+            final boolean isDouble = ctx.integer().HASH() != null;
+            final boolean isFloat = ctx.integer().EXCLAMATION() != null;
             final String strValue;
             final int base;
             if (ctx.integer().HEXADECIMAL() != null) {
@@ -298,11 +301,12 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                 strValue = ctx.integer().DECIMAL().getText();
                 base = 10;
             }
-            if (isLong) {
-                id = ir.getSymbolTable().addTmp(INT64,
-                        entry -> entry.getValue().setInt64(Numbers.parseInt64(strValue, base, () -> getCtxString(ctx))));
+            if (isLong || isDouble) {
+                long parsed = Numbers.parseInt64(strValue, base, () -> getCtxString(ctx));
+                id = ir.getSymbolTable().addTmp(isLong ? INT64 : DOUBLE,
+                        entry -> entry.getValue().setInt64(parsed));
             } else {
-                id = ir.getSymbolTable().addTmp(INT32,
+                id = ir.getSymbolTable().addTmp(isFloat ? FLOAT : INT32,
                         entry -> entry.getValue().setInt32(Numbers.parseInt32(strValue, base, () -> getCtxString(ctx))));
             }
         } else if (ctx.FLOAT() != null) {
@@ -487,7 +491,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
 
     @Override
     public void exitExprString(PuffinBasicParser.ExprStringContext ctx) {
-        var text = Types.unquote(ctx.string().STRING().getText());
+        var text = unquote(ctx.string().STRING().getText());
         var id = ir.getSymbolTable().addTmp(STRING,
                 entry -> entry.getValue().setString(text));
         copyAndRegisterExprResult(ctx, ir.addInstruction(
@@ -1018,6 +1022,17 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
                 OpCode.EOF, fileNumber.result, NULL_ID,
                 ir.getSymbolTable().addTmp(INT32, c -> {})));
+    }
+
+    @Override
+    public void exitFuncEnvironDlr(PuffinBasicParser.FuncEnvironDlrContext ctx) {
+        var expr = lookupInstruction(ctx.expr());
+        Types.assertString(ir.getSymbolTable().get(expr.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.ENVIRONDLR, expr.result, NULL_ID,
+                ir.getSymbolTable().addTmp(STRING, c -> {})));
     }
 
     @Override
@@ -2133,14 +2148,15 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
             ParserRuleContext ctx,
             List<PuffinBasicParser.ExprContext> exprs,
             @Nullable Instruction fileNumber) {
-        int i = 0;
-        for (var exprCtx : exprs) {
+        // if fileNumber != null, skip first instruction
+        for (int i = fileNumber == null ? 0 : 1; i < exprs.size(); i++) {
+            var exprCtx = exprs.get(i);
             var exprInstr = lookupInstruction(exprCtx);
             ir.addInstruction(
                     currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
                     OpCode.WRITE, exprInstr.result, NULL_ID, NULL_ID
             );
-            if (++i < exprs.size()) {
+            if (i + 1 < exprs.size()) {
                 var commaId = ir.getSymbolTable().addTmp(STRING,
                         entry -> entry.getValue().setString(","));
                 ir.addInstruction(
@@ -2201,7 +2217,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
             if (child instanceof PuffinBasicParser.NumberContext) {
                 valueId = lookupInstruction((PuffinBasicParser.NumberContext) child).result;
             } else {
-                var text = Types.unquote(child.getText());
+                var text = unquote(child.getText());
                 valueId = ir.getSymbolTable().addTmp(STRING, e -> e.getValue().setString(text));
             }
             ir.addInstruction(
@@ -2224,11 +2240,12 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
     }
 
     private static FileOpenMode getFileOpenMode(PuffinBasicParser.Filemode1Context filemode1) {
-        if (filemode1 == null || filemode1.getText().equalsIgnoreCase("r")) {
+        var mode = filemode1 != null ? unquote(filemode1.getText()) : null;
+        if (mode == null || mode.equalsIgnoreCase("r")) {
             return FileOpenMode.RANDOM;
-        } else if (filemode1.getText().equalsIgnoreCase("i")) {
+        } else if (mode.equalsIgnoreCase("i")) {
             return FileOpenMode.INPUT;
-        } else if (filemode1.getText().equalsIgnoreCase("o")) {
+        } else if (mode.equalsIgnoreCase("o")) {
             return FileOpenMode.OUTPUT;
         } else {
             return FileOpenMode.APPEND;

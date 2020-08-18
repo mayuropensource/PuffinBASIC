@@ -186,7 +186,9 @@ public class PuffinBasicRandomAccessFile implements PuffinBasicFile {
         } catch (IOException e) {
             throw new PuffinBasicRuntimeError(
                     IO_ERROR,
-                    "Failed to read from file '" + filename + "', error: " + e.getMessage()
+                    "Failed to read from file '" + filename
+                            + ", recordNumber: " + recordNumber
+                            + "', error: " + e.getMessage()
             );
         }
 

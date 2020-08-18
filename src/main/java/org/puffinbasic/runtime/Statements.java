@@ -129,10 +129,10 @@ public class Statements {
             PuffinBasicSymbolTable symbolTable,
             Instruction instruction)
     {
-        if (instruction.op2 == NULL_ID) {
+        if (instruction.op1 == NULL_ID) {
             printBuffer.flush(files.sys);
         } else {
-            var fileNumber = symbolTable.get(instruction.op2).getValue().getInt32();
+            var fileNumber = symbolTable.get(instruction.op1).getValue().getInt32();
             printBuffer.flush(files.get(fileNumber));
         }
     }
@@ -326,9 +326,11 @@ public class Statements {
             List<Instruction> instructions,
             Instruction instruction)
     {
+        boolean printPrompt = false;
         if (instruction.op1 != NULL_ID) {
             var prompt = symbolTable.get(instruction.op1).getValue().getString();
             files.sys.print(prompt);
+            printPrompt = true;
         }
         final PuffinBasicFile file;
         if (instruction.op2 != NULL_ID) {
@@ -338,11 +340,20 @@ public class Statements {
             file = files.sys;
         }
 
-        CSVRecord record;
+        CSVRecord record = null;
         boolean retry = false;
         do {
             if (retry) {
-                System.err.println("?Redo from start");
+                if (printPrompt) {
+                    System.err.println("?Redo from start");
+                } else {
+                    throw new PuffinBasicRuntimeError(
+                            IO_ERROR,
+                            "Record mismatch: expected=" + instructions.size()
+                                    + ", found in file=" + record.size()
+                                    +", record: " + record
+                    );
+                }
             }
             CSVParser parser;
             try {

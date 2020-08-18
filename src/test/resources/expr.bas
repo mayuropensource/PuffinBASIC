@@ -1,7 +1,7 @@
 10 print (10 + 4) * (9 - 2)
 20 PRINT 6 ^ 2
 30 PRINT 5 MOD 2
-40 PRINT 10 / 3
+40 PRINT 10# / 3
 50 PRINT 10 \ 3
 60 print 10 < 20, 10 <= 20, 10 = 20, 10 <> 20, 10 > 20, 10 >= 20
 70 print NOT 0, NOT -1

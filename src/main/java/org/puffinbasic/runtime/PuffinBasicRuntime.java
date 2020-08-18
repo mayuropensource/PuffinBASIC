@@ -45,10 +45,12 @@ public class PuffinBasicRuntime {
     private PuffinBasicFiles files;
     private ReadData readData;
     private final PrintStream out;
+    private final Environment env;
 
-    public PuffinBasicRuntime(PuffinBasicIR ir, PrintStream out) {
+    public PuffinBasicRuntime(PuffinBasicIR ir, PrintStream out, Environment env) {
         this.ir = ir;
         this.out = out;
+        this.env = env;
     }
 
     private Int2IntMap computeLabelToInstructionNumber(List<Instruction> instructions) {
@@ -452,6 +454,9 @@ public class PuffinBasicRuntime {
                 break;
             case READ:
                 Statements.read(readData, ir.getSymbolTable(), instruction);
+                break;
+            case ENVIRONDLR:
+                Functions.environdlr(env, ir.getSymbolTable(), instruction);
                 break;
         }
 
