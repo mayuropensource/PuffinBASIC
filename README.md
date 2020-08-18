@@ -76,7 +76,7 @@ $ mvn exec:java -Dexec.args="samples/graph.bas"
 ## Working with Intellij
 
 Import the pom.xml file in Intellij.
-After importing, if you make a chane to the antlr4 grammas,
+After importing, if you make a change to the antlr4 grammar,
 regenerate the antlr4 code using following command and then reload the changes.
 ```
 $ mvn generate-sources
@@ -85,7 +85,7 @@ $ mvn generate-sources
 ## How it works?
 
 1. Uses antlr4 to define the language grammar.
-2. It parses the program using antlr4 lexer and parser and generates intermediate representation (IR) of the source code. 
+2. It parses the program using antlr4 lexer+parser and generates intermediate representation (IR) of the source code. 
 During parsing, it populates a symbol table.
 3. At runtime, it runs the IR instructions using the symbol table.
 
@@ -233,9 +233,8 @@ Example:
 
 ```
 ABS(-1)
+1
 ```
-
-=```1```
 
 #### EXP
 
@@ -263,9 +262,8 @@ Example:
 
 ```
 FIX(-2.3)
+-2
 ```
-
-=```-2```
 
 #### INT
 
@@ -281,9 +279,8 @@ Example:
 
 ```
 INT(-2.3)
+-3
 ```
-
-=```-3```
 
 #### LOG
 
@@ -370,9 +367,8 @@ Example:
 
 ```
 ASC("A")
+65
 ```
-
-=```65```
 
 #### CHR$
 
@@ -388,9 +384,8 @@ Example:
 
 ```
 CHR$(65)
+"A"
 ```
-
-=```"A"```
 
 #### HEX$
 
@@ -406,9 +401,8 @@ Example:
 
 ```
 HEX$(16)
+"10"
 ```
-
-=```10```
 
 #### OCT$
 
@@ -424,9 +418,8 @@ Example:
 
 ```
 OCT$(8)
+"10"
 ```
-
-=```10```
 
 #### INSTR
 
@@ -446,9 +439,8 @@ Example:
 
 ```
 INSTR("12FOO34FOO", "FOO")
+3
 ```
-
-=```3```
 
 #### LEFT$
 
@@ -464,9 +456,8 @@ Example:
 
 ```
 LEFT$("ABCD", 2)
+"AB"
 ```
-
-=```"AB"```
 
 #### LEN
 
@@ -482,9 +473,8 @@ Example:
 
 ```
 LEN("ABC")
+3
 ```
-
-=```3```
 
 #### MID$
 
@@ -513,9 +503,8 @@ Example:
 
 ```
 RIGHT("ABCD", 2)
+"CD"
 ```
-
-=```"CD"```
 
 #### SPACE$
 
