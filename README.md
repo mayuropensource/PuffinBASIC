@@ -70,7 +70,7 @@ $ mvn test
 
 ## Run using Maven
 ```
-$ mvn exec:java -Dexec.args="samples/forloop.bas"
+$ mvn exec:java -Dexec.args="samples/graph.bas"
 ```
 
 ## Working with Intellij
