@@ -141,28 +141,29 @@ PuffinBASIC can raise following kind of errors:
 
 ## Data Types
 
-1. int32 (32-bit signed integer): Int32 constants can have an optional '%' suffix.
+1. Int32 (32-bit signed integer): Int32 constants can have an optional '%' suffix.
 Int32 constants can be decimal, octal or hexadecimal.
 Octal numbers must have '&' or '&O' prefix, e.g. &12 or &O12.
 Hexadecimal numbers must have '&H' prefix, e.g. &HFF.
 
-1. int64 (64-bit signed integer): Int64 constants must have '@' suffix.
+1. Int64 (64-bit signed integer): Int64 constants must have '@' suffix.
 Int64 constants can be decimal, octal or hexadecimal.
 
-1. float32 (32-bit signed IEEE-754 floating-point): Float32 constants can have an optional '!' suffix.
+1. Float32 (32-bit signed IEEE-754 floating-point): Float32 constants can have an optional '!' suffix.
 Float32 constants can use a decimal format or scientific notations, e.g. 1.2 or 1.2E-2.
 
-1. float64 (64-bit signed IEEE-754 floating-point): Float64 constants can have an optional '#' suffix.
+1. Float64 (64-bit signed IEEE-754 floating-point): Float64 constants can have an optional '#' suffix.
 Float32 constants can use a decimal format or scientific notations, e.g. 1.2 or 1.2E-2.
 
 1. String: String stores any non-newline (or carriage return) ASCII character. 
 A string must be enclosed within double-quotes, e.g. "A TEST, STRING".
-There is no limit of length of a string.
+There is no limit on the length of a string.
 
 ### Type conversion
 
 Numeric types are converted into one another via implicit type conversion.
 String and numeric types are not implicitly converted. 
+Use STR$ or VAL functions for conversion between String and numeric values.
 
 ## Variables
 
