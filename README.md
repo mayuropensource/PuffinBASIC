@@ -198,7 +198,7 @@ Arithmetic:
 1. '-'    Unary minus
 1. '*'    Multiplication
 1. '/'    Floating point division
-1. '\'    Integer division
+1. '\\'    Integer division
 1. 'mod'  Modulus
 1. '+'    Addition
 1. '-'    Subtraction
