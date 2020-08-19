@@ -350,7 +350,7 @@ ATAN(value)
 
 These functions are used for numeric type conversion.
 CINT(n) converts the given numeric value to int32 with bounds check.
-CLONG(n) converts the given numeric value to int64 with bounds check.
+CLNG(n) converts the given numeric value to int64 with bounds check.
 For CINT and CLNG, if the value is out of bounds, a DATA_OUT_OF_RANGE runtime error is thrown.
 
 CSNG(n) converts the given numeric value to float32.
