@@ -86,9 +86,15 @@ $ mvn generate-sources
 ## How it works?
 
 1. Uses antlr4 to define the language grammar.
-2. It parses the program using antlr4 lexer+parser and generates intermediate representation (IR) of the source code. 
+1. It parses the program using antlr4 lexer+parser and generates intermediate representation (IR) of the source code. 
 During parsing, it populates a symbol table.
-3. At runtime, it runs the IR instructions using the symbol table.
+1. At runtime, it runs the IR instructions using the symbol table.
+
+## Performance
+
+PuffinBASIC is an interpreter, and it should not be expected to have very good performance characteristics.
+Certain operations such as PRINT USING, INPUT, etc are not optimized for performance.
+We have not benchmarked PuffinBASIC primitives.
 
 # Reference
 
@@ -97,8 +103,8 @@ During parsing, it populates a symbol table.
 ### Indirect Mode
 
 1. Write a program in your favorite editor.
-2. Save it in a text file with a '.bas' extension (not a requirement).
-3. Use maven or PuffinBasicInterpreterMain to run the program.
+1. Save it in a text file with a '.bas' extension (not a requirement).
+1. Use maven or PuffinBasicInterpreterMain to run the program.
 
 PuffinBASIC supports indirect mode only.
 
@@ -125,6 +131,14 @@ Constants, variables and user defined functions are case-sensitive.
 
 PuffinBASIC does not support BASIC Commands, such as LIST, RUN, etc.
 
+## Errors
+
+PuffinBASIC can raise following kind of errors:
+1. PuffinBasicSyntaxError: if source code has lexical or parsing error, e.g. missing parenthesis.
+1. PuffinBasicSemanticError: if source code has a semantic error, e.g. data type mismatch. 
+1. PuffinBasicRuntimeError: if a runtime error happens, e.g. division by zero, IO error, etc.
+1. PuffinBasicInternalError: if there is a problem with PuffinBASIC implementation.
+
 ## Data Types
 
 1. int32 (32-bit signed integer): Int32 constants can have an optional '%' suffix.
@@ -132,16 +146,16 @@ Int32 constants can be decimal, octal or hexadecimal.
 Octal numbers must have '&' or '&O' prefix, e.g. &12 or &O12.
 Hexadecimal numbers must have '&H' prefix, e.g. &HFF.
 
-2. int64 (64-bit signed integer): Int64 constants must have '@' suffix.
+1. int64 (64-bit signed integer): Int64 constants must have '@' suffix.
 Int64 constants can be decimal, octal or hexadecimal.
 
-3. float32 (32-bit signed IEEE-754 floating-point): Float32 constants can have an optional '!' suffix.
+1. float32 (32-bit signed IEEE-754 floating-point): Float32 constants can have an optional '!' suffix.
 Float32 constants can use a decimal format or scientific notations, e.g. 1.2 or 1.2E-2.
 
-4. float64 (64-bit signed IEEE-754 floating-point): Float64 constants can have an optional '#' suffix.
+1. float64 (64-bit signed IEEE-754 floating-point): Float64 constants can have an optional '#' suffix.
 Float32 constants can use a decimal format or scientific notations, e.g. 1.2 or 1.2E-2.
 
-5. String: String stores any non-newline (or carriage return) ASCII character. 
+1. String: String stores any non-newline (or carriage return) ASCII character. 
 A string must be enclosed within double-quotes, e.g. "A TEST, STRING".
 There is no limit of length of a string.
 
@@ -162,7 +176,7 @@ If a suffix is omitted, default data type assumed, the global default is Float64
 
 There are two kinds of variables:
 1. Scalar variable stores a single value, e.g. A%
-2. Array variable stores a multi-dimensional array. An array variable must defined using DIM statement.
+1. Array variable stores a multi-dimensional array. An array variable must defined using DIM statement.
 An array can have any number of dimensions. The minimum array index is 0 and maximum is dimension length - 1.
 
 Example:
@@ -176,40 +190,40 @@ Example:
 Order of operations:
 
 1. Arithmetic
-2. Relational
-3. Logical or bit-wise
+1. Relational
+1. Logical or bit-wise
 
 Arithmetic:
 1. '^'    Exponentiation
-2. '-'    Unary minus
-3. '*'    Multiplication
-4. '/'    Floating point division
-5. '\'    Integer division
-6. 'mod'  Modulus
-7. '+'    Addition
-8. '-'    Subtraction
+1. '-'    Unary minus
+1. '*'    Multiplication
+1. '/'    Floating point division
+1. '\'    Integer division
+1. 'mod'  Modulus
+1. '+'    Addition
+1. '-'    Subtraction
 
 Relational operators return -1 for true and 0 for false.
 Relational operators work with both numbers and Strings.
 
 Relational:
 1. '='    Equals
-2. '<>'   Not equals
-3. '<'    Less than
-4. '>'    Greate than
-5. '<='   Less than or equal
-6. '>='   Greater than or equal
+1. '<>'   Not equals
+1. '<'    Less than
+1. '>'    Greate than
+1. '<='   Less than or equal
+1. '>='   Greater than or equal
 
 If inputs to logical operators is -1 and 0, they return -1 for true and 0 for false.
 Otherwise, logical operators work like bit-wise operators.
 
 Logical or bit-wise:
 1. 'NOT'
-2. 'AND'
-3. 'OR'
-4. 'XOR'
-5. 'EQV'
-6. 'IMP'
+1. 'AND'
+1. 'OR'
+1. 'XOR'
+1. 'EQV'
+1. 'IMP'
 
 ## Functions
 
@@ -334,7 +348,7 @@ ATAN(value)
 
 ### Numeric Conversion Functions
 
-These functions are used to numeric type conversion.
+These functions are used for numeric type conversion.
 CINT(n) converts the given numeric value to int32 with bounds check.
 CLONG(n) converts the given numeric value to int64 with bounds check.
 For CINT and CLNG, if the value is out of bounds, a DATA_OUT_OF_RANGE runtime error is thrown.
@@ -659,4 +673,496 @@ LOF(filenum)
 
 ## Statements
 
-TBA
+### Line
+
+Source code consists of multiple lines.
+
+Each line starts with an integer line number.
+The line number is followed by one or more statements and ends with an optional comment.
+Multiple statements in a line can be separated by colon (':').
+
+```
+10 LET A = 1 : PRINT A REM COMMENT
+20 REM COMMENT
+``` 
+
+### Comments
+
+A comment starts with REM or single quote ("'").
+
+Syntax:
+```
+REM USER TEXT
+' COMMENT TEXT
+```
+
+### Variables
+
+#### Assignment
+
+Scalar variables are declared and assigned value using LET statement.
+The LET keyword is optional.
+
+Syntax:
+
+```
+LET variable = expr
+variable = expr
+```
+
+Example:
+
+```
+LET A% = 1
+B$ = "ABC"
+```
+
+#### Arrays
+
+Use DIM keyword to declare an array variable.
+
+Syntax:
+
+```
+DIM variable(dim1, dim2, ...)
+```
+
+Example:
+
+```
+DIM A%(3, 5)
+```
+
+The above statements declares a 3x5 Int32 variable.
+
+### Default Variable Data Type
+
+The following keywords can be used to declare default data type of a variable,
+(used when a variable doesn't have a suffix).
+
+Syntax:
+
+```
+DEFINT letter-letter[, letter-letter]
+DEFLNG letter-letter[, letter-letter]
+DEFSNG letter-letter[, letter-letter]
+DEFDBL letter-letter[, letter-letter]
+```
+
+Example:
+
+```
+DEFINT A-C
+```
+
+The above example declares variables starting with A, B and C as Int32.
+
+### Control Statements
+
+#### IF-THEN-ELSE
+
+In case of nested IF-THEN-ELSE, ELSE matches the closest IF statement.
+
+Syntax:
+
+```
+IF expression THEN statements ELSE statements
+```
+
+Example:
+
+```
+IF A > 1 THEN PRINT "A > 1" ELSE PRINT "A <= 1"
+```
+
+#### IF-GOTO-ELSE
+
+Syntax:
+
+```
+IF expression GOTO linenumber ELSE statements
+```
+
+Example:
+
+```
+20 IF A > 1 GOTO 100 ELSE 200
+```
+
+#### GOTO
+
+Jump to the given line number.
+
+Syntax:
+
+```
+20 GOTO 100
+```
+
+#### FOR-NEXT-STEP
+
+For loop.
+
+Syntax:
+
+```
+FOR variable = expression TO expression [STEP expression]
+...
+NEXT [variable]
+```
+
+Example:
+
+```
+10 FOR I% = 1 TO 10 STEP 2
+20 PRINT I%
+30 NEXT I%
+```
+
+#### WHILE-WEND
+
+While loop.
+
+Syntax:
+
+```
+WHILE expression
+...
+WEND
+```
+
+Example:
+
+```
+20 WHILE A < 10
+30 A = A + 1
+40 PRINT A
+50 WEND
+```
+
+#### END
+
+Marks the end of the program.
+
+#### GOSUB-RETURN
+
+Subroutines should be defined at the end of the program.
+Subroutines share the same scope as the main program.
+
+Syntax:
+
+```
+GOSUB linenum
+RETURN [linenum]
+```
+
+Example:
+
+```
+...
+20 GOSUB 110
+...
+100 END
+110 REM subrouting 1
+...
+200 RETURN
+```
+
+### User Defined Functions
+
+A UDF executes an expression.
+The UDF returns the result of the expression.
+The UDF can declare local scoped parameters.
+Parameters are locally scoped but UDF can access variables from global scope.
+Recursive UDF is not supported.
+
+Syntax:
+
+```
+DEF variable(variables) = expr
+```
+
+The variable name must start with 'FN' and may have a suffix to declare the return data type.
+
+
+Example:
+
+```
+DEF FNsquare%(X%) = X% * X%
+```
+
+The above example computes the square of Int32 parameter X%.
+
+### READ-DATA-RESTORE
+
+DATA keyword is used to define constant values.
+The READ keyword is used to read the constant values sequentially.
+When all the values are read, the read cursor can be reset by using RESTORE statement.
+
+Syntax:
+
+```
+DATA constants
+...
+DATA constants
+
+READ variables
+RESTORE
+READ variables
+```
+
+Example:
+
+```
+10 DATA "STRING", 2, 5.2
+20 READ A$, B%, C#
+30 RESRORE
+40 READ A$, B%, C#
+```
+
+### Input Output
+
+#### PRINT
+
+Print the expressions to standard out.
+
+Syntax:
+
+```
+PRINT expressions
+```
+
+The expressions can be either separated by comma or semi-colon.
+
+Example:
+
+```
+PRINT "AB", 1, 2
+PRINT "AB"; 1; 2
+PRINT "AB", 1, 2,
+```
+
+If there is no comma at the end of PRINT statement, a new-line is printed.
+If there is a comma at the end of PRINT statement, no new-line is printed.
+
+#### PRINT USING
+
+Formats each expression using the given format and prints to standard out.
+
+Syntax:
+
+```
+PRINT USING format; expressions
+```
+
+The format is a string expression.
+
+##### Formatting String expressions
+- '!' Prints the first character of each String expression.
+- '&' Prints the entire String for each String expression.
+- '\\n spaces\\' Prints n+2 characters from each String expression.
+
+##### Formatting numeric expressions
+- '#' specifies 1 digit position.
+- '.' specifies decimal point.
+- ',' adds comma in formatted number.
+      
+###### First optional prefix:
+- '+' prefix will add a sign prefix.
+- '-' prefix will add a minus prefix for negative number.
+ 
+###### Next optional prefix:
+- '\*\*' causes leading spaces to be filled with '*' and specifies 2 more digit positions.
+- '\*\*$' adds dollar prefix, causes leading spaces to be filled with '*' and specifies 2 more digit positions.
+- '$$' add dollar prefix and specifies 1 more difit position.
+      
+###### First optional suffix:
+- '+' suffix will add a sign suffix.
+- '-' suffix will add a minus suffix for negative number.
+      
+###### Next optional suffix:
+- '^^^^' suffix indicates scientific notation.
+
+Examples:
+
+```
+PRINT USING "\ \"; "123456"; "abcdef"
+PRINT using "###.##"; 2.3
+PRINT using "**###.##"; 2.3
+PRINT using "**$###.##"; 2.3
+```
+
+#### WRITE
+
+Prints expressions on standard out.
+It separates each expression with a comma.
+Strings are surrounded with double quotes.
+
+#### INPUT
+
+Reads user input from standard in and assigns to variables.
+
+Syntax:
+
+```
+INPUT [prompt ;] variables
+```
+
+Since PuffinBASIC is platform independent, user must press ENTER to mark the end of input.
+After reading a line from standard in, INPUT will split the line using commas
+into separate values (line a CSV line) and assign to each variable.
+If the number of values don't match number of variables, the user will be
+asked to enter the values again.
+
+Example:
+
+```
+INPUT "Enter two numbers: "; A%, B%
+```
+
+#### LINE INPUT
+
+Reads one line from standard in.
+
+Syntax:
+
+```
+LINE INPUT [prompt ;] stringVariable
+```
+
+Example:
+
+```
+LINE INPUT "Enter a line: "; A$
+```
+
+### File Handling
+
+#### Random Access File
+
+Random access file allows reading and writing data in fixed length records.
+The default record length is 128.
+
+Syntax:
+
+```
+OPEN "R", #filenum, filename[, recordlen]
+OPEN filename FOR RANDOM AS #filenum LEN=recordlen
+FIELD#filenum, int as variable, int as variable, ...
+LSET variable = expr
+...
+PUT#filenum, recordnum
+GET#filenum, recordnum
+CLOSE#filenum
+```
+
+Example:
+
+```
+30 OPEN "R", #1, FILENAME$, 24
+40 FIELD#1, 8 AS A$, 8 AS B$, 8 AS C$
+50 FOR I% = 1 TO 5
+60 LSET A$ = MKI$(I%)
+70 LSET B$ = MKI$(I% + 1)
+80 LSET C$ = MKI$(I% + 2)
+90 PUT #1
+100 PRINT LOC(1), LOF(1)
+110 NEXT I%
+120 FOR I% = 1 TO 5
+130 GET #1, I% - 1
+140 PRINT A$, B$, C$, LOC(1), LOF(1)
+150 NEXT
+160 CLOSE
+```
+
+#### Sequential Access Files
+
+Syntax:
+
+```
+OPEN "O", #filenum, filename
+OPEN "A", #filenum, filename
+OPEN "I", #filenum, filename
+
+OPEN filename FOR OUTPUT AS #filenum
+OPEN filename FOR APPEND AS #filenum
+OPEN filename FOR INPUT AS #filenum
+
+WRITE#filenum, expr, expr, ...
+PRINT#filenum, expr, expr, ...
+
+CLOSE#filenum
+
+```
+
+When writing a sequential file, prefer using WRITE# over PRINT# statements.
+
+Example: Writing a sequential file
+
+```
+20 OPEN "O", #1, FILENAME$
+30 FOR I% = 1 TO 5
+40 WRITE#1, "ABC" + STR$(I%), 123 + I%, 456@ + I%, 1.2 + I%
+50 NEXT
+60 FOR I% = 1 TO 5
+70 PRINT#1, CHR$(34), "ABC" + STR$(I%), CHR$(34), ",", 123 + I%, ",", 456@ + I%, ",", 1.2 + I%
+80 NEXT
+90 CLOSE #1
+```
+
+Example: Reading a sequential file
+
+```
+100 OPEN FILENAME$ FOR INPUT AS #1
+110 FOR I% = 1 TO 10
+120 INPUT#1, A$, B%, C@, D#
+130 PRINT A$, B%, C@, D#
+140 NEXT
+150 CLOSE
+```
+
+### DATE TIME
+
+#### DATE$
+
+System date can be read using DATE$ (like a variable).
+Date can be set to a String (for the duration of program only).
+
+Syntax:
+
+```
+v = DATE$
+DATE$ = "YYYY-mm-dd"
+```
+
+#### TIME$
+
+System time can be read using TIME$ (like a variable).
+Time can be set to a String (for the duration of program only).
+
+```
+TIME$ = "HH:MM:SS"
+v = TIME$
+```
+
+### MID$
+
+### RANDOMIZE
+
+Sets the random seed.
+
+Syntax:
+
+```
+RANDOMIZE expr
+RANDOMIZE TIMER
+```
+
+The expression is an Int64 expression.
+TIMER uses the current time in seconds.
+
+Example:
+
+```
+RANDOMIZE 1002
+```
