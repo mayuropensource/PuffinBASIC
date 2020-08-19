@@ -72,6 +72,9 @@ $ mvn test
 ## Run using Maven
 ```
 $ mvn exec:java -Dexec.args="samples/graph.bas"
+
+# Windows Shell
+$ mvn exec:java -D"exec.args"="samples/graph.bas"
 ```
 
 ## Working with Intellij
