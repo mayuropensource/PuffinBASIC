@@ -1,25 +1,25 @@
 package org.puffinbasic;
 
 import org.junit.Before;
+import org.junit.Test;
 import org.puffinbasic.PuffinBasicInterpreterMain.UserOptions;
 import org.puffinbasic.error.PuffinBasicRuntimeError;
-import org.junit.Test;
 import org.puffinbasic.runtime.Environment;
 import org.puffinbasic.runtime.Environment.SystemEnv;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 
+import static org.junit.Assert.assertEquals;
 import static org.puffinbasic.PuffinBasicInterpreterMain.interpretAndRun;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.IO_ERROR;
-import static org.junit.Assert.assertEquals;
 
 public class IntegrationTest {
 
@@ -149,22 +149,22 @@ public class IntegrationTest {
     }
 
     private String loadSourceCodeFromResource(String filename) {
-        return PuffinBasicInterpreterMain.loadSource(
-                getClass().getClassLoader().getResource(filename).getFile());
+        return loadResource(
+                getClass().getClassLoader().getResource(filename));
     }
 
     private String loadOutputFromResource(String filename) {
-        return loadOutput(
-                getClass().getClassLoader().getResource(filename).getFile());
+        return loadResource(
+                getClass().getClassLoader().getResource(filename));
     }
 
-    private static String loadOutput(String filename) {
-        try (InputStream in = new BufferedInputStream(new FileInputStream(filename))) {
+    private static String loadResource(URL resource) {
+        try (InputStream in = new BufferedInputStream(resource.openStream())) {
             return new String(in.readAllBytes());
         } catch (IOException e) {
             throw new PuffinBasicRuntimeError(
                     IO_ERROR,
-                    "Failed to read source code: " + filename + ", error: " + e.getMessage()
+                    "Failed to read file: " + resource + ", error: " + e.getMessage()
             );
         }
     }
