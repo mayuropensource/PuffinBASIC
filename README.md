@@ -334,7 +334,7 @@ SQR(n)
 SIN, COS and TAN take angle in radians and return sine, cosine and tangent of that angle.
 To compute angle in radians, multiply the angle in degrees with pi/180.
 
-ATAN takes a numeric value, computes arc tangent of the value and returns the angle in radians. 
+ATN takes a numeric value, computes arc tangent of the value and returns the angle in radians. 
 To compute angle is degrees, multiply the angle in radians with 180/pi.
 
 Syntax:
@@ -343,7 +343,7 @@ Syntax:
 SIN(radians)
 COS(radians)
 TAN(radians)
-ATAN(value)
+ATN(value)
 ```
 
 ### Numeric Conversion Functions
