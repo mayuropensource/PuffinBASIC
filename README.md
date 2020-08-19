@@ -21,7 +21,7 @@ PuffinBASIC conforms most closely to GWBASIC.
 50   NEXT J%
 60 NEXT I%
 ```
-### Print prime numbers from 1 to 100
+### Print prime numbers between 1 and 100
 
 ```
 10 FOR I% = 1 TO 100
