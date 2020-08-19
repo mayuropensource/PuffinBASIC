@@ -1130,7 +1130,7 @@ Date can be set to a String (for the duration of program only).
 Syntax:
 
 ```
-v = DATE$
+v$ = DATE$
 DATE$ = "YYYY-mm-dd"
 ```
 
@@ -1141,7 +1141,7 @@ Time can be set to a String (for the duration of program only).
 
 ```
 TIME$ = "HH:MM:SS"
-v = TIME$
+v$ = TIME$
 ```
 
 ### MID$
