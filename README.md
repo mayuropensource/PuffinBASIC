@@ -1038,7 +1038,7 @@ LINE INPUT "Enter a line: "; A$
 
 ### File Handling
 
-#### Random Access File
+#### Random Access Files
 
 Random access file allows reading and writing data in fixed length records.
 The default record length is 128.
@@ -1092,7 +1092,6 @@ WRITE#filenum, expr, expr, ...
 PRINT#filenum, expr, expr, ...
 
 CLOSE#filenum
-
 ```
 
 When writing a sequential file, prefer using WRITE# over PRINT# statements.
