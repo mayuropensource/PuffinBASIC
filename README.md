@@ -90,8 +90,7 @@ PuffinBASIC conforms most closely to GWBASIC.
 1000 SLEEP 5000
 ```
 
-<img src="samples/puffin_graphics.png" width="32"/>
-![Image](samples/puffin_graphics.png?raw=true)
+<img src="samples/puffin_graphics.png" width="512"/>
 
 ## Dependencies
 JDK 11+, Maven, antlr4
