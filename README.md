@@ -1508,5 +1508,5 @@ Example:
 K$ = INKEY$
 
 ' Check Up Arrow
-IF K$ = "0" + CHR$(38) THEN y2% = y% - 5
+IF K$ = CHR$(0) + CHR$(38) THEN y2% = y% - 5
 ```
