@@ -65,6 +65,9 @@ public final class PuffinBasicInterpreterMain {
         parser.addArgument("-t", "--timing")
                 .help("Print timing")
                 .action(Arguments.storeTrue());
+        parser.addArgument("-g", "--graphics")
+                .help("Enable graphics")
+                .action(Arguments.storeTrue());
         parser.addArgument("file").nargs(1);
         Namespace res = null;
         try {
@@ -82,11 +85,12 @@ public final class PuffinBasicInterpreterMain {
                 res.getBoolean("list"),
                 res.getBoolean("ir"),
                 res.getBoolean("timing"),
+                res.getBoolean("graphics"),
                 (String) res.getList("file").get(0)
         );
     }
 
-    public static String loadSource(String filename) {
+    private static String loadSource(String filename) {
         var sb = new StringBuilder();
         try (Stream<String> stream = Files.lines(Paths.get(filename), StandardCharsets.US_ASCII)) {
             stream.forEach(s -> sb.append(s).append(System.lineSeparator()));
@@ -99,7 +103,7 @@ public final class PuffinBasicInterpreterMain {
         return sb.toString();
     }
 
-    public static void interpretAndRun(
+    static void interpretAndRun(
             UserOptions userOptions,
             String sourceCode,
             PrintStream out,
@@ -118,7 +122,7 @@ public final class PuffinBasicInterpreterMain {
         log(sortedInput, userOptions.listSourceCode);
 
         Instant t2 = Instant.now();
-        var ir = generateIR(sortedInput);
+        var ir = generateIR(sortedInput, userOptions.graphics);
         logTimeTaken("IR", t2, userOptions.timing);
         log("IR", userOptions.printIR);
         if (userOptions.printIR) {
@@ -151,7 +155,7 @@ public final class PuffinBasicInterpreterMain {
         runtime.run();
     }
 
-    private static PuffinBasicIR generateIR(String input) {
+    private static PuffinBasicIR generateIR(String input, boolean graphics) {
         var in = CharStreams.fromString(input);
         var lexer = new PuffinBasicLexer(in);
         var tokens = new CommonTokenStream(lexer);
@@ -160,7 +164,7 @@ public final class PuffinBasicInterpreterMain {
         var walker = new ParseTreeWalker();
         var symbolTable = new PuffinBasicSymbolTable();
         var ir = new PuffinBasicIR(in, symbolTable);
-        var irListener = new PuffinBasicIRListener(in, ir);
+        var irListener = new PuffinBasicIRListener(in, ir, graphics);
         walker.walk(irListener, tree);
         irListener.semanticCheckAfterParsing();
         return ir;
@@ -187,7 +191,7 @@ public final class PuffinBasicInterpreterMain {
 
         private final String input;
 
-        public ThrowingErrorListener(String input) {
+        ThrowingErrorListener(String input) {
             this.input = input;
         }
 
@@ -222,32 +226,34 @@ public final class PuffinBasicInterpreterMain {
 
     public static final class UserOptions {
 
-        public static UserOptions ofTest() {
+        static UserOptions ofTest() {
             return new UserOptions(
-                    false, false, false, false, null
+                    false, false, false, false, false, null
             );
         }
 
-        public final boolean logOnDuplicate;
-        public final boolean listSourceCode;
-        public final boolean printIR;
-        public final boolean timing;
+        final boolean logOnDuplicate;
+        final boolean listSourceCode;
+        final boolean printIR;
+        final boolean timing;
+        final boolean graphics;
         public final String filename;
 
-        public UserOptions(
+        UserOptions(
                 boolean logOnDuplicate,
                 boolean listSourceCode,
                 boolean printIR,
                 boolean timing,
+                boolean graphics,
                 String filename)
         {
             this.logOnDuplicate = logOnDuplicate;
             this.listSourceCode = listSourceCode;
             this.printIR = printIR;
             this.timing = timing;
+            this.graphics = graphics;
             this.filename = filename;
         }
     }
 
 }
-

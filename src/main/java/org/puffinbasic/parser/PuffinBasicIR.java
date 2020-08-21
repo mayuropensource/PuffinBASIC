@@ -2,8 +2,8 @@ package org.puffinbasic.parser;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.misc.Interval;
-import org.puffinbasic.domain.PuffinBasicSymbolTable;
 import org.jetbrains.annotations.NotNull;
+import org.puffinbasic.domain.PuffinBasicSymbolTable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -119,6 +119,29 @@ public class PuffinBasicIR {
         DATA("data"),
         READ("read"),
         ENVIRONDLR("environ$"),
+        SCREEN0("screen0"),
+        SCREEN("screen"),
+        CIRCLE_xy("circle_xy"),
+        CIRCLE_se("circle_se"),
+        CIRCLE("circle"),
+        SLEEP("sleep"),
+        LINE_x1y1("line_x1y1"),
+        LINE_x2y2("line_x2y2"),
+        LINE("line"),
+        COLOR_RG("color_rg"),
+        COLOR("color"),
+        INKEYDLR("inkey$"),
+        PAINT_RG("paint_rg"),
+        PAINT_B("paint_b"),
+        PAINT("paint"),
+        PSET_RG("pset_rg"),
+        PSET_B("pset_b"),
+        PSET("pset"),
+        GPUT_XY("gput_xy"),
+        GPUT("gput"),
+        GGET_X1Y1("gget_x1y1"),
+        GGET_X2Y2("gget_x2y2"),
+        GGET("gget"),
         ;
 
         public final String repr;

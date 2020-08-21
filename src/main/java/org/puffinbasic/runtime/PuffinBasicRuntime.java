@@ -12,6 +12,7 @@ import org.puffinbasic.parser.PuffinBasicIR;
 import org.puffinbasic.parser.PuffinBasicIR.Instruction;
 import org.puffinbasic.runtime.Arrays.ArrayState;
 import org.puffinbasic.runtime.Formatter.FormatterCache;
+import org.puffinbasic.runtime.GraphicsRuntime.GraphicsState;
 import org.puffinbasic.runtime.Statements.ReadData;
 
 import java.io.PrintStream;
@@ -29,6 +30,7 @@ import static org.puffinbasic.parser.PuffinBasicIR.OpCode.LABEL;
 import static org.puffinbasic.parser.PuffinBasicIR.OpCode.MIDDLR0;
 import static org.puffinbasic.parser.PuffinBasicIR.OpCode.OPEN_FN_FN_0;
 import static org.puffinbasic.parser.PuffinBasicIR.OpCode.OPEN_OM_AM_1;
+import static org.puffinbasic.parser.PuffinBasicIR.OpCode.SCREEN0;
 
 public class PuffinBasicRuntime {
 
@@ -46,6 +48,7 @@ public class PuffinBasicRuntime {
     private ReadData readData;
     private final PrintStream out;
     private final Environment env;
+    private GraphicsState graphicsState;
 
     public PuffinBasicRuntime(PuffinBasicIR ir, PrintStream out, Environment env) {
         this.ir = ir;
@@ -72,7 +75,7 @@ public class PuffinBasicRuntime {
         return instrNum;
     }
 
-    public Int2IntMap computeLineNumberToInstructionNumber(List<Instruction> instructions) {
+    private Int2IntMap computeLineNumberToInstructionNumber(List<Instruction> instructions) {
         var linenumToInstrNum = new Int2IntOpenHashMap();
         int instrNum = 0;
         for (var instruction : instructions) {
@@ -105,6 +108,7 @@ public class PuffinBasicRuntime {
         this.instr0 = new ArrayList<>(4);
         this.files = new PuffinBasicFiles(new SystemInputOutputFile(System.in, out));
         this.readData = processDataInstructions(instructions);
+        this.graphicsState = new GraphicsState();
 
         var numInstructions = instructions.size();
         boolean end = false;
@@ -116,6 +120,7 @@ public class PuffinBasicRuntime {
                 throw new PuffinBasicRuntimeError(e, instruction, ir.getCodeStreamFor(instruction));
             }
         }
+        GraphicsRuntime.end(graphicsState);
     }
 
     private ReadData processDataInstructions(List<Instruction> instructions) {
@@ -323,6 +328,19 @@ public class PuffinBasicRuntime {
             case OPEN_OM_AM_1:
             case FIELD_I:
             case INPUT_VAR:
+            case SCREEN0:
+            case CIRCLE_xy:
+            case CIRCLE_se:
+            case LINE_x1y1:
+            case LINE_x2y2:
+            case COLOR_RG:
+            case PAINT_RG:
+            case PAINT_B:
+            case PSET_RG:
+            case PSET_B:
+            case GPUT_XY:
+            case GGET_X1Y1:
+            case GGET_X2Y2:
                 instr0.add(instruction);
                 break;
             case INSTR: {
@@ -373,7 +391,7 @@ public class PuffinBasicRuntime {
                     throw new PuffinBasicInternalError(
                             "Bad/null instr0: " + instrI + ", expected: " + FIELD_I);
                 }
-                Statements.field(files, ir.getSymbolTable(), new ArrayList<>(instr0), instruction);
+                Statements.field(files, ir.getSymbolTable(), instr0, instruction);
                 instr0.clear();
             }
                 break;
@@ -431,7 +449,7 @@ public class PuffinBasicRuntime {
                         throw new PuffinBasicInternalError(
                                 "Bad/null instr0: " + instrI + ", expected: " + INPUT_VAR);
                 }
-                Statements.input(files, ir.getSymbolTable(), new ArrayList<>(instr0), instruction);
+                Statements.input(files, ir.getSymbolTable(), instr0, instruction);
                 instr0.clear();
             }
                 break;
@@ -457,6 +475,84 @@ public class PuffinBasicRuntime {
                 break;
             case ENVIRONDLR:
                 Functions.environdlr(env, ir.getSymbolTable(), instruction);
+                break;
+            case SLEEP:
+                Statements.sleep(ir.getSymbolTable(), instruction);
+                break;
+            case SCREEN: {
+                if (instr0.size() != 1 || instr0.get(0).opCode != SCREEN0) {
+                    throw new PuffinBasicInternalError("Bad/null instr0: "
+                            + instr0.get(0) + ", expected: " + SCREEN0);
+                }
+                GraphicsRuntime.screen(graphicsState, ir.getSymbolTable(), instr0.get(0), instruction);
+                instr0.clear();
+            }
+            break;
+            case CIRCLE: {
+                if (instr0.size() != 2) {
+                        throw new PuffinBasicInternalError(
+                                "Expected 2 instr0 for CIRCLE, but found: " + instr0.size());
+                }
+                GraphicsRuntime.circle(graphicsState, ir.getSymbolTable(), instr0, instruction);
+                instr0.clear();
+            }
+            break;
+            case LINE: {
+                if (instr0.size() != 2) {
+                    throw new PuffinBasicInternalError(
+                            "Expected 2 instr0 for LINE, but found: " + instr0.size());
+                }
+                GraphicsRuntime.line(graphicsState, ir.getSymbolTable(), instr0, instruction);
+                instr0.clear();
+            }
+            break;
+            case COLOR: {
+                if (instr0.size() != 1) {
+                    throw new PuffinBasicInternalError(
+                            "Expected 1 instr0 for COLOR, but found: " + instr0.size());
+                }
+                GraphicsRuntime.color(graphicsState, ir.getSymbolTable(), instr0.get(0), instruction);
+                instr0.clear();
+            }
+            break;
+            case PAINT: {
+                if (instr0.size() != 2) {
+                    throw new PuffinBasicInternalError(
+                            "Expected 2 instr0 for PAINT, but found: " + instr0.size());
+                }
+                GraphicsRuntime.paint(graphicsState, ir.getSymbolTable(), instr0, instruction);
+                instr0.clear();
+            }
+            break;
+            case PSET: {
+                if (instr0.size() != 2) {
+                    throw new PuffinBasicInternalError(
+                            "Expected 2 instr0 for PSET, but found: " + instr0.size());
+                }
+                GraphicsRuntime.pset(graphicsState, ir.getSymbolTable(), instr0, instruction);
+                instr0.clear();
+            }
+            break;
+            case GGET: {
+                if (instr0.size() != 2) {
+                    throw new PuffinBasicInternalError(
+                            "Expected 2 instr0 for GET, but found: " + instr0.size());
+                }
+                GraphicsRuntime.get(graphicsState, ir.getSymbolTable(), instr0, instruction);
+                instr0.clear();
+            }
+            break;
+            case GPUT: {
+                if (instr0.size() != 1) {
+                    throw new PuffinBasicInternalError(
+                            "Expected 1 instr0 for PUT, but found: " + instr0.size());
+                }
+                GraphicsRuntime.put(graphicsState, ir.getSymbolTable(), instr0, instruction);
+                instr0.clear();
+            }
+            break;
+            case INKEYDLR:
+                GraphicsRuntime.inkeydlr(graphicsState, ir.getSymbolTable(), instruction);
                 break;
         }
 

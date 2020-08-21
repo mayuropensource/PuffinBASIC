@@ -30,16 +30,31 @@ import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.INT64;
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.STRING;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.DATA_TYPE_MISMATCH;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.INDEX_OUT_OF_BOUNDS;
+import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.INTERRUPTED_ERROR;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.IO_ERROR;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.OUT_OF_DATA;
 
 public class Statements {
 
+    public static void sleep(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        try {
+            Thread.sleep(symbolTable.get(instruction.op1).getValue().getInt32());
+        } catch (InterruptedException e) {
+            throw new PuffinBasicRuntimeError(
+                    INTERRUPTED_ERROR,
+                    "Sleep was interrupted, error: " + e.getMessage()
+            );
+        }
+    }
+
     public static final class ReadData {
         private final List<STEntry> data;
         private int cursor;
 
-        public ReadData(List<STEntry> data) {
+        ReadData(List<STEntry> data) {
             this.data = data;
         }
 

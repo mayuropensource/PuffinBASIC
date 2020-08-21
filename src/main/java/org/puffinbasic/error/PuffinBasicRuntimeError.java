@@ -14,6 +14,8 @@ public class PuffinBasicRuntimeError extends RuntimeException {
         DATA_TYPE_MISMATCH,
         ILLEGAL_FILE_ACCESS,
         OUT_OF_DATA,
+        GRAPHICS_ERROR,
+        INTERRUPTED_ERROR,
     }
 
     private final ErrorCode errorCode;

@@ -251,10 +251,16 @@ public class STObjects {
         default IntList getArrayDimensions() {
             return new IntArrayList();
         }
+        default int getNumArrayDimensions() {
+            return 0;
+        }
         default void setArrayIndex(int dim, int index) {}
         default void resetArrayIndex() {}
         default int getArrayIndex1D() {
             return 0;
+        }
+        default int[] getInt32Array1D() {
+            throw new PuffinBasicInternalError("Unsupported");
         }
     }
 
@@ -905,16 +911,23 @@ public class STObjects {
         private IntList dimensions;
         private int totalLength;
         private int index1d;
+        private int ndim;
 
-        protected int getTotalLength() {
+        int getTotalLength() {
             return totalLength;
+        }
+
+        @Override
+        public int getNumArrayDimensions() {
+            return ndim;
         }
 
         @Override
         public void setArrayDimensions(IntList dims) {
             this.dimensions = new IntArrayList(dims);
+            this.ndim = dimensions.size();
             int totalLen = 1;
-            for (int i = 0; i < dims.size(); i++) {
+            for (int i = 0; i < ndim; i++) {
                 totalLen *= dimensions.getInt(i);
             }
             totalLength = totalLen;
@@ -945,7 +958,7 @@ public class STObjects {
                                 + dim + "]=" + dimensions.getInt(dim)
                 );
             }
-            this.index1d = this.index1d * (dim > 0 ? dimensions.getInt(dim - 1) : 0) + index;
+            this.index1d = this.index1d + (dim + 1 < ndim ? dimensions.getInt(dim + 1) : 1) * index;
         }
 
         @Override
@@ -959,6 +972,11 @@ public class STObjects {
         private int[] value;
 
         int[] getValue() {
+            return value;
+        }
+
+        @Override
+        public int[] getInt32Array1D() {
             return value;
         }
 

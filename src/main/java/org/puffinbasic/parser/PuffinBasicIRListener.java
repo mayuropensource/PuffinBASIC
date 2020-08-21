@@ -10,6 +10,7 @@ import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.jetbrains.annotations.Nullable;
 import org.puffinbasic.antlr4.PuffinBasicBaseListener;
 import org.puffinbasic.antlr4.PuffinBasicParser;
 import org.puffinbasic.domain.STObjects;
@@ -26,7 +27,6 @@ import org.puffinbasic.parser.PuffinBasicIR.Instruction;
 import org.puffinbasic.parser.PuffinBasicIR.OpCode;
 import org.puffinbasic.runtime.Numbers;
 import org.puffinbasic.runtime.Types;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -93,20 +93,13 @@ import static org.puffinbasic.runtime.Types.unquote;
  * MKL$             done
  * OCT$             done
  * PEEK             NA
- * PEN              graphics
- * PLAY             graphics
- * PMAP             graphics
- * POINT            graphics
- * POS              graphics
  * RND              done
  * RIGHT$           done
- * SCREEN           graphics
  * SGN              done
  * SIN              done
  * SPACE$           done
  * SPC              NA
  * SQR              done
- * STICK            graphics
  * STR$             done
  * STRING$          done
  * TAB              NA
@@ -116,15 +109,20 @@ import static org.puffinbasic.runtime.Types.unquote;
  * VARPTR           NA
  * VARPTR$          NA
  *
+ * PEN              NA
+ * PLAY             graphics
+ * PMAP             graphics
+ * POINT            graphics
+ * POS              graphics
+ * SCREEN           NA
+ * STICK            NA
+ *
  * Statements
  * ==========
- * BEEP             graphics
  * CALL             NA
  * CHAIN            NA
- * CIRCLE           graphics
  * CLOSE            done
  * CLS              NA
- * COLOR            graphics
  * COM(n)           NA
  * COMMON           NA
  * DATA             done
@@ -138,7 +136,6 @@ import static org.puffinbasic.runtime.Types.unquote;
  * DEF SEG          NA
  * DEF USR          NA
  * DIM              done
- * DRAW             graphics
  * END              done
  * ENVIRON          NA
  * ERASE            NA
@@ -152,24 +149,14 @@ import static org.puffinbasic.runtime.Types.unquote;
  * INPUT            done (not compatible)
  * INPUT#           done
  * IOCTL            NA
- * KEY              graphics
- * KEY(n)           graphics
  * LET              done
- * LINE             graphics
  * LINE INPUT       done
  * LINE INPUT#      done
- * LOCATE           graphics
  * LOCK             NA
  * LPRINT           NA
  * LPRINT USING     NA
  * LSET             done
  * MID$             done
- * ON COM(n)        NA
- * ON KEY(n)        graphics
- * ON PEN(n)        graphics
- * ON PLAY(n)       graphics
- * ON STRIG(n)      graphics
- * ON TIMER(n)      graphics
  * ON ERROR GOTO    NA
  * ON-GOSUB         NA
  * ON-GOTO          NA
@@ -177,13 +164,7 @@ import static org.puffinbasic.runtime.Types.unquote;
  * OPEN COM(n)      NA
  * OPTION BASE      NA
  * OUT              NA
- * PALETTE          graphics
- * PALETTE USING    graphics
- * PEN              graphics
- * PLAY             graphics
- * POKE             NA
- * PRESET           graphics
- * PSET             graphics
+ * ON COM(n)        NA
  * PRINT            done
  * PRINT USING      done
  * PRINT#           done
@@ -195,22 +176,44 @@ import static org.puffinbasic.runtime.Types.unquote;
  * RESTORE          done
  * RESUME           NA
  * RSET             done
- * SCREEN           graphics
  * SHELL            NA
  * STOP             NA
- * STRIG            graphics
- * STRIG(n)         graphics
  * SWAP             done
  * TIME$            done
  * UNLOCK           NA
- * VIEW             graphics
- * VIEW PRINT       graphics
  * WAIT             NA
  * WHILE-WEND       done
  * WIDTH            NA
- * WINDOW           graphics
  * WRITE            done
  * WRTIE#           done
+ *
+ * SCREEN           done
+ * CIRCLE           done
+ * COLOR            done
+ * LINE             done
+ * PAINT            done
+ * DRAW             graphics
+ * LOCATE           graphics
+ * BEEP             NA
+ * KEY              NA
+ * KEY(n)           NA
+ * ON KEY(n)        NA
+ * ON PEN(n)        NA
+ * ON PLAY(n)       NA
+ * ON STRIG(n)      NA
+ * ON TIMER(n)      NA
+ * PALETTE          NA
+ * PALETTE USING    NA
+ * PEN              NA
+ * PLAY             graphics
+ * PSET             graphics
+ * POKE             NA
+ * PRESET           NA
+ * STRIG            NA
+ * STRIG(n)         NA
+ * VIEW             NA
+ * VIEW PRINT       NA
+ * WINDOW           NA
  * </PRE>
  */
 public class PuffinBasicIRListener extends PuffinBasicBaseListener {
@@ -222,6 +225,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
 
     private final CharStream in;
     private final PuffinBasicIR ir;
+    private final boolean graphics;
     private final ParseTreeProperty<Instruction> nodeToInstruction;
     private final Object2ObjectMap<Variable, UDFState> udfStateMap;
     private final LinkedList<WhileLoopState> whileLoopStateList;
@@ -229,9 +233,10 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
     private final ParseTreeProperty<IfState> nodeToIfState;
     private int currentLineNumber;
 
-    public PuffinBasicIRListener(CharStream in, PuffinBasicIR ir) {
+    public PuffinBasicIRListener(CharStream in, PuffinBasicIR ir, boolean graphics) {
         this.in = in;
         this.ir = ir;
+        this.graphics = graphics;
         this.nodeToInstruction = new ParseTreeProperty<>();
         this.udfStateMap = new Object2ObjectOpenHashMap<>();
         this.whileLoopStateList = new LinkedList<>();
@@ -1056,6 +1061,15 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                 ir.getSymbolTable().addTmp(STRING, c -> {})));
     }
 
+    @Override
+    public void exitFuncInkeyDlr(PuffinBasicParser.FuncInkeyDlrContext ctx) {
+        assertGraphics();
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.INKEYDLR, NULL_ID, NULL_ID,
+                ir.getSymbolTable().addTmp(STRING, c -> {})));
+    }
+
     private Instruction addFuncWithExprInstruction(
             OpCode opCode, ParserRuleContext parent,
             PuffinBasicParser.ExprContext expr, NumericOrString numericOrString)
@@ -1250,7 +1264,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
     public void exitDimstmt(PuffinBasicParser.DimstmtContext ctx) {
         IntList dims = new IntArrayList(ctx.DECIMAL().size());
         for (var dimMax : ctx.DECIMAL()) {
-            int dimSize = Numbers.parseInt32(dimMax.getText(), () -> getCtxString(ctx)) + 1;
+            int dimSize = Numbers.parseInt32(dimMax.getText(), () -> getCtxString(ctx));
             dims.add(dimSize);
         }
         var varname = ctx.varname().VARNAME().getText();
@@ -2223,6 +2237,302 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
             ir.addInstruction(
                     currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
                     OpCode.DATA, valueId, NULL_ID, NULL_ID
+            );
+        }
+    }
+
+    // GraphicsRuntime
+
+
+    @Override
+    public void exitScreenstmt(PuffinBasicParser.ScreenstmtContext ctx) {
+        assertGraphics();
+
+        var title = lookupInstruction(ctx.expr(0));
+        var w = lookupInstruction(ctx.expr(1));
+        var h = lookupInstruction(ctx.expr(2));
+
+        Types.assertString(ir.getSymbolTable().get(title.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        Types.assertNumeric(ir.getSymbolTable().get(w.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        Types.assertNumeric(ir.getSymbolTable().get(h.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.SCREEN0, w.result, h.result, NULL_ID
+        );
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.SCREEN, title.result, NULL_ID, NULL_ID
+        );
+    }
+
+    @Override
+    public void exitCirclestmt(PuffinBasicParser.CirclestmtContext ctx) {
+        assertGraphics();
+
+        var x = lookupInstruction(ctx.x);
+        var y = lookupInstruction(ctx.y);
+        var r1 = lookupInstruction(ctx.r1);
+        var r2 = lookupInstruction(ctx.r2);
+        var s = ctx.s != null ? lookupInstruction(ctx.s) : null;
+        var e = ctx.e != null ? lookupInstruction(ctx.e) : null;
+
+        Types.assertNumeric(ir.getSymbolTable().get(x.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        Types.assertNumeric(ir.getSymbolTable().get(y.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        Types.assertNumeric(ir.getSymbolTable().get(r1.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        Types.assertNumeric(ir.getSymbolTable().get(r2.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        if (s != null) {
+            Types.assertNumeric(ir.getSymbolTable().get(s.result).getValue().getDataType(),
+                    () -> getCtxString(ctx));
+        }
+        if (e != null) {
+            Types.assertNumeric(ir.getSymbolTable().get(e.result).getValue().getDataType(),
+                    () -> getCtxString(ctx));
+        }
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.CIRCLE_xy, x.result, y.result, NULL_ID
+        );
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.CIRCLE_se,
+                s != null ? s.result : NULL_ID,
+                e != null ? e.result : NULL_ID,
+                NULL_ID
+        );
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.CIRCLE, r1.result, r2.result, NULL_ID
+        );
+    }
+
+    @Override
+    public void exitLinestmt(PuffinBasicParser.LinestmtContext ctx) {
+        assertGraphics();
+
+        var x1 = lookupInstruction(ctx.x1);
+        var y1 = lookupInstruction(ctx.y1);
+        var x2 = lookupInstruction(ctx.x2);
+        var y2 = lookupInstruction(ctx.y2);
+
+        Types.assertNumeric(ir.getSymbolTable().get(x1.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        Types.assertNumeric(ir.getSymbolTable().get(y1.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        Types.assertNumeric(ir.getSymbolTable().get(x2.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        Types.assertNumeric(ir.getSymbolTable().get(y2.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+
+        Instruction bf = null;
+        if (ctx.bf != null){
+            bf = lookupInstruction(ctx.bf);
+            Types.assertString(ir.getSymbolTable().get(bf.result).getValue().getDataType(),
+                    () -> getCtxString(ctx));
+        }
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.LINE_x1y1, x1.result, y1.result, NULL_ID
+        );
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.LINE_x2y2, x2.result, y2.result, NULL_ID
+        );
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.LINE, bf != null ? bf.result : NULL_ID, NULL_ID, NULL_ID
+        );
+    }
+
+    @Override
+    public void exitColorstmt(PuffinBasicParser.ColorstmtContext ctx) {
+        var r = lookupInstruction(ctx.r);
+        var g = lookupInstruction(ctx.g);
+        var b = lookupInstruction(ctx.b);
+        Types.assertNumeric(ir.getSymbolTable().get(r.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        Types.assertNumeric(ir.getSymbolTable().get(g.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        Types.assertNumeric(ir.getSymbolTable().get(b.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.COLOR_RG, r.result, g.result, NULL_ID
+        );
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.COLOR, b.result, NULL_ID, NULL_ID
+        );
+    }
+
+    @Override
+    public void exitPaintstmt(PuffinBasicParser.PaintstmtContext ctx) {
+        assertGraphics();
+
+        var x = lookupInstruction(ctx.x);
+        var y = lookupInstruction(ctx.y);
+        var r = lookupInstruction(ctx.r);
+        var g = lookupInstruction(ctx.g);
+        var b = lookupInstruction(ctx.b);
+
+        Types.assertNumeric(ir.getSymbolTable().get(x.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        Types.assertNumeric(ir.getSymbolTable().get(y.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        Types.assertNumeric(ir.getSymbolTable().get(r.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        Types.assertNumeric(ir.getSymbolTable().get(g.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        Types.assertNumeric(ir.getSymbolTable().get(b.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.PAINT_RG, r.result, g.result, NULL_ID
+        );
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.PAINT_B, b.result, NULL_ID, NULL_ID
+        );
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.PAINT, x.result, y.result, NULL_ID
+        );
+    }
+
+    @Override
+    public void exitPsetstmt(PuffinBasicParser.PsetstmtContext ctx) {
+        assertGraphics();
+
+        var x = lookupInstruction(ctx.x);
+        var y = lookupInstruction(ctx.y);
+
+        int rId = NULL_ID, gId = NULL_ID, bId = NULL_ID;
+        if (ctx.r != null) {
+            rId = lookupInstruction(ctx.r).result;
+            Types.assertNumeric(ir.getSymbolTable().get(rId).getValue().getDataType(),
+                    () -> getCtxString(ctx));
+        }
+        if (ctx.g != null) {
+            gId = lookupInstruction(ctx.g).result;
+            Types.assertNumeric(ir.getSymbolTable().get(gId).getValue().getDataType(),
+                    () -> getCtxString(ctx));
+        }
+        if (ctx.b != null) {
+            bId = lookupInstruction(ctx.b).result;
+            Types.assertNumeric(ir.getSymbolTable().get(bId).getValue().getDataType(),
+                    () -> getCtxString(ctx));
+        }
+
+        Types.assertNumeric(ir.getSymbolTable().get(x.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        Types.assertNumeric(ir.getSymbolTable().get(y.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.PSET_RG, rId, gId, NULL_ID
+        );
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.PSET_B, bId, NULL_ID, NULL_ID
+        );
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.PSET, x.result, y.result, NULL_ID
+        );
+    }
+
+    @Override
+    public void exitGraphicsgetstmt(PuffinBasicParser.GraphicsgetstmtContext ctx) {
+        assertGraphics();
+
+        var x1 = lookupInstruction(ctx.x1);
+        var y1 = lookupInstruction(ctx.y1);
+        var x2 = lookupInstruction(ctx.x2);
+        var y2 = lookupInstruction(ctx.y2);
+        var varInstr = lookupInstruction(ctx.variable());
+
+        Types.assertNumeric(ir.getSymbolTable().get(x1.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        Types.assertNumeric(ir.getSymbolTable().get(y1.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        Types.assertNumeric(ir.getSymbolTable().get(x2.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        Types.assertNumeric(ir.getSymbolTable().get(y2.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        assertVariable(ir.getSymbolTable().get(varInstr.result).getKind(),
+                () -> getCtxString(ctx));
+
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.GGET_X1Y1, x1.result, y1.result, NULL_ID
+        );
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.GGET_X2Y2, x2.result, y2.result, NULL_ID
+        );
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.GGET, varInstr.result, NULL_ID, NULL_ID
+        );
+    }
+
+    @Override
+    public void exitGraphicsputstmt(PuffinBasicParser.GraphicsputstmtContext ctx) {
+        assertGraphics();
+
+        var x = lookupInstruction(ctx.x);
+        var y = lookupInstruction(ctx.y);
+        var varInstr = lookupInstruction(ctx.variable());
+        var action = ctx.action != null ? lookupInstruction(ctx.action) : null;
+
+        Types.assertNumeric(ir.getSymbolTable().get(x.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        Types.assertNumeric(ir.getSymbolTable().get(y.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        assertVariable(ir.getSymbolTable().get(varInstr.result).getKind(),
+                () -> getCtxString(ctx));
+        if (action != null) {
+            Types.assertString(ir.getSymbolTable().get(action.result).getValue().getDataType(),
+                    () -> getCtxString(ctx));
+        }
+
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.GPUT_XY, x.result, y.result, NULL_ID
+        );
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.GPUT,
+                action != null ? action.result : NULL_ID,
+                varInstr.result,
+                NULL_ID
+        );
+    }
+
+    @Override
+    public void exitSleepstmt(PuffinBasicParser.SleepstmtContext ctx) {
+        var millis = lookupInstruction(ctx.expr());
+        Types.assertNumeric(ir.getSymbolTable().get(millis.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.SLEEP, millis.result, NULL_ID, NULL_ID
+        );
+    }
+
+    private void assertGraphics() {
+        if (!graphics) {
+            throw new PuffinBasicInternalError(
+                    "GraphicsRuntime is not enabled!"
             );
         }
     }

@@ -63,6 +63,16 @@ stmt
     | defdblstmt
     | defstrstmt
     | middlrstmt
+    | sleepstmt
+    | screenstmt
+    | circlestmt
+    | linestmt
+    | colorstmt
+    | paintstmt
+    | psetstmt
+    | drawstmt
+    | graphicsgetstmt
+    | graphicsputstmt
     ;
 
 expr
@@ -135,6 +145,7 @@ func
     | LOC LPAREN expr RPAREN                                # FuncLoc
     | LOF LPAREN expr RPAREN                                # FuncLof
     | INPUTDLR LPAREN expr (COMMA HASH? expr)? RPAREN       # FuncInputDlr
+    | INKEYDLR                                              # FuncInkeyDlr
     ;
 
 gosubstmt
@@ -347,6 +358,51 @@ defstrstmt
 
 middlrstmt
     : MIDDLR LPAREN variable COMMA expr (COMMA expr)? RPAREN RELEQ expr
+    ;
+
+sleepstmt
+    : SLEEP expr
+    ;
+
+screenstmt
+    : SCREEN title=expr COMMA w=expr COMMA h=expr
+    ;
+
+circlestmt
+    // CIRCLE (x, y), r1, r2, start, end
+    : CIRCLE LPAREN x=expr COMMA y=expr RPAREN COMMA r1=expr COMMA r2=expr
+        (COMMA s=expr COMMA e=expr)?
+    ;
+
+linestmt
+    : LINE LPAREN x1=expr COMMA y1=expr RPAREN MINUS LPAREN x2=expr COMMA y2=expr RPAREN
+        (COMMA bf=expr)?
+    ;
+
+colorstmt
+    : COLOR r=expr COMMA g=expr COMMA b=expr
+    ;
+
+paintstmt
+    // PAINT (x, y), r, g, b
+    : PAINT LPAREN x=expr COMMA y=expr RPAREN COMMA r=expr COMMA g=expr COMMA b=expr
+    ;
+
+psetstmt
+    : PSET LPAREN x=expr COMMA y=expr RPAREN (COMMA r=expr COMMA g=expr COMMA b=expr)?
+    ;
+
+drawstmt
+    : DRAW expr
+    ;
+
+graphicsgetstmt
+    : GET LPAREN x1=expr COMMA y1=expr RPAREN MINUS LPAREN x2=expr COMMA y2=expr RPAREN
+        COMMA variable
+    ;
+
+graphicsputstmt
+    : PUT LPAREN x=expr COMMA y=expr RPAREN COMMA variable (COMMA action=expr)?
     ;
 
 LETTERRANGE
@@ -716,6 +772,38 @@ DEFSTR
 
 ENVIRONDLR
     : E N V I R O N DOLLAR
+    ;
+
+SCREEN
+    : S C R E E N
+    ;
+
+CIRCLE
+    : C I R C L E
+    ;
+
+SLEEP
+    : S L E E P
+    ;
+
+COLOR
+    : C O L O R
+    ;
+
+INKEYDLR
+    : I N K E Y DOLLAR
+    ;
+
+PAINT
+    : P A I N T
+    ;
+
+PSET
+    : P S E T
+    ;
+
+DRAW
+    : D R A W
     ;
 
 string
