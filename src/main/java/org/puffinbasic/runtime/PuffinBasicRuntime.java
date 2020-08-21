@@ -329,8 +329,9 @@ public class PuffinBasicRuntime {
             case FIELD_I:
             case INPUT_VAR:
             case SCREEN0:
-            case CIRCLE_xy:
-            case CIRCLE_se:
+            case CIRCLE_XY:
+            case CIRCLE_SE:
+            case CIRCLE_FILL:
             case LINE_x1y1:
             case LINE_x2y2:
             case COLOR_RG:
@@ -341,6 +342,8 @@ public class PuffinBasicRuntime {
             case GPUT_XY:
             case GGET_X1Y1:
             case GGET_X2Y2:
+            case FONT_SS:
+            case DRAWSTR_XY:
                 instr0.add(instruction);
                 break;
             case INSTR: {
@@ -489,9 +492,9 @@ public class PuffinBasicRuntime {
             }
             break;
             case CIRCLE: {
-                if (instr0.size() != 2) {
+                if (instr0.size() != 3) {
                         throw new PuffinBasicInternalError(
-                                "Expected 2 instr0 for CIRCLE, but found: " + instr0.size());
+                                "Expected 3 instr0 for CIRCLE, but found: " + instr0.size());
                 }
                 GraphicsRuntime.circle(graphicsState, ir.getSymbolTable(), instr0, instruction);
                 instr0.clear();
@@ -547,10 +550,34 @@ public class PuffinBasicRuntime {
                     throw new PuffinBasicInternalError(
                             "Expected 1 instr0 for PUT, but found: " + instr0.size());
                 }
-                GraphicsRuntime.put(graphicsState, ir.getSymbolTable(), instr0, instruction);
+                GraphicsRuntime.put(graphicsState, ir.getSymbolTable(), instr0.get(0), instruction);
                 instr0.clear();
             }
             break;
+            case FONT: {
+                if (instr0.size() != 1) {
+                    throw new PuffinBasicInternalError(
+                            "Expected 1 instr0 for FONT, but found: " + instr0.size());
+                }
+                GraphicsRuntime.font(graphicsState, ir.getSymbolTable(), instr0.get(0), instruction);
+                instr0.clear();
+            }
+            break;
+            case DRAWSTR: {
+                if (instr0.size() != 1) {
+                    throw new PuffinBasicInternalError(
+                            "Expected 1 instr0 for DRAWSTR, but found: " + instr0.size());
+                }
+                GraphicsRuntime.drawstr(graphicsState, ir.getSymbolTable(), instr0.get(0), instruction);
+                instr0.clear();
+            }
+            break;
+            case LOADIMG:
+                GraphicsRuntime.loadimg(graphicsState, ir.getSymbolTable(), instruction);
+                break;
+            case DRAW:
+                GraphicsRuntime.draw(graphicsState, ir.getSymbolTable(), instruction);
+                break;
             case INKEYDLR:
                 GraphicsRuntime.inkeydlr(graphicsState, ir.getSymbolTable(), instruction);
                 break;

@@ -121,8 +121,9 @@ public class PuffinBasicIR {
         ENVIRONDLR("environ$"),
         SCREEN0("screen0"),
         SCREEN("screen"),
-        CIRCLE_xy("circle_xy"),
-        CIRCLE_se("circle_se"),
+        CIRCLE_XY("circle_xy"),
+        CIRCLE_SE("circle_se"),
+        CIRCLE_FILL("circle_se"),
         CIRCLE("circle"),
         SLEEP("sleep"),
         LINE_x1y1("line_x1y1"),
@@ -142,6 +143,12 @@ public class PuffinBasicIR {
         GGET_X1Y1("gget_x1y1"),
         GGET_X2Y2("gget_x2y2"),
         GGET("gget"),
+        LOADIMG("loadimg"),
+        DRAWSTR_XY("drawstr_xy"),
+        DRAWSTR("drawstr"),
+        DRAW("draw"),
+        FONT_SS("font_ss"),
+        FONT("font"),
         ;
 
         public final String repr;

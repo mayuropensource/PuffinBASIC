@@ -73,6 +73,9 @@ stmt
     | drawstmt
     | graphicsgetstmt
     | graphicsputstmt
+    | fontstmt
+    | drawstrstmt
+    | loadimgstmt
     ;
 
 expr
@@ -369,9 +372,9 @@ screenstmt
     ;
 
 circlestmt
-    // CIRCLE (x, y), r1, r2, start, end
+    // CIRCLE (x, y), r1, r2, start, end, "F"
     : CIRCLE LPAREN x=expr COMMA y=expr RPAREN COMMA r1=expr COMMA r2=expr
-        (COMMA s=expr COMMA e=expr)?
+        (COMMA s=expr? COMMA e=expr? COMMA? fill=expr?)?
     ;
 
 linestmt
@@ -403,6 +406,18 @@ graphicsgetstmt
 
 graphicsputstmt
     : PUT LPAREN x=expr COMMA y=expr RPAREN COMMA variable (COMMA action=expr)?
+    ;
+
+fontstmt
+    : FONT name=expr COMMA style=expr COMMA size=expr
+    ;
+
+drawstrstmt
+    : DRAWSTR str=expr COMMA x=expr COMMA y=expr
+    ;
+
+loadimgstmt
+    : LOADIMG path=expr COMMA variable
     ;
 
 LETTERRANGE
@@ -804,6 +819,18 @@ PSET
 
 DRAW
     : D R A W
+    ;
+
+FONT
+    : F O N T
+    ;
+
+DRAWSTR
+    : D R A W S T R
+    ;
+
+LOADIMG
+    : L O A D I M G
     ;
 
 string

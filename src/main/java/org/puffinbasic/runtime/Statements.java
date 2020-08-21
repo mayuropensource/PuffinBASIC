@@ -28,6 +28,7 @@ import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.DOUBLE;
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.FLOAT;
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.INT64;
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.STRING;
+import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.DATA_OUT_OF_RANGE;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.DATA_TYPE_MISMATCH;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.INDEX_OUT_OF_BOUNDS;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.INTERRUPTED_ERROR;
@@ -40,8 +41,16 @@ public class Statements {
             PuffinBasicSymbolTable symbolTable,
             Instruction instruction)
     {
+        int millis = symbolTable.get(instruction.op1).getValue().getInt32();
+        if (millis < 0) {
+            throw new PuffinBasicRuntimeError(
+                    DATA_OUT_OF_RANGE,
+                    "Sleep time millis cannot be less than 0."
+            );
+        }
+
         try {
-            Thread.sleep(symbolTable.get(instruction.op1).getValue().getInt32());
+            Thread.sleep(millis);
         } catch (InterruptedException e) {
             throw new PuffinBasicRuntimeError(
                     INTERRUPTED_ERROR,

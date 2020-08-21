@@ -58,8 +58,42 @@ PuffinBASIC conforms most closely to GWBASIC.
 60 NEXT D
 ```
 
-## Dependencies
+### Graphics
 
+```
+10 SCREEN "PuffinBASIC 2D Graphics", 800, 600
+20 LINE (100, 100) - (200, 200), "B"
+30 FOR I% = 10 TO 50 STEP 10
+40   CIRCLE (150, 150), I%, I%
+50 NEXT I%
+60 COLOR 255, 0, 0
+70 LINE (200, 200) - (250, 300), "BF"
+80 COLOR 0, 255, 255
+90 FONT "Georgia", "bi", 32
+100 DRAWSTR "Graphics with PuffinBASIC", 10, 400
+110 DIM A%(101, 101)
+120 GET (100, 100) - (201, 201), A%
+130 PUT (250, 250), A%
+140 DIM B%(32, 32)
+150 LOADIMG "samples/enemy1.png", B%
+160 FOR I% = 1 TO 5
+170   PUT (400, 100 * I%), B%
+180 NEXT
+190 COLOR 255, 255, 0
+200 DRAW "M600,400; UN50; RN50; DB50; F100"
+210 COLOR 255, 255, 255
+220 CIRCLE (700, 100), 10, 20
+230 COLOR 255, 0, 255
+240 PAINT (700, 100), 255, 255, 255
+250 CIRCLE (700, 400), 50, 50, 0, 90
+260 CIRCLE (700, 500), 50, 50, 90, 180, "F"
+1000 SLEEP 5000
+```
+
+<img src="samples/puffin_graphics.png" width="32"/>
+![Image](samples/puffin_graphics.png?raw=true)
+
+## Dependencies
 JDK 11+, Maven, antlr4
 
 ## Build and test
@@ -72,6 +106,11 @@ $ mvn test
 ## Run using Maven
 ```
 $ mvn exec:java -D"exec.args"="samples/graph.bas"
+```
+
+Graphics mode:
+```
+$ mvn exec:java -D"exec.args"="-g samples/graphics.bas"
 ```
 
 ## Working with Intellij
@@ -111,8 +150,7 @@ PuffinBASIC supports indirect mode only.
 ## Compatibility
 
 PuffinBASIC is mostly compatible with Microsoft's GWBASIC.
-Currently, it does not support any graphics or mouse/joy instructions.
-In the future, we may add support for graphics using Java Swing/2D graphics.
+Graphics is supported using Java 2D graphics.
 
 PuffinBASIC will not support assembly instructions.
 
@@ -126,6 +164,19 @@ Same applies for the sequential file writes, print statements always output a li
 
 Operators, Statements and Standard Functions are case-insensitive.
 Constants, variables and user defined functions are case-sensitive.
+
+### Graphics
+
+Graphics uses platform-independent Swing window.
+Graphics functions are slightly different and more general than GWBASIC.
+Graphics statements/functions require a '-g' flag to be set at runtime.
+See Graphics section in reference.
+PRINT/WRITE statements are displayed on standard out only.
+For displaying text on Swing window, new statements are added.
+
+### DIM
+
+DIM statement declares size of each dimension.
 
 ## Commands
 
@@ -721,6 +772,7 @@ B$ = "ABC"
 #### Arrays
 
 Use DIM keyword to declare an array variable.
+dim1, dim2, ... are dimension size (and not max dim value.)
 
 Syntax:
 
@@ -1165,4 +1217,297 @@ Example:
 
 ```
 RANDOMIZE 1002
+```
+
+### SLEEP
+
+Sleep for given number of milliseconds.
+
+Syntax:
+
+```
+SLEEP n
+```
+
+## Graphics
+
+Use '--graphics' or '-g' to enable graphics mode.
+
+### SCREEN
+
+Create a window with the title and a drawing canvas of size wxh (width x height).
+The window is not resizable.
+Top left of the drawing canvas is 0,0 and bottom right is w,h.
+
+Syntax:
+
+```
+SCREEN title$, w, h
+```
+
+Example:
+
+```
+SCREEN "PuffinBASIC 2D Graphics", 800, 600
+```
+
+### COLOR
+
+Sets foreground color in the graphics context
+using red, green and blue color components.
+Each color component is an Int32 ranging from 0 to 255.
+
+Syntax:
+
+```
+COLOR r, g, b
+```
+
+Example:
+
+```
+COLOR 0, 255, 0
+```
+
+### FONT
+
+Sets the font name with given options and font size.
+options$ is a String: "i" means Italic, "b" means bold. 
+Multiple options can be combined into a String.
+
+Syntax:
+
+```
+FONT name$, options$, size
+```
+
+Example:
+
+```
+FONT "Georgia", "bi", 50
+```
+
+### DRAWSTR
+
+Draws the given string at given position on the drawing canvas.
+
+Syntax:
+
+```
+DRAWSTR text$, x, y
+```
+
+Example:
+
+```
+DRAWSTR "SAMPLE Text", 100, 400
+```
+
+### PSET
+
+Draws a point on the given position.
+An optional color can be specified.
+If no color is specified, color is picked from the graphics context.
+
+Syntax:
+
+```
+PSET (x, y) [, r, g, b]
+```
+
+Example:
+
+```
+PSET (100, 100)
+```
+
+### CIRCLE
+
+Draws an oval at position x, y with radii of r1 and r2.
+If start angle (degrees) and end angle (degrees) are specified,
+an arc is draw (clockwise).
+To fill the circl with foreground color, set options as "F".
+
+Syntax:
+
+```
+CIRCLE (x, y), r1, r2[, start_angle?, end_angle?[, options]]
+```
+
+Example:
+
+```
+CIRCLE (100, 200), 50, 50
+CIRCLE (100, 200), 50, 50, 0, 90
+CIRCLE (100, 200), 50, 50, 90, 180, "F"
+```
+
+### LINE
+
+Draw a line from position1 (x1, y1) to position2 (x2, y2).
+Options can be "B" or "BF".
+If "B" is used, a box is drawn.
+If "BF" is used, a filled box is drawn.
+
+Syntax:
+
+```
+LINE (x1, y1) - (x2, y2) [, options]
+```
+
+Example:
+
+```
+LINE (0, 0) - (10, 10), "BF"
+```
+
+### PAINT
+
+Flood fills the drawing canvas starting at the given position with foreground color
+until the given color boundary is hit.
+Flood fill has no effect if called on a point which already has foreground color.
+
+Syntax:
+
+```
+PAINT (x, y), border_r, border_g, border_b
+```
+
+Example:
+
+```
+PAINT (155, 155), 255, 255, 255
+```
+
+### DRAW
+
+Draw an arbitrary path. 
+The path starts at middle of the screen.
+
+Following instructions are supported:
+```
+Un:   up n pixels
+Dn:   down n pixels
+Ln:   left n pixels
+Rn:   right n pixels
+En:   (diagonal) up and right n pixels each
+Fn:   (diagonal) down and right n pixels each
+Gn:   (diagonal) down and left n pixels each
+Hn:   (diagonal) up and left n pixels each
+B:    pen up (i.e. move only);
+        it can be added to any of above instructions.
+N:    return to original position after drawing; 
+        can be added to any of above instructions.
+Mx,y: move to x,y (absolute or relative). 
+        If x and y have +/- prefix, 
+        move is relative to curren position, 
+        otherwise, move is to absolute position.
+```
+The instructions are separated by a semi-colon.
+
+Syntax:
+
+```
+DRAW path$
+```
+
+Example:
+
+```
+DRAW "U30; E30; R30; F30; DNB30; R30; M+30,+30; R30; R50"
+```
+
+### GET
+
+Copy drawing canvas contents from x1,y1 to x2,y2 to given array variable.
+The variable must be of Int32 type.
+The array dimensions must match x2-x1,y2-y1.
+x1,y1 is inclusive.
+x2,y2 is exclusive.
+
+x1,y1 and x2,y2 must be within the bounds of the drawing canvas.
+
+Syntax:
+
+```
+GET (x1, y2) - (x2, y2), variable
+```
+
+Example:
+
+```
+DIM A%(32, 32)
+GET (0, 0) - (32, 32), A%
+```
+
+### PUT
+
+Copy array variable contents to the drawing canvas at x,y position.
+The variable must be of Int32 type.
+x,y must be within the bounds of the drawing canvas.
+
+Syntax:
+
+```
+PUT (x, y), variable
+```
+
+Example:
+
+```
+DIM A%(32, 32)
+GET (0, 0) - (32, 32), A%
+PUT (100, 100), A%
+```
+
+### LOADIMG
+
+Load an image into the given array variable.
+The variable must be of Int32 type.
+The array dimensions must match the image dimensions.
+Common formats such as png, jpeg, gif, bmp are supported.
+
+Syntax:
+
+```
+LOADIMG image, variable
+```
+
+Example:
+
+```
+DIM A%(32, 32)
+LOADIMG "enemy1.png", A%
+```
+
+### INKEY$
+
+Read one key pressed on keyboard.
+
+ASCII characters are returned as single byte Strings.
+
+Special characters, e.g. UP arrow, DOWN arrow, 
+are returned as two byte String - the first byte is always byte 0.
+
+Special Key Codes:
+```
+LEFT arrow:  CHR$(0) + CHR$(37)
+UP arrow:    CHR$(0) + CHR$(38)
+DOWN arrow:  CHR$(0) + CHR$(39)
+RIGHT arrow: CHR$(0) + CHR$(40)
+```
+
+Syntax:
+
+```
+INKEY$
+```
+
+Example:
+
+```
+K$ = INKEY$
+
+' Check Up Arrow
+IF K$ = "0" + CHR$(38) THEN y2% = y% - 5
 ```

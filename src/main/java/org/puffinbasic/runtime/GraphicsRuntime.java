@@ -1,38 +1,36 @@
 package org.puffinbasic.runtime;
 
-import it.unimi.dsi.fastutil.ints.IntList;
 import org.puffinbasic.domain.PuffinBasicSymbolTable;
 import org.puffinbasic.domain.STObjects;
 import org.puffinbasic.domain.STObjects.STVariable;
 import org.puffinbasic.error.PuffinBasicRuntimeError;
 import org.puffinbasic.parser.PuffinBasicIR.Instruction;
+import org.puffinbasic.runtime.GraphicsUtil.BasicFrame;
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
+import javax.imageio.ImageIO;
 import javax.swing.SwingUtilities;
-import javax.swing.Timer;
 import java.awt.Color;
 import java.awt.EventQueue;
+import java.awt.Font;
 import java.awt.Graphics2D;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.geom.GeneralPath;
 import java.awt.image.BufferedImage;
-import java.util.ArrayDeque;
-import java.util.Deque;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static org.puffinbasic.domain.PuffinBasicSymbolTable.NULL_ID;
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.INT32;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.GRAPHICS_ERROR;
+import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.IO_ERROR;
+import static org.puffinbasic.runtime.GraphicsUtil.PUT_XOR;
 
 class GraphicsRuntime {
 
-    private static final int REFRESH_MILLIS = 200;
-    private static final int KEY_BUFFER_SIZE = 16;
+    private static final Pattern DRAW_ARG1 = Pattern.compile("([UDLREFGHA])([BN]+)?([0-9]+)");
+    private static final Pattern DRAW_ARG2 = Pattern.compile("M([+\\-]?[0-9]+),([+\\-]?[0-9]+)");
 
     static class GraphicsState {
         private BasicFrame frame;
@@ -47,7 +45,15 @@ class GraphicsRuntime {
         }
 
         Graphics2D getGraphics2D() {
-            return getFrame().surface.graphics;
+            return getFrame().getDrawingCanvas().getGraphics2D();
+        }
+
+        int getCanvasWidth() {
+            return getFrame().getDrawingCanvas().getImage().getWidth();
+        }
+
+        int getCanvasHeight() {
+            return getFrame().getDrawingCanvas().getImage().getWidth();
         }
 
         void setFrame(BasicFrame frame) {
@@ -74,6 +80,48 @@ class GraphicsRuntime {
         }
     }
 
+    public static void loadimg(
+            GraphicsState graphicsState,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var path = symbolTable.get(instruction.op1).getValue().getString();
+        var entry = symbolTable.get(instruction.op2);
+        var variableValue = entry.getValue();
+        if (entry.getKind() != STObjects.STKind.VARIABLE
+            || variableValue.getNumArrayDimensions() != 2
+            || variableValue.getDataType() != INT32)
+        {
+            throw new PuffinBasicRuntimeError(
+                    GRAPHICS_ERROR,
+                    "Bad Array Variable, expected Int32 2D-Array Variable: " + entry
+            );
+        }
+
+        final BufferedImage image;
+        try {
+            image = ImageIO.read(new File(path));
+        } catch (IOException e) {
+            throw new PuffinBasicRuntimeError(
+                    IO_ERROR,
+                    "Failed to load image: " + path + ", error: " + e.getMessage()
+            );
+        }
+
+        var dims = variableValue.getArrayDimensions();
+        if (image.getWidth() != dims.getInt(0) || image.getHeight() != dims.getInt(1)) {
+            throw new PuffinBasicRuntimeError(
+                    GRAPHICS_ERROR,
+                    "Image dimensions: " + image.getWidth() + ", " + image.getHeight()
+                            + " doesn't match with variable dimensions: "
+                            + dims.getInt(0) + ", " + dims.getInt(1)
+            );
+        }
+
+        image.getRGB(0, 0, image.getWidth(), image.getHeight(),
+                variableValue.getInt32Array1D(), 0, image.getWidth());
+    }
+
     public static void screen(
             GraphicsState graphicsState,
             PuffinBasicSymbolTable symbolTable,
@@ -83,6 +131,12 @@ class GraphicsRuntime {
         var w = symbolTable.get(instr0.op1).getValue().getInt32();
         var h = symbolTable.get(instr0.op2).getValue().getInt32();
         var title = symbolTable.get(instruction.op1).getValue().getString();
+        if (w <= 0 || h <= 0 || w > GraphicsUtil.MAX_WIDTH || h > GraphicsUtil.MAX_HEIGHT) {
+            throw new PuffinBasicRuntimeError(
+                    GRAPHICS_ERROR,
+                    "Screen size out-of-bounds: " + w + ", " + h
+            );
+        }
 
         graphicsState.setFrame(new BasicFrame(title, w, h));
         EventQueue.invokeLater(() -> graphicsState.getFrame().setVisible(true));
@@ -107,21 +161,177 @@ class GraphicsRuntime {
     {
         var i0 = instr0.get(0);
         var i1 = instr0.get(1);
+        var i2 = instr0.get(2);
 
         var x = symbolTable.get(i0.op1).getValue().getInt32();
         var y = symbolTable.get(i0.op2).getValue().getInt32();
-        Double s = i1.op1 != NULL_ID ? symbolTable.get(i1.op1).getValue().getFloat64() : null;
-        Double e = i1.op1 != NULL_ID ? symbolTable.get(i1.op2).getValue().getFloat64() : null;
-        int r1 = symbolTable.get(instruction.op1).getValue().getInt32();
-        int r2 = symbolTable.get(instruction.op2).getValue().getInt32();
+        Integer s = i1.op1 != NULL_ID ? symbolTable.get(i1.op1).getValue().getInt32() : null;
+        Integer e = i1.op1 != NULL_ID ? symbolTable.get(i1.op2).getValue().getInt32() : null;
+        int r1 = Math.max(0, symbolTable.get(instruction.op1).getValue().getInt32());
+        int r2 = Math.max(0, symbolTable.get(instruction.op2).getValue().getInt32());
+        boolean fill = i2.op1 != NULL_ID && symbolTable.get(i2.op1).getValue().getString().equalsIgnoreCase("F");
 
+        int w = r1 * 2;
+        int h = r2 * 2;
+        int sx = x - r1;
+        int sy = y - r2;
+
+        var g = graphicsState.getGraphics2D();
         if (s == null || e == null) {
-            graphicsState.getGraphics2D().drawOval(x, y, r1, r2);
+            if (fill) {
+                g.fillOval(sx, sy, w, h);
+            } else {
+                g.drawOval(sx, sy, w, h);
+            }
         } else {
-            graphicsState.getGraphics2D().drawArc(
-                    x, y, r1, r2, (int) Math.toDegrees(s) , (int) Math.toDegrees(e)
+            if (fill) {
+                g.fillArc(sx, sy, w, h, s, e);
+            } else {
+                g.drawArc(sx, sy, w, h, s, e);
+            }
+        }
+    }
+
+    public static void font(
+            GraphicsState graphicsState,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instr0,
+            Instruction instruction)
+    {
+        var style = symbolTable.get(instr0.op1).getValue().getString().toLowerCase();
+        var size = symbolTable.get(instr0.op2).getValue().getInt32();
+        var name = symbolTable.get(instruction.op1).getValue().getString();
+
+        if (name.isEmpty() || size <= 0 || size > GraphicsUtil.MAX_WIDTH) {
+            throw new PuffinBasicRuntimeError(
+                    GRAPHICS_ERROR,
+                    "Bad name/size: '" + name + "'/" + size
             );
         }
+
+        int styleVal = 0;
+        if (style.contains("i")) {
+            styleVal |= Font.ITALIC;
+        }
+        if (style.contains("b")) {
+            styleVal |= Font.BOLD;
+        }
+        graphicsState.getGraphics2D().setFont(new Font(name, styleVal, size));
+    }
+
+    public static void drawstr(
+            GraphicsState graphicsState,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instr0,
+            Instruction instruction)
+    {
+        var x = symbolTable.get(instr0.op1).getValue().getInt32();
+        var y = symbolTable.get(instr0.op2).getValue().getInt32();
+        var text = symbolTable.get(instruction.op1).getValue().getString();
+
+        graphicsState.getGraphics2D().drawString(text, x, y);
+    }
+
+    public static void draw(
+            GraphicsState graphicsState,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var str = symbolTable.get(instruction.op1).getValue().getString();
+        if (str.isEmpty()) {
+            throw new PuffinBasicRuntimeError(
+                    GRAPHICS_ERROR,
+                    "Found empty string in DRAW!"
+            );
+        }
+
+        var path = new GeneralPath();
+        var image = graphicsState.getFrame().getDrawingCanvas().getImage();
+        int w = image.getWidth();
+        int h = image.getHeight();
+        path.moveTo(w / 2, h / 2);
+
+        for (var i :str.split(";")) {
+            i = i.trim();
+            if (i.isEmpty()) {
+                continue;
+            }
+
+            var curr = path.getCurrentPoint();
+            if (i.charAt(0) == 'M') {
+                var m = DRAW_ARG2.matcher(i);
+                m.find();
+                String x = m.group(1);
+                String y = m.group(2);
+                int newX = (int) curr.getX();
+                int newY = (int) curr.getY();
+                if (x.startsWith("+") || x.startsWith("-")) {
+                    newX += Integer.parseInt(x);
+                } else {
+                    newX = Integer.parseInt(x);
+                }
+                if (y.startsWith("+") || y.startsWith("-")) {
+                    newY += Integer.parseInt(y);
+                } else {
+                    newY = Integer.parseInt(y);
+                }
+                path.moveTo(newX, newY);
+            } else {
+                var m = DRAW_ARG1.matcher(i);
+                m.find();
+                char cmd = m.group(1).charAt(0);
+                String opts = m.group(2) != null ? m.group(2) : "";
+                int s = Integer.parseInt(m.group(3));
+
+                boolean penUp = opts.contains("B");
+                boolean back = opts.contains("N");
+
+                int newX = (int) curr.getX();
+                int newY = (int) curr.getY();
+                switch (cmd) {
+                    case 'U':
+                        newY -= s;
+                        break;
+                    case 'D':
+                        newY += s;
+                        break;
+                    case 'L':
+                        newX -= s;
+                        break;
+                    case 'R':
+                        newX += s;
+                        break;
+                    case 'E':
+                        newY -= s;
+                        newX += s;
+                        break;
+                    case 'F':
+                        newY += s;
+                        newX += s;
+                        break;
+                    case 'G':
+                        newY += s;
+                        newX -= s;
+                        break;
+                    case 'H':
+                        newY -= s;
+                        newX -= s;
+                        break;
+                }
+
+                if (penUp) {
+                    path.moveTo(newX, newY);
+                } else {
+                    path.lineTo(newX, newY);
+                }
+
+                if (back) {
+                    path.moveTo(curr.getX(), curr.getY());
+                }
+            }
+
+        }
+        graphicsState.getGraphics2D().draw(path);
     }
 
     public static void line(
@@ -138,7 +348,7 @@ class GraphicsRuntime {
         var x2 = symbolTable.get(i1.op1).getValue().getInt32();
         var y2 = symbolTable.get(i1.op2).getValue().getInt32();
         String bf = instruction.op1 != NULL_ID
-                ? symbolTable.get(instruction.op1).getValue().getString()
+                ? symbolTable.get(instruction.op1).getValue().getString().toUpperCase()
                 : "";
 
         if (bf.isEmpty()) {
@@ -147,9 +357,14 @@ class GraphicsRuntime {
             graphicsState.getGraphics2D().drawRect(
                     x1, y1, Math.abs(x1 - x2), Math.abs(y1 - y2)
             );
-        } else {
+        } else if (bf.equals("BF")) {
             graphicsState.getGraphics2D().fillRect(
                     x1, y1, Math.abs(x1 - x2), Math.abs(y1 - y2)
+            );
+        } else {
+            throw new PuffinBasicRuntimeError(
+                    GRAPHICS_ERROR,
+                    "Bad options: " + bf
             );
         }
     }
@@ -164,9 +379,16 @@ class GraphicsRuntime {
         var g = symbolTable.get(instr0.op2).getValue().getInt32();
         var b = symbolTable.get(instruction.op1).getValue().getInt32();
 
+        r = applyColorBounds(r);
+        g = applyColorBounds(g);
+        b = applyColorBounds(b);
+
         graphicsState.getGraphics2D().setColor(new Color(r, g, b));
     }
 
+    private static int applyColorBounds(int c) {
+        return Math.min(255, Math.max(0, c));
+    }
 
     public static void paint(
             GraphicsState graphicsState,
@@ -183,7 +405,18 @@ class GraphicsRuntime {
         var x = symbolTable.get(instruction.op1).getValue().getInt32();
         var y = symbolTable.get(instruction.op2).getValue().getInt32();
 
-        graphicsState.getFrame().getSurface().floodFill(x, y, r, g, b);
+        if (x < 0 || y < 0 || x > graphicsState.getCanvasWidth() || y > graphicsState.getCanvasHeight()) {
+            throw new PuffinBasicRuntimeError(
+                    GRAPHICS_ERROR,
+                    "x/y out-of-bounds: " + x + ", " + y
+            );
+        }
+
+        r = applyColorBounds(r);
+        g = applyColorBounds(g);
+        b = applyColorBounds(b);
+
+        graphicsState.getFrame().getDrawingCanvas().floodFill(x, y, r, g, b);
     }
 
     public static void pset(
@@ -201,7 +434,18 @@ class GraphicsRuntime {
         var x = symbolTable.get(instruction.op1).getValue().getInt32();
         var y = symbolTable.get(instruction.op2).getValue().getInt32();
 
-        graphicsState.getFrame().getSurface().point(x, y, r, g, b);
+        r = applyColorBounds(r);
+        g = applyColorBounds(g);
+        b = applyColorBounds(b);
+
+        if (x < 0 || y < 0 || x > graphicsState.getCanvasWidth() || y > graphicsState.getCanvasHeight()) {
+            throw new PuffinBasicRuntimeError(
+                    GRAPHICS_ERROR,
+                    "x/y out-of-bounds: " + x + ", " + y
+            );
+        }
+
+        graphicsState.getFrame().getDrawingCanvas().point(x, y, r, g, b);
     }
 
 
@@ -229,7 +473,21 @@ class GraphicsRuntime {
                     "Bad variable! Expected Int32 2D-Array variable: " + variable.getVariable()
             );
         }
-        graphicsState.getFrame().getSurface().copyGraphicsToArray(
+        if (x1 < 0 || y1 < 0 || x2 < 0 || y2 < 0
+                || x1 > x2
+                || y1 > y2
+                || x1 > graphicsState.getCanvasWidth()
+                || y1 > graphicsState.getCanvasHeight()
+                || x2 > graphicsState.getCanvasWidth()
+                || y2 > graphicsState.getCanvasHeight()) {
+            throw new PuffinBasicRuntimeError(
+                    GRAPHICS_ERROR,
+                    "x1/y1/x2/y2 misaligned/out-of-bounds: ("
+                            + x1 + ", " + y1 + "), " + x2 + ", " + y2 + ")"
+            );
+        }
+
+        graphicsState.getFrame().getDrawingCanvas().copyGraphicsToArray(
                 x1, y1, x2, y2, variable.getValue().getInt32Array1D()
         );
     }
@@ -237,16 +495,14 @@ class GraphicsRuntime {
     public static void put(
             GraphicsState graphicsState,
             PuffinBasicSymbolTable symbolTable,
-            List<Instruction> instr0,
+            Instruction instr0,
             Instruction instruction)
     {
-        var i0 = instr0.get(0);
-
-        var x = symbolTable.get(i0.op1).getValue().getInt32();
-        var y = symbolTable.get(i0.op2).getValue().getInt32();
+        var x = symbolTable.get(instr0.op1).getValue().getInt32();
+        var y = symbolTable.get(instr0.op2).getValue().getInt32();
         var action = instruction.op1 != NULL_ID
                 ? symbolTable.get(instruction.op1).getValue().getString()
-                : "XOR";
+                : PUT_XOR;
         action = action.toUpperCase();
 
         var variable = (STVariable) symbolTable.get(instruction.op2);
@@ -260,9 +516,21 @@ class GraphicsRuntime {
                     "Bad variable! Expected Int32 2D-Array variable: " + variable.getVariable()
             );
         }
+        if (x < 0 || y < 0
+                || x > graphicsState.getCanvasWidth()
+                || y > graphicsState.getCanvasHeight()) {
+            throw new PuffinBasicRuntimeError(
+                    GRAPHICS_ERROR,
+                    "x/y misaligned/out-of-bounds: (" + x + ", " + y + ")"
+            );
+        }
+
         var dims = value.getArrayDimensions();
-        graphicsState.getFrame().getSurface().copyArrayToGraphics(
-                x, y, dims.getInt(0), dims.getInt(1), action, value.getInt32Array1D()
+        int w = dims.getInt(0);
+        int h = dims.getInt(1);
+
+        graphicsState.getFrame().getDrawingCanvas().copyArrayToGraphics(
+                x, y, w, h, action, value.getInt32Array1D()
         );
     }
 
@@ -271,197 +539,7 @@ class GraphicsRuntime {
             PuffinBasicSymbolTable symbolTable,
             Instruction instruction)
     {
-        var key = graphicsState.getFrame().getSurface().takeNextKey();
+        var key = graphicsState.getFrame().getDrawingCanvas().takeNextKey();
         symbolTable.get(instruction.result).getValue().setString(key);
-    }
-
-    private static class Surface extends JPanel implements ActionListener {
-
-        private final BufferedImage image;
-        private final Graphics2D graphics;
-        private final Timer timer;
-        private final Deque<String> keyBuffer;
-        private final int keyBufferSize;
-
-        Surface(int w, int h, int refreshMillis, int keyBufferSize) {
-            this.image = new BufferedImage(w, h, BufferedImage.TYPE_3BYTE_BGR);
-            this.graphics = (Graphics2D) image.getGraphics();
-            this.timer = new Timer(refreshMillis, this);
-            this.keyBuffer = new ArrayDeque<>();
-            this.keyBufferSize = keyBufferSize;
-        }
-
-        String takeNextKey() {
-            synchronized (keyBuffer) {
-                return keyBuffer.isEmpty() ? "" : keyBuffer.removeFirst();
-            }
-        }
-
-        void addNextKey(String key) {
-            synchronized (keyBuffer) {
-                var lastKey = !keyBuffer.isEmpty() ? keyBuffer.getLast() : null;
-                if (!key.equals(lastKey) && keyBuffer.size() < keyBufferSize) {
-                    keyBuffer.add(key);
-                }
-            }
-        }
-
-        void startRefresh() {
-            timer.start();
-        }
-
-        void stopRefresh() {
-            timer.stop();
-        }
-
-        Graphics2D getGraphics2D() {
-            return graphics;
-        }
-
-        private void draw(java.awt.Graphics g) {
-            g.drawImage(image, 0, 0, null);
-        }
-
-        @Override
-        protected void paintComponent(java.awt.Graphics g) {
-            super.paintComponent(g);
-            draw(g);
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            repaint();
-        }
-
-        public void floodFill(int x, int y, int r, int g, int b) {
-            recursiveFloodFill(image, x, y, graphics.getColor(), new Color(r, g, b));
-        }
-
-        public void point(int x, int y, int r, int g, int b) {
-            Color color;
-            if (r != -1 && g != -1 && b != -1) {
-                color = new Color(r, g, b);
-            } else {
-                color = graphics.getColor();
-            }
-            image.setRGB(x, y, color.getRGB());
-        }
-
-        public void copyGraphicsToArray(int x1, int y1, int x2, int y2, int[] dest) {
-            int w = Math.abs(x1 - x2);
-            int h = Math.abs(y1 - y2);
-            image.getRGB(x1, y1, w, h, dest, 0, w);
-        }
-
-        public void copyArrayToGraphics(int x, int y, int w, int h, String action, int[] src) {
-            if (action.equalsIgnoreCase("PSET")) {
-                image.setRGB(x, y, w, h, src, 0, w);
-            } else {
-                var copy = image.getRGB(x, y, w, h, null, 0, w);
-                if (action.equalsIgnoreCase("XOR")) {
-                    for (int i = 0; i < copy.length; i++) {
-                        copy[i] = copy[i] ^ src[i];
-                    }
-                } else if (action.equalsIgnoreCase("OR")) {
-                    for (int i = 0; i < copy.length; i++) {
-                        copy[i] = copy[i] | src[i];
-                    }
-                } else {
-                    for (int i = 0; i < copy.length; i++) {
-                        copy[i] = copy[i] & src[i];
-                    }
-                }
-                image.setRGB(x, y, w, h, copy, 0, w);
-            }
-        }
-    }
-
-    private static void recursiveFloodFill(
-            BufferedImage image, int x, int y, Color fill, Color boundary)
-    {
-        var atXY = new Color(image.getRGB(x, y));
-        if (atXY.getRed() == boundary.getRed()
-            && atXY.getGreen() == boundary.getGreen()
-            && atXY.getBlue() == boundary.getBlue()) {
-            return;
-        }
-
-        if (atXY.getRed() == fill.getRed()
-                && atXY.getGreen() == fill.getGreen()
-                && atXY.getBlue() == fill.getBlue()) {
-            return;
-        }
-
-        image.setRGB(x, y, fill.getRGB());
-        if (x > 0) {
-            recursiveFloodFill(image, x - 1 , y, fill, boundary);
-        }
-        if (x < image.getWidth() - 1) {
-            recursiveFloodFill(image, x + 1, y, fill, boundary);
-        }
-        if (y > 0) {
-            recursiveFloodFill(image, x , y - 1, fill, boundary);
-        }
-        if (x < image.getHeight() - 1) {
-            recursiveFloodFill(image, x, y + 1, fill, boundary);
-        }
-    }
-
-    private static class BasicFrame extends JFrame {
-
-        private final Surface surface;
-
-        BasicFrame(String title, int w, int h) {
-            surface = init(title, w, h);
-        }
-
-        Surface getSurface() {
-            return surface;
-        }
-
-        private Surface init(String title, int w, int h) {
-            var surface = new Surface(w, h, REFRESH_MILLIS, KEY_BUFFER_SIZE);
-            add(surface);
-
-            addWindowListener(new WindowAdapter() {
-                @Override
-                public void windowClosing(WindowEvent e) {
-                    surface.stopRefresh();
-                }
-            });
-            addKeyListener(new InkeyDlrKeyListener(surface));
-
-            setTitle(title);
-            setSize(w, h);
-            setLocationRelativeTo(null);
-            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            surface.startRefresh();
-
-            return surface;
-        }
-    }
-
-    private static class InkeyDlrKeyListener extends KeyAdapter {
-
-        private final Surface surface;
-
-        InkeyDlrKeyListener(Surface surface) {
-            this.surface = surface;
-        }
-
-        private String getKeyString(KeyEvent e) {
-            int charCode = e.getKeyChar();
-            int keyCode = e.getKeyCode();
-            if (charCode == 65535) {
-                return "0" + (char) keyCode;
-            } else {
-                return String.valueOf((char) charCode);
-            }
-        }
-
-        @Override
-        public void keyPressed(KeyEvent e) {
-            surface.addNextKey(getKeyString(e));
-        }
     }
 }
