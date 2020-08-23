@@ -98,7 +98,7 @@
 4990 RETURN
 5000 ' GAME LOOP
 5010 run% = -1 : points% = 0 : drawGrid% = 1' Draw Grid
-5020 tileid% = 0 : tilex% = 0 : tiley% = 0 : rot% = 0 : dStep% = 0 : nSteps% = 3 : sStep% = 1
+5020 tileid% = 0 : tilex% = 0 : tiley% = 0 : rot% = 0 : drot% = 0 : dStep% = 0 : nSteps% = 3 : sStep% = 1
 5030 WHILE run%
 5040    IF tileid% = 0 THEN tileid% = 1 + int(RND * 7) : tiley% = 0 : tilex% = int(RND * (GRIDW% - 4)) : rot% = 0
 5050    collision% = 0
@@ -106,10 +106,10 @@
 5070    IF drawGrid% <> 0 THEN drawGrid% = 0 : GOSUB 2500 ' Draw Grid
 5080    GOSUB 7000 ' Draw Tile
 5090    k$ = INKEY$
-5100    dx% = 0 : dy% = 0
+5100    dx% = 0 : dy% = 0 : drot% = 0
 5110    IF k$ = CHR$(0) + CHR$(37) THEN dx% = -1
 5120    IF k$ = CHR$(0) + CHR$(39) THEN dx% = 1
-5130    IF k$ = CHR$(0) + CHR$(38) THEN rot% = (rot% + 1) MOD 4
+5130    IF k$ = CHR$(0) + CHR$(38) THEN rot% = (rot% + 1) MOD 4 : drot% = -1
 5140    IF k$ = CHR$(0) + CHR$(40) THEN dy% = 1
 5150    ' Check for collision
 5160    IF dStep% = nSteps% - 1 THEN dy% = 1 : dStep% = 0 ELSE dStep% = dStep% + sStep%
@@ -237,7 +237,7 @@
 9380            GRID%(I%, J%) = 0
 9390        NEXT
 9400    NEXT
-9410    DESTY% = SRCY2% - 1
+9410    DESTY% = SRCY2%
 9420 WEND
 9430 FOR I% = 0 TO SRCY2% - 1
 9440    FOR J% = 0 TO GRIDW% - 1
