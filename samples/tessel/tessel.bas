@@ -115,7 +115,7 @@
 5160    IF dStep% = nSteps% - 1 THEN dy% = 1 : dStep% = 0 ELSE dStep% = dStep% + sStep%
 5170    GOSUB 8000 ' Check collision and hitbottom
 5180    IF hitbottom% = -1 OR collision% = -1 THEN tileid% = 0 : dy% = 0 : GOSUB 9000 ' Copy Tile to Grid
-5190    IF collision% = -1 AND tilex% = 0 THEN run% = 0 : PRINT "GAME OVER!"
+5190    ' TODO FIX BUG IF collision% = -1 AND tilex% = 0 THEN run% = 0 : PRINT "GAME OVER!"
 5200    SLEEP 80
 5210    GOSUB 7000 ' Erase Tile and Update tile x,y
 5220    tilex% = tilex% + dx%
