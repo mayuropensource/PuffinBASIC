@@ -56,7 +56,7 @@
 2650 LINE (0, 0) - (GRIDW% * TILEW% - 1, OFFSETY% * GRIDH% - 1), "BF"
 2660 score$ = SPACE$(256)
 2670 LSET score$ = "Rotate: U arrow, Move: L/R/D arrow, SCORE: " + str$(points%)
-2680 FONT "Courier", "", 20
+2680 FONT "Courier", "", 16
 2690 COLOR 220, 255, 255
 2700 DRAWSTR score$, 10, 32
 2990 RETURN
