@@ -136,6 +136,10 @@ PuffinBASIC is an interpreter, and it should not be expected to have very good p
 Certain operations such as PRINT USING, INPUT, etc are not optimized for performance.
 We have not benchmarked PuffinBASIC primitives.
 
+## Memory
+
+PuffinBASIC runs within a JVM and can use as much memory as available for the JVM process.
+
 # Reference
 
 ## Mode of operation
@@ -1367,6 +1371,8 @@ LINE (0, 0) - (10, 10), "BF"
 Flood fills the drawing canvas starting at the given position with foreground color
 until the given color boundary is hit.
 Flood fill has no effect if called on a point which already has foreground color.
+PAINT is a slow operation.
+Prefer filling the shapes using "F" option.
 
 Syntax:
 
@@ -1494,8 +1500,8 @@ Special Key Codes:
 ```
 LEFT arrow:  CHR$(0) + CHR$(37)
 UP arrow:    CHR$(0) + CHR$(38)
-DOWN arrow:  CHR$(0) + CHR$(39)
-RIGHT arrow: CHR$(0) + CHR$(40)
+RIGHT arrow: CHR$(0) + CHR$(39)
+DOWN arrow:  CHR$(0) + CHR$(40)
 ```
 
 Syntax:
@@ -1511,4 +1517,24 @@ K$ = INKEY$
 
 ' Check Up Arrow
 IF K$ = CHR$(0) + CHR$(38) THEN y2% = y% - 5
+```
+
+### CLS
+
+Clear the screen.
+
+Syntax:
+
+```
+CLS
+```
+
+### BEEP
+
+Make a beeps sound.
+
+Syntax:
+
+```
+BEEP
 ```

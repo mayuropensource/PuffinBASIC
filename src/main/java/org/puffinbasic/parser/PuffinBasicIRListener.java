@@ -2609,6 +2609,15 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
     }
 
     @Override
+    public void exitClsstmt(PuffinBasicParser.ClsstmtContext ctx) {
+        assertGraphics();
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.CLS, NULL_ID, NULL_ID, NULL_ID
+        );
+    }
+
+    @Override
     public void exitSleepstmt(PuffinBasicParser.SleepstmtContext ctx) {
         var millis = lookupInstruction(ctx.expr());
         Types.assertNumeric(ir.getSymbolTable().get(millis.result).getValue().getDataType(),
@@ -2616,6 +2625,15 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
                 OpCode.SLEEP, millis.result, NULL_ID, NULL_ID
+        );
+    }
+
+    @Override
+    public void exitBeepstmt(PuffinBasicParser.BeepstmtContext ctx) {
+        assertGraphics();
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.BEEP, NULL_ID, NULL_ID, NULL_ID
         );
     }
 

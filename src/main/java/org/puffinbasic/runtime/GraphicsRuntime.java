@@ -13,6 +13,7 @@ import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.Toolkit;
 import java.awt.event.WindowEvent;
 import java.awt.geom.GeneralPath;
 import java.awt.image.BufferedImage;
@@ -53,7 +54,7 @@ class GraphicsRuntime {
         }
 
         int getCanvasHeight() {
-            return getFrame().getDrawingCanvas().getImage().getWidth();
+            return getFrame().getDrawingCanvas().getImage().getHeight();
         }
 
         void setFrame(BasicFrame frame) {
@@ -78,6 +79,14 @@ class GraphicsRuntime {
                 );
             }
         }
+    }
+
+    public static void cls(GraphicsState graphicsState) {
+        graphicsState.getFrame().getDrawingCanvas().clear();
+    }
+
+    public static void beep() {
+        Toolkit.getDefaultToolkit().beep();
     }
 
     public static void loadimg(
@@ -251,7 +260,7 @@ class GraphicsRuntime {
         int h = image.getHeight();
         path.moveTo(w / 2, h / 2);
 
-        for (var i :str.split(";")) {
+        for (var i : str.split(";")) {
             i = i.trim();
             if (i.isEmpty()) {
                 continue;
@@ -522,6 +531,8 @@ class GraphicsRuntime {
             throw new PuffinBasicRuntimeError(
                     GRAPHICS_ERROR,
                     "x/y misaligned/out-of-bounds: (" + x + ", " + y + ")"
+                        + " Canvas: " + graphicsState.getCanvasWidth() + ","
+                        + graphicsState.getCanvasHeight()
             );
         }
 

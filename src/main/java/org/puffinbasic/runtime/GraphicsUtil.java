@@ -18,6 +18,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Deque;
 
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.GRAPHICS_ERROR;
@@ -26,7 +27,7 @@ class GraphicsUtil {
 
     static final int MAX_WIDTH = 4000;
     static final int MAX_HEIGHT = 4000;
-    private static final int REFRESH_MILLIS = 200;
+    private static final int REFRESH_MILLIS = 40;
     private static final int KEY_BUFFER_SIZE = 16;
     static final String PUT_XOR = "XOR";
     private static final String PUT_OR = "OR";
@@ -76,8 +77,15 @@ class GraphicsUtil {
         private final Timer timer;
         private final Deque<String> keyBuffer;
         private final int keyBufferSize;
+        private final int w;
+        private final int h;
+        private final int[] clearBuffer;
 
         DrawingCanvas(int w, int h, int refreshMillis, int keyBufferSize) {
+            this.w = w;
+            this.h = h;
+            this.clearBuffer = new int[w * h];
+            Arrays.fill(clearBuffer, 0);
             // Always use setPreferredSize() here.
             setPreferredSize(new Dimension(w, h));
             this.image = new BufferedImage(w, h, BufferedImage.TYPE_3BYTE_BGR);
@@ -87,7 +95,7 @@ class GraphicsUtil {
             this.keyBufferSize = keyBufferSize;
         }
 
-        BufferedImage getImage() {
+        synchronized BufferedImage getImage() {
             return image;
         }
 
@@ -106,7 +114,7 @@ class GraphicsUtil {
             }
         }
 
-        void startRefresh() {
+        synchronized void startRefresh() {
             timer.start();
         }
 
@@ -118,14 +126,16 @@ class GraphicsUtil {
             return graphics;
         }
 
-        private void draw(java.awt.Graphics g) {
+        private synchronized void draw(java.awt.Graphics g) {
             g.drawImage(image, 0, 0, null);
         }
 
         @Override
         protected void paintComponent(java.awt.Graphics g) {
             super.paintComponent(g);
-            draw(g);
+            synchronized (this) {
+                draw(g);
+            }
         }
 
         @Override
@@ -133,11 +143,11 @@ class GraphicsUtil {
             repaint();
         }
 
-        void floodFill(int x, int y, int r, int g, int b) {
+        synchronized void floodFill(int x, int y, int r, int g, int b) {
             iterativeFloodFill(image, x, y, graphics.getColor(), new Color(r, g, b));
         }
 
-        void point(int x, int y, int r, int g, int b) {
+        synchronized void point(int x, int y, int r, int g, int b) {
             Color color;
             if (r != -1 && g != -1 && b != -1) {
                 color = new Color(r, g, b);
@@ -147,13 +157,13 @@ class GraphicsUtil {
             image.setRGB(x, y, color.getRGB());
         }
 
-        void copyGraphicsToArray(int x1, int y1, int x2, int y2, int[] dest) {
+        synchronized void copyGraphicsToArray(int x1, int y1, int x2, int y2, int[] dest) {
             int w = Math.abs(x1 - x2);
             int h = Math.abs(y1 - y2);
             image.getRGB(x1, y1, w, h, dest, 0, w);
         }
 
-        void copyArrayToGraphics(int x, int y, int w, int h, String action, int[] src) {
+        synchronized void copyArrayToGraphics(int x, int y, int w, int h, String action, int[] src) {
             if (action.equalsIgnoreCase(PUT_PSET)) {
                 image.setRGB(x, y, w, h, src, 0, w);
             } else {
@@ -178,6 +188,10 @@ class GraphicsUtil {
                 }
                 image.setRGB(x, y, w, h, copy, 0, w);
             }
+        }
+
+        synchronized void clear() {
+            image.setRGB(0, 0, w, h, clearBuffer, 0, w);
         }
     }
 

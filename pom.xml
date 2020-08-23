@@ -58,6 +58,11 @@
       <artifactId>argparse4j</artifactId>
       <version>0.8.1</version>
     </dependency>
+      <dependency>
+          <groupId>it.unimi.dsi</groupId>
+          <artifactId>fastutil</artifactId>
+          <version>8.3.0</version>
+      </dependency>
   </dependencies>
   <build>
     <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->

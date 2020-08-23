@@ -581,6 +581,12 @@ public class PuffinBasicRuntime {
             case INKEYDLR:
                 GraphicsRuntime.inkeydlr(graphicsState, ir.getSymbolTable(), instruction);
                 break;
+            case CLS:
+                GraphicsRuntime.cls(graphicsState);
+                break;
+            case BEEP:
+                GraphicsRuntime.beep();
+                break;
         }
 
         this.programCounter = nextProgramCounter;

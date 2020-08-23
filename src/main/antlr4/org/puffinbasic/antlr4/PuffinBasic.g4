@@ -76,6 +76,8 @@ stmt
     | fontstmt
     | drawstrstmt
     | loadimgstmt
+    | clsstmt
+    | beepstmt
     ;
 
 expr
@@ -418,6 +420,14 @@ drawstrstmt
 
 loadimgstmt
     : LOADIMG path=expr COMMA variable
+    ;
+
+clsstmt
+    : CLS
+    ;
+
+beepstmt
+    : BEEP
     ;
 
 LETTERRANGE
@@ -831,6 +841,14 @@ DRAWSTR
 
 LOADIMG
     : L O A D I M G
+    ;
+
+CLS
+    : C L S
+    ;
+
+BEEP
+    : B E E P
     ;
 
 string

@@ -149,6 +149,8 @@ public class PuffinBasicIR {
         DRAW("draw"),
         FONT_SS("font_ss"),
         FONT("font"),
+        CLS("cls"),
+        BEEP("beep"),
         ;
 
         public final String repr;
