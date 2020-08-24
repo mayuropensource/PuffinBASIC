@@ -38,15 +38,15 @@ class GraphicsUtil {
 
         private final DrawingCanvas drawingCanvas;
 
-        BasicFrame(String title, int w, int h) {
-            drawingCanvas = init(title, w, h);
+        BasicFrame(String title, int w, int h, boolean autoRepaint) {
+            drawingCanvas = init(title, w, h, autoRepaint);
         }
 
         DrawingCanvas getDrawingCanvas() {
             return drawingCanvas;
         }
 
-        private DrawingCanvas init(String title, int w, int h) {
+        private DrawingCanvas init(String title, int w, int h, boolean autoRepaint) {
             var drawingCanvas = new DrawingCanvas(w, h, REFRESH_MILLIS, KEY_BUFFER_SIZE);
             add(drawingCanvas);
 
@@ -64,8 +64,9 @@ class GraphicsUtil {
             setResizable(false);
             setLocationRelativeTo(null);
             setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            drawingCanvas.startRefresh();
-
+            if (autoRepaint) {
+                drawingCanvas.startRefresh();
+            }
             return drawingCanvas;
         }
     }

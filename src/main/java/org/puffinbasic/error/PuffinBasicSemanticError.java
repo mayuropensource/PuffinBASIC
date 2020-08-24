@@ -14,6 +14,7 @@ public class PuffinBasicSemanticError extends RuntimeException {
         NEXT_WITHOUT_FOR,
         FOR_WITHOUT_NEXT,
         BAD_ARGUMENT,
+        NOT_DEFINED,
     }
 
     public PuffinBasicSemanticError(

@@ -161,6 +161,9 @@ public class PuffinBasicRuntime {
             case SET_ARRAY_IDX:
                 Arrays.setIndex(arrayState, ir.getSymbolTable(), instruction);
                 break;
+            case ARRAYREF:
+                Arrays.arrayref(ir.getSymbolTable(), instruction);
+                break;
             case LABEL:
                 break;
             case GOTO_LINENUM: {
@@ -491,6 +494,9 @@ public class PuffinBasicRuntime {
                 instr0.clear();
             }
             break;
+            case REPAINT:
+                GraphicsRuntime.repaint(graphicsState);
+                break;
             case CIRCLE: {
                 if (instr0.size() != 3) {
                         throw new PuffinBasicInternalError(

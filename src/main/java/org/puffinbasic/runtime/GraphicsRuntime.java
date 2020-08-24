@@ -146,9 +146,14 @@ class GraphicsRuntime {
                     "Screen size out-of-bounds: " + w + ", " + h
             );
         }
+        var autoRepaint = symbolTable.get(instruction.op2).getValue().getInt32() == -1;
 
-        graphicsState.setFrame(new BasicFrame(title, w, h));
+        graphicsState.setFrame(new BasicFrame(title, w, h, autoRepaint));
         EventQueue.invokeLater(() -> graphicsState.getFrame().setVisible(true));
+    }
+
+    public static void repaint(GraphicsState graphicsState) {
+        graphicsState.getFrame().getDrawingCanvas().repaint();
     }
 
     public static void end(GraphicsState graphicsState) {

@@ -78,6 +78,19 @@ stmt
     | loadimgstmt
     | clsstmt
     | beepstmt
+    | repaintstmt
+    ;
+
+variable
+    : varname varsuffix? (LPAREN expr (COMMA expr)* RPAREN)?
+    ;
+
+varname
+    : VARNAME
+    ;
+
+varsuffix
+    : DOLLAR | PERCENT | AT | EXCLAMATION | HASH
     ;
 
 expr
@@ -191,18 +204,6 @@ writehashstmt
 
 letstmt
     : LET? variable RELEQ expr
-    ;
-
-variable
-    : varname varsuffix? (LPAREN expr (COMMA expr)* RPAREN)?
-    ;
-
-varname
-    : VARNAME
-    ;
-
-varsuffix
-    : DOLLAR | PERCENT | AT | EXCLAMATION | HASH
     ;
 
 ifstmt
@@ -370,7 +371,11 @@ sleepstmt
     ;
 
 screenstmt
-    : SCREEN title=expr COMMA w=expr COMMA h=expr
+    : SCREEN title=expr COMMA w=expr COMMA h=expr (COMMA mr=MANUAL_REPAINT)?
+    ;
+
+repaintstmt
+    : REPAINT
     ;
 
 circlestmt
@@ -849,6 +854,14 @@ CLS
 
 BEEP
     : B E E P
+    ;
+
+MANUAL_REPAINT
+    : M A N U A L R E P A I N T
+    ;
+
+REPAINT
+    : R E P A I N T
     ;
 
 string

@@ -10,12 +10,16 @@
 100 DIM TILE7%(32, 32)
 110 DIM tile%(4, 4)
 500 GOSUB 1000 ' LOAD IMAGES
-510 GOSUB 1500 ' INIT GRID
-520 GOSUB 2000 ' CREATE SCREEN
-560 GOSUB 2500 ' DRAW GRID
-570 GOSUB 3000 ' INIT TILES
-580 GOSUB 5000 ' GAME LOOP
-980 SLEEP 5000
+510 GOSUB 2000 ' CREATE SCREEN
+520 GOSUB 3000 ' INIT TILES
+530 WHILE -1
+540     PRINT "Starting New Game"
+550     GOSUB 1500 ' INIT GRID
+560     CLS
+600     GOSUB 5000 ' GAME LOOP
+610     PRINT "Waiting for a few seconds before starting new game ..."
+620     SLEEP 5000
+630 WEND
 990 END
 1000 ' LOAD IMAGES
 1010 LOADIMG "samples/tessel/images/tile0.png", TILE0%
@@ -41,7 +45,7 @@
 2020 OFFSETY% = 2
 2030 SCRSIZEX% = GRIDW% * TILEW% + OFFSETX% * GRIDW%
 2040 SCRSIZEY% = GRIDH% * TILEH% + OFFSETY% * GRIDH%
-2050 SCREEN "TESSEL - A Tile Builder Game in PuffinBASIC", SCRSIZEX%, SCRSIZEY%
+2050 SCREEN "TESSEL - A Tile Builder Game in PuffinBASIC", SCRSIZEX%, SCRSIZEY%, MANUALREPAINT
 2060 PRINT "Created Screen: ", SCRSIZEX%, SCRSIZEY%
 2070 RETURN
 2500 ' DRAW GRID
@@ -98,10 +102,10 @@
 4990 RETURN
 5000 ' GAME LOOP
 5010 run% = -1 : points% = 0 : drawGrid% = 1' Draw Grid
-5020 tileid% = 0 : tilex% = 0 : tiley% = 0 : rot% = 0 : drot% = 0 : dStep% = 0 : nSteps% = 3 : sStep% = 1
+5020 tileid% = 0 : tilex% = 0 : tiley% = 0 : rot% = 0 : dStep% = 0 : nSteps% = 3 : sStep% = 1
 5030 WHILE run%
 5040    IF tileid% = 0 THEN tileid% = 1 + int(RND * 7) : tiley% = 0 : tilex% = int(RND * (GRIDW% - 4)) : rot% = 0
-5050    collision% = 0
+5050    collision% = 0 : drot% = 0
 5060    GOSUB 6000 ' Set Tile
 5070    IF drawGrid% <> 0 THEN drawGrid% = 0 : GOSUB 2500 ' Draw Grid
 5080    GOSUB 7000 ' Draw Tile
@@ -109,14 +113,20 @@
 5100    dx% = 0 : dy% = 0 : drot% = 0
 5110    IF k$ = CHR$(0) + CHR$(37) THEN dx% = -1
 5120    IF k$ = CHR$(0) + CHR$(39) THEN dx% = 1
-5130    IF k$ = CHR$(0) + CHR$(38) THEN rot% = (rot% + 1) MOD 4 : drot% = -1
+5130    IF k$ = CHR$(0) + CHR$(38) THEN drot% = 1
 5140    IF k$ = CHR$(0) + CHR$(40) THEN dy% = 1
 5150    ' Check for collision
 5160    IF dStep% = nSteps% - 1 THEN dy% = 1 : dStep% = 0 ELSE dStep% = dStep% + sStep%
 5170    GOSUB 8000 ' Check collision and hitbottom
-5180    IF hitbottom% = -1 OR collision% = -1 THEN tileid% = 0 : dy% = 0 : GOSUB 9000 ' Copy Tile to Grid
-5190    ' TODO FIX BUG IF collision% = -1 AND tilex% = 0 THEN run% = 0 : PRINT "GAME OVER!"
-5200    SLEEP 80
+5180    IF collision% <> 0 AND tiley% = 0 THEN run% = 0 : GOSUB 10000
+5181    oldrot% = rot% : newrot% = rot%
+5185    IF drot% = 1 AND collision% <> 2 THEN newrot% = (rot% + 1) MOD 4 ' Rotate if no collision
+5190    IF (hitbottom% = -1 OR collision% <> 0) AND tiley% > 0 THEN tileid% = 0 : dy% = 0 : GOSUB 9000 ' Copy Tile to Grid
+5191    IF hitbottom% = 0 AND collision% = 0 AND drot% = 1 THEN checkrot% = 1 ELSE checkrot% = 0 ' Check if rotation causes collision
+5192    IF checkrot% = 1 THEN collision% = 0 : rot% = newrot% : GOSUB 6000 : GOSUB 8000 ' Copy rotated tile and check for collision
+5193    IF checkrot% = 1 THEN rot% = oldrot% : GOSUB 6000 ' Revert rotated tile
+5194    IF checkrot% = 1 AND collision <> 0 THEN rot% = oldrot% ELSE IF checkrot% = 1 THEN rot% = newrot%
+5200    REPAINT : SLEEP 40
 5210    GOSUB 7000 ' Erase Tile and Update tile x,y
 5220    tilex% = tilex% + dx%
 5230    tiley% = tiley% + dy%
@@ -188,10 +198,11 @@
 8120 FOR Y% = 0 TO maxy%
 8130    FOR X% = 0 TO maxx%
 8140        v% = tile%(Y%, X%)
-8150        gv% = GRID%(tiley% + Y%, tilex% + X%)
+8150        hgv% = GRID%(tiley% + Y%, tilex% + X%)
 8160        gvdx% = GRID%(tiley% + Y%, tilex% + X% + dx%)
-8170        IF hitbottom% = 0 THEN gv% = gv% OR GRID%(tiley% + Y% + 1, tilex% + X%)
-8180        IF v% = 1 AND gv% = 1 THEN collision% = -1
+8170        IF hitbottom% = 0 THEN vgv% = GRID%(tiley% + Y% + 1, tilex% + X%) ELSE vgv% = 0
+8180        IF v% = 1 AND vgv% = 1 THEN collision% = 1
+8185        IF v% = 1 AND hgv% = 1 THEN collision% = 2
 8190        IF v% = 1 AND gvdx% = 1 THEN dx% = 0
 8200    NEXT
 8210 NEXT
@@ -233,7 +244,7 @@
 9340    DY% = DESTY% - SRCY1%
 9350    FOR I% = SRCY1% to SRCY2% + 1 STEP -1
 9360        FOR J% = 0 TO GRIDW% - 1
-9370            tmp% = GRID%(I%, J%) : GRID%(I% + DY%, J%) = tmp%
+9370            GRID%(I% + DY%, J%) = GRID%(I%, J%)
 9380            GRID%(I%, J%) = 0
 9390        NEXT
 9400    NEXT
@@ -246,3 +257,9 @@
 9470 NEXT
 9480 IF minfilledy% < GRIDH% THEN CLS
 9990 RETURN
+10000 ' GAME OVER
+10010 gover$ = "GAME OVER! Your Score=" + str$(points%) + ", try again" : PRINT gover$
+10020 FONT "Courier", "B", 24
+10030 COLOR 255, 0, 0
+10040 DRAWSTR gover$, 10, GRIDH% * TILEH% / 2
+10050 RETURN

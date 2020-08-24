@@ -121,6 +121,7 @@ public class PuffinBasicIR {
         ENVIRONDLR("environ$"),
         SCREEN0("screen0"),
         SCREEN("screen"),
+        REPAINT("repaint"),
         CIRCLE_XY("circle_xy"),
         CIRCLE_SE("circle_se"),
         CIRCLE_FILL("circle_se"),
@@ -151,6 +152,7 @@ public class PuffinBasicIR {
         FONT("font"),
         CLS("cls"),
         BEEP("beep"),
+        ARRAYREF("arrayref"),
         ;
 
         public final String repr;

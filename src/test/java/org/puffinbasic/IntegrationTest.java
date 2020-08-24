@@ -51,6 +51,11 @@ public class IntegrationTest {
     }
 
     @Test
+    public void testArrayCopy() {
+        runTest("array_copy.bas", "array_copy.bas.output");
+    }
+
+    @Test
     public void testWhile() {
         runTest("while.bas", "while.bas.output");
     }

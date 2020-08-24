@@ -151,6 +151,7 @@ public class STObjects {
     public enum STKind {
         TMP,
         VARIABLE,
+        ARRAYREF,
         LABEL
     }
 
@@ -163,7 +164,7 @@ public class STObjects {
         private final STKind kind;
         private final STValue value;
 
-        public AbstractSTEntry(STKind kind, STValue value) {
+        AbstractSTEntry(STKind kind, STValue value) {
             this.kind = kind;
             this.value = value;
         }
@@ -182,7 +183,7 @@ public class STObjects {
     public static class STVariable extends AbstractSTEntry {
         private final Variable variable;
 
-        public STVariable(STKind kind, STValue value, Variable variable) {
+        STVariable(STKind kind, STValue value, Variable variable) {
             super(kind, value);
             this.variable = variable;
         }
@@ -196,7 +197,7 @@ public class STObjects {
 
         private final IntList paramIds;
 
-        public STUDF(STKind kind, STValue value, Variable variable) {
+        STUDF(STKind kind, STValue value, Variable variable) {
             super(kind, value, variable);
             this.paramIds = new IntArrayList();
         }
@@ -214,14 +215,20 @@ public class STObjects {
         }
     }
 
-    public static final class STTmp extends AbstractSTEntry {
-        public STTmp(STKind kind, STValue value) {
+    static final class STTmp extends AbstractSTEntry {
+        STTmp(STKind kind, STValue value) {
             super(kind, value);
         }
     }
 
-    public static final class STLabel extends AbstractSTEntry {
-        public STLabel() {
+    static final class STArrayReference extends AbstractSTEntry {
+        STArrayReference(STKind kind, STValue value) {
+            super(kind, value);
+        }
+    }
+
+    static final class STLabel extends AbstractSTEntry {
+        STLabel() {
             super(STKind.LABEL, new STInt32ScalarValue());
         }
     }
@@ -258,6 +265,9 @@ public class STObjects {
         default void resetArrayIndex() {}
         default int getArrayIndex1D() {
             return 0;
+        }
+        default void setArrayReferenceIndex1D(int index1d) {
+            throw new PuffinBasicInternalError("Unsupported");
         }
         default int[] getInt32Array1D() {
             throw new PuffinBasicInternalError("Unsupported");
@@ -906,7 +916,117 @@ public class STObjects {
         }
     }
 
-    private static abstract class AbstractSTArrayValue implements STValue {
+    static class ArrayReferenceValue implements STValue {
+
+        private final AbstractSTArrayValue array;
+        private int index1d;
+
+        ArrayReferenceValue(AbstractSTArrayValue array) {
+            this.array = array;
+        }
+
+        @Override
+        public void setArrayReferenceIndex1D(int index1d) {
+            this.index1d = index1d;
+        }
+
+        @Override
+        public PuffinBasicDataType getDataType() {
+            return array.getDataType();
+        }
+
+        @Override
+        public String printFormat() {
+            array.setArrayIndexID(index1d);
+            return array.printFormat();
+        }
+
+        @Override
+        public String writeFormat() {
+            array.setArrayIndexID(index1d);
+            return array.writeFormat();
+        }
+
+        @Override
+        public void assign(STValue entry) {
+            array.setArrayIndexID(index1d);
+            array.assign(entry);
+        }
+
+        @Override
+        public int getInt32() {
+            array.setArrayIndexID(index1d);
+            return array.getInt32();
+        }
+
+        @Override
+        public long getInt64() {
+            array.setArrayIndexID(index1d);
+            return array.getInt64();
+        }
+
+        @Override
+        public float getFloat32() {
+            array.setArrayIndexID(index1d);
+            return array.getFloat32();
+        }
+
+        @Override
+        public double getFloat64() {
+            array.setArrayIndexID(index1d);
+            return array.getFloat64();
+        }
+
+        @Override
+        public int getRoundedInt32() {
+            array.setArrayIndexID(index1d);
+            return array.getRoundedInt32();
+        }
+
+        @Override
+        public long getRoundedInt64() {
+            array.setArrayIndexID(index1d);
+            return array.getRoundedInt64();
+        }
+
+        @Override
+        public String getString() {
+            array.setArrayIndexID(index1d);
+            return array.getString();
+        }
+
+        @Override
+        public void setInt32(int value) {
+            array.setArrayIndexID(index1d);
+            array.setInt32(value);
+        }
+
+        @Override
+        public void setInt64(long value) {
+            array.setArrayIndexID(index1d);
+            array.setInt64(value);
+        }
+
+        @Override
+        public void setFloat32(float value) {
+            array.setArrayIndexID(index1d);
+            array.setFloat32(value);
+        }
+
+        @Override
+        public void setFloat64(double value) {
+            array.setArrayIndexID(index1d);
+            array.setFloat64(value);
+        }
+
+        @Override
+        public void setString(String value) {
+            array.setArrayIndexID(index1d);
+            array.setString(value);
+        }
+    }
+
+    static abstract class AbstractSTArrayValue implements STValue {
 
         private IntList dimensions;
         private int totalLength;
@@ -964,6 +1084,10 @@ public class STObjects {
         @Override
         public int getArrayIndex1D() {
             return index1d;
+        }
+
+        public void setArrayIndexID(int index1d) {
+            this.index1d = index1d;
         }
     }
 

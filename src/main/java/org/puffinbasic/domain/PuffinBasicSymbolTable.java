@@ -2,8 +2,12 @@ package org.puffinbasic.domain;
 
 import it.unimi.dsi.fastutil.chars.Char2ObjectMap;
 import it.unimi.dsi.fastutil.chars.Char2ObjectOpenHashMap;
+import org.puffinbasic.domain.STObjects.AbstractSTArrayValue;
+import org.puffinbasic.domain.STObjects.ArrayReferenceValue;
 import org.puffinbasic.domain.STObjects.PuffinBasicDataType;
+import org.puffinbasic.domain.STObjects.STArrayReference;
 import org.puffinbasic.domain.STObjects.STEntry;
+import org.puffinbasic.domain.STObjects.STTmp;
 import org.puffinbasic.domain.STObjects.STVariable;
 import org.puffinbasic.domain.Variable.VariableName;
 import org.puffinbasic.error.PuffinBasicInternalError;
@@ -16,6 +20,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.DOUBLE;
+import static org.puffinbasic.domain.STObjects.STKind.TMP;
 
 public class PuffinBasicSymbolTable {
 
@@ -91,6 +96,14 @@ public class PuffinBasicSymbolTable {
         int id = generateNextId();
         var entry = PuffinBasicDataType.INT32.createTmpEntry();
         scope.putEntry(id, entry);
+        return id;
+    }
+
+    public int addArrayReference(STVariable variable) {
+        var ref = new ArrayReferenceValue((AbstractSTArrayValue) variable.getValue());
+        int id = generateNextId();
+        var entry = new STArrayReference(TMP, ref);
+        getCurrentScope().putEntry(id, entry);
         return id;
     }
 
