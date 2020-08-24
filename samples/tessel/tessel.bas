@@ -102,7 +102,7 @@
 4990 RETURN
 5000 ' GAME LOOP
 5010 run% = -1 : points% = 0 : drawGrid% = 1' Draw Grid
-5020 tileid% = 0 : tilex% = 0 : tiley% = 0 : rot% = 0 : dStep% = 0 : nSteps% = 3 : sStep% = 1
+5020 tileid% = 0 : tilex% = 0 : tiley% = 0 : rot% = 0 : dStep% = 0 : nSteps% = 4 : sStep% = 1
 5030 WHILE run%
 5040    IF tileid% = 0 THEN tileid% = 1 + int(RND * 7) : tiley% = 0 : tilex% = int(RND * (GRIDW% - 4)) : rot% = 0
 5050    collision% = 0 : drot% = 0

@@ -7,6 +7,8 @@ BASIC (Beginners' All-purpose Symbolic Instruction Code) is a general-purpose hi
 language from the 1960s. PuffinBASIC is an implementation of the BASIC language specification.
 PuffinBASIC conforms most closely to GWBASIC.
 
+<a href="https://youtu.be/L8xkM-g3Zms"><img src="samples/tessel/images/tesselsnap1.png" width="64"></a>
+
 ## Version
 
 0.1 experimental
