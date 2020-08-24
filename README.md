@@ -1,5 +1,5 @@
 # PuffinBASIC
-BASIC interpreter written in Java.
+A cross-platform modern BASIC interpreter written in Java.
 
 <img src="puffin.png" width="64"/>
 
