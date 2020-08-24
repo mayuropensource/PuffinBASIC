@@ -129,16 +129,17 @@ $ mvn generate-sources
 
 ## How it works?
 
-1. Uses antlr4 to define the language grammar.
-1. It parses the program using antlr4 lexer+parser and generates intermediate representation (IR) of the source code. 
-During parsing, it populates a symbol table.
-1. At runtime, it runs the IR instructions using the symbol table.
+1. PuffinBASIC's grammar is defined using antlr4.
+1. At runtime, the user source code is parsed using antlr4 lexer+parser.
+1. After parsing, an intermediate representation (IR) of the source code is generated. A symbol table keeps track of variables, scalars, arrays, etc. objects.
+1. A runtime, processes the IR instructions and executes them.
 
 ## Performance
 
 PuffinBASIC is an interpreter, and it should not be expected to have very good performance characteristics.
 Certain operations such as PRINT USING, INPUT, etc are not optimized for performance.
 We have not benchmarked PuffinBASIC primitives.
+That being said, we have written games with graphics in PuffinBASIC is work very well.
 
 ## Memory
 
@@ -185,7 +186,11 @@ For displaying text on Swing window, new statements are added.
 
 ### DIM
 
-DIM statement declares size of each dimension.
+DIM statement declares size of each dimension (rather than maximum value of the dimension).
+
+### Data Types
+
+PuffinBASIC has extended BASIC types and supports Int32, Int4, Float32, Float64, and String.
 
 ## Commands
 
