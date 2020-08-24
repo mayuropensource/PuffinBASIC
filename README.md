@@ -1252,11 +1252,13 @@ Use '--graphics' or '-g' to enable graphics mode.
 Create a window with the title and a drawing canvas of size wxh (width x height).
 The window is not resizable.
 Top left of the drawing canvas is 0,0 and bottom right is w,h.
+If MANUALREPAINT is set, the drawing canvas is not repainted automatically,
+and REPAINT must be invoked manually (and periodically in a game loop).
 
 Syntax:
 
 ```
-SCREEN title$, w, h
+SCREEN title$, w, h[, MANUALREPAINT]
 ```
 
 Example:
@@ -1546,4 +1548,14 @@ Syntax:
 
 ```
 BEEP
+```
+
+### REPAINT
+
+Repaint the drawing canvas. Use this when automatic repaint is off.
+
+Syntax:
+
+```
+REPAINT
 ```
