@@ -8,7 +8,8 @@ language from the 1960s. PuffinBASIC is an implementation of the BASIC language 
 PuffinBASIC conforms most closely to GWBASIC.
 
 #### TESSEL - A 2D Tile Game written in PuffinBASIC
-<a href="https://youtu.be/L8xkM-g3Zms"><img src="samples/tessel/images/tesselsnap1.png" width="64"></a>
+YouTube Video: <a href="https://youtu.be/L8xkM-g3Zms"><img src="samples/tessel/images/tesselsnap1.png" width="64"></a>
+Source: <a href="samples/tessel/tessel.bas">tessel.bas</a>
 
 ## Version
 
