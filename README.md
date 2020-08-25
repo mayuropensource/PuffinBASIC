@@ -13,7 +13,10 @@ Source: <a href="samples/tessel/tessel.bas">tessel.bas</a>
 
 ## Version
 
-0.1 experimental
+0.1 experimental (NOT YET READY FOR PRODUCTION USE!)
+
+The interpreter is not yet thoroughly tested and is likely to have bugs.
+This is an active project so expect large changes at frequent intervals.
 
 ## Code Samples
 
