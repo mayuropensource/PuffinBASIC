@@ -11,6 +11,16 @@ PuffinBASIC conforms most closely to GWBASIC.
 YouTube Video: <a href="https://youtu.be/L8xkM-g3Zms"><img src="samples/tessel/images/tesselsnap1.png" width="64"></a>
 Source: <a href="samples/tessel/tessel.bas">tessel.bas</a>
 
+## Why Implement BASIC?
+
+1. Love and Familiarity: GWBASIC was my first programming language, I loved it and made many games in it. 
+I'm also very familiar with the language.
+1. Interpreter language: BASIC is an interpreted language and hence a good choice for implementing this interpreter.
+1. Learning antlr4: I was learning antlr4 and BASIC was the perfect language to try because 
+of its simple instruction set.
+1. Resurrect BASIC: I wanted to write games with modern graphics in BASIC that work on all platforms.
+1. Improve BASIC: I wanted to add modern graphics, better data types, etc.
+
 ## Version
 
 0.1 experimental (NOT YET READY FOR PRODUCTION USE!)
@@ -702,12 +712,14 @@ VAL(x$)
 
 ### Array Functions
 
-#### ARRAY1DMEAN, ARRAY1DSUM, ARRAY1DSTD, ARRAY1DMEDIAN, ARRAY1DPCT
+#### ARRAY1DMIN, ARRAY1DMAX, ARRAY1DMEAN, ARRAY1DSUM, ARRAY1DSTD, ARRAY1DMEDIAN, ARRAY1DPCT
 
 Compute summary and descriptive statistics on the given 1-dimensional array.
 Syntax:
 
 ```
+ARRAY1DMIN(arrayvariable)     ' min
+ARRAY1DMAX(arrayvariable)     ' max
 ARRAY1DMEAN(arrayvariable)     ' mean
 ARRAY1DSUM(arrayvariable)      ' sum
 ARRAY1DSTD(arrayvariable)      ' standard deviation
@@ -718,6 +730,8 @@ ARRAY1DPCT(arrayvariable, pct) ' percentile, where pct=0-100
 Example:
 
 ```
+ARRAY1DMIN(C%)
+ARRAY1DMAX(C%)
 ARRAY1DMEAN(C%)
 ARRAY1DSUM(C%)
 ARRAY1DSTD(C%)
@@ -899,6 +913,8 @@ B$ = "ABC"
 
 Use DIM keyword to declare an array variable.
 dim1, dim2, ... are dimension size (and not max dim value.)
+Arrays are stored in row-major order.
+The minimum index in an array dimension is 0 and maximum is dim size - 1.
 
 Syntax:
 
@@ -1390,6 +1406,27 @@ Example:
 ARRAYFILL A%, B%
 ```
 
+### ARRAY1DCOPY
+
+Copy value from source array variable to destination array variable.
+Both must be 1D array.
+
+srcOrigin is from where to start copy in the source.
+dstOrigin is to where to start copy in the destination.
+lengthToCopy is the number of elements to copy.
+
+Syntax:
+
+```
+ARRAY1DCOPY srcvariable, srcOrigin, dstvariable, dstOrigin, lengthToCopy
+```
+
+Example:
+
+```
+ARRAY1DCOPY F%, 1, F%, 3, 2
+```
+
 ### ARRAY1DSORT
 
 Sorts (in-place) the values in the given 1-dimensional array variable.
@@ -1404,6 +1441,48 @@ Example:
 
 ```
 ARRAY1DSORT A%
+```
+
+### ARRAY2DSHIFTVER
+
+Shift rows up or down by given n rows in the given 2D array.
+The empty space (rows) is filled with 0 or empty string.
+n >= 0 means shift rows down.
+n < 0 means shift rows up.
+This is a very efficient operation.
+
+Syntax:
+
+```
+ARRAY2DSHIFTVER arrayvariable, n
+```
+
+Example:
+
+```
+ARRAY2DSHIFTVER D%, 2
+ARRAY2DSHIFTVER D%, -3
+```
+
+### ARRAY2DSHIFTHOR
+
+Shift columns up or down by given n columns in the given 2D array.
+The empty space (columns) is filled with 0 or empty string.
+n >= 0 means shift columns down.
+n < 0 means shift columns up.
+This operation should be faster than doing it with loops, but not as efficient as ARRAY2DSHIFTVER.
+
+Syntax:
+
+```
+ARRAY2DSHIFTHOR arrayvariable, n
+```
+
+Example:
+
+```
+ARRAY2DSHIFTHOR D%, 2
+ARRAY2DSHIFTHOR D%, -3
 ```
 
 ## Graphics

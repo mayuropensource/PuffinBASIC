@@ -22,6 +22,8 @@ import java.util.Random;
 import java.util.stream.Collectors;
 
 import static org.puffinbasic.domain.PuffinBasicSymbolTable.NULL_ID;
+import static org.puffinbasic.parser.PuffinBasicIR.OpCode.ARRAY1DCOPYDST;
+import static org.puffinbasic.parser.PuffinBasicIR.OpCode.ARRAY1DCOPYSRC;
 import static org.puffinbasic.parser.PuffinBasicIR.OpCode.DATA;
 import static org.puffinbasic.parser.PuffinBasicIR.OpCode.FIELD_I;
 import static org.puffinbasic.parser.PuffinBasicIR.OpCode.INPUT_VAR;
@@ -308,7 +310,13 @@ public class PuffinBasicRuntime {
                 ArraysUtil.arrayfill(ir.getSymbolTable(), instruction);
                 break;
             case ARRAYCOPY:
-                ArraysUtil.arraycopy(ir.getSymbolTable(), instruction);
+                ArraysUtil.arrayCopy(ir.getSymbolTable(), instruction);
+                break;
+            case ARRAY1DMIN:
+                ArraysUtil.array1dMin(ir.getSymbolTable(), instruction);
+                break;
+            case ARRAY1DMAX:
+                ArraysUtil.array1dMax(ir.getSymbolTable(), instruction);
                 break;
             case ARRAY1DMEAN:
                 ArraysUtil.array1dMean(ir.getSymbolTable(), instruction);
@@ -331,6 +339,24 @@ public class PuffinBasicRuntime {
             case ARRAY1DBINSEARCH:
                 ArraysUtil.array1dBinSearch(ir.getSymbolTable(), instruction);
                 break;
+            case ARRAY2DSHIFTVER:
+                ArraysUtil.array2dShiftVertical(ir.getSymbolTable(), instruction);
+                break;
+            case ARRAY2DSHIFTHOR:
+                ArraysUtil.array2dShiftHorizontal(ir.getSymbolTable(), instruction);
+                break;
+            case ARRAY1DCOPY: {
+                if (instr0.size() != 2
+                        || (instr0.get(0).opCode != ARRAY1DCOPYSRC
+                        && instr0.get(1).opCode != ARRAY1DCOPYDST)) {
+                    throw new PuffinBasicInternalError(
+                            "Bad/null instr0: " + instr0.get(0) + ", " + instr0.get(1)
+                                    + ", expected: " + ARRAY1DCOPYSRC + " and " + ARRAY1DCOPYDST);
+                }
+                ArraysUtil.array1DCopy(ir.getSymbolTable(), instr0.get(0), instr0.get(1), instruction);
+                instr0.clear();
+            }
+            break;
             case CINT:
                 Functions.cint(ir.getSymbolTable(), instruction);
                 break;
@@ -400,6 +426,7 @@ public class PuffinBasicRuntime {
             case RIGHTDLR:
                 Functions.rightdlr(ir.getSymbolTable(), instruction);
                 break;
+            // TODO use a stack instead of creating multiple instructions.
             case MIDDLR0:
             case INSTR0:
             case OPEN_FN_FN_0:
@@ -422,6 +449,8 @@ public class PuffinBasicRuntime {
             case GGET_X2Y2:
             case FONT_SS:
             case DRAWSTR_XY:
+            case ARRAY1DCOPYSRC:
+            case ARRAY1DCOPYDST:
                 instr0.add(instruction);
                 break;
             case INSTR: {

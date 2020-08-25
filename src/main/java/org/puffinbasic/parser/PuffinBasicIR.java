@@ -97,6 +97,8 @@ public class PuffinBasicIR {
         MIN("min"),
         MAX("max"),
         ARRAYFILL("arrayfill"),
+        ARRAY1DMIN("array1dmin"),
+        ARRAY1DMAX("array1dmax"),
         ARRAY1DMEAN("array1dmean"),
         ARRAY1DSUM("array1dsum"),
         ARRAY1DSTD("array1dstd"),

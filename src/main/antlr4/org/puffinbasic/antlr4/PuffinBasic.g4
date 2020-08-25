@@ -186,12 +186,14 @@ func
     | LOF LPAREN expr RPAREN                                # FuncLof
     | INPUTDLR LPAREN expr (COMMA HASH? expr)? RPAREN       # FuncInputDlr
     | INKEYDLR                                              # FuncInkeyDlr
-    | ARRAY1DMEAN LPAREN variable RPAREN                      # FuncArray1DMean
-    | ARRAY1DSUM LPAREN variable RPAREN                       # FuncArray1DSum
-    | ARRAY1DSTD LPAREN variable RPAREN                       # FuncArray1DStd
-    | ARRAY1DMEDIAN LPAREN variable RPAREN                    # FuncArray1DMedian
-    | ARRAY1DPCT LPAREN variable COMMA p=expr RPAREN          # FuncArray1DPct
-    | ARRAY1DBINSEARCH LPAREN variable COMMA expr RPAREN      # FuncArray1DBinSearch
+    | ARRAY1DMIN LPAREN variable RPAREN                     # FuncArray1DMin
+    | ARRAY1DMAX LPAREN variable RPAREN                     # FuncArray1DMax
+    | ARRAY1DMEAN LPAREN variable RPAREN                    # FuncArray1DMean
+    | ARRAY1DSUM LPAREN variable RPAREN                     # FuncArray1DSum
+    | ARRAY1DSTD LPAREN variable RPAREN                     # FuncArray1DStd
+    | ARRAY1DMEDIAN LPAREN variable RPAREN                  # FuncArray1DMedian
+    | ARRAY1DPCT LPAREN variable COMMA p=expr RPAREN        # FuncArray1DPct
+    | ARRAY1DBINSEARCH LPAREN variable COMMA expr RPAREN    # FuncArray1DBinSearch
     ;
 
 gosubstmt
@@ -990,6 +992,14 @@ FALSE
 
 ARRAYFILL
     : A R R A Y F I L L
+    ;
+
+ARRAY1DMIN
+    : A R R A Y '1' D M I N
+    ;
+
+ARRAY1DMAX
+    : A R R A Y '1' D M A X
     ;
 
 ARRAY1DMEAN

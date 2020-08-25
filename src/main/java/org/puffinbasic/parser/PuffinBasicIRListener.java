@@ -1293,6 +1293,24 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
     }
 
     @Override
+    public void exitFuncArray1DMin(PuffinBasicParser.FuncArray1DMinContext ctx) {
+        var var1Instr = getArray1dVariableInstruction(ctx, ctx.variable(), true);
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.ARRAY1DMIN, var1Instr.result, NULL_ID,
+                ir.getSymbolTable().addTmpCompatibleWith(var1Instr.result)));
+    }
+
+    @Override
+    public void exitFuncArray1DMax(PuffinBasicParser.FuncArray1DMaxContext ctx) {
+        var var1Instr = getArray1dVariableInstruction(ctx, ctx.variable(), true);
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.ARRAY1DMAX, var1Instr.result, NULL_ID,
+                ir.getSymbolTable().addTmpCompatibleWith(var1Instr.result)));
+    }
+
+    @Override
     public void exitFuncArray1DMean(PuffinBasicParser.FuncArray1DMeanContext ctx) {
         var var1Instr = getArray1dVariableInstruction(ctx, ctx.variable(), true);
         nodeToInstruction.put(ctx, ir.addInstruction(
