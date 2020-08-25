@@ -708,11 +708,11 @@ Compute summary and descriptive statistics on the given 1-dimensional array.
 Syntax:
 
 ```
-ARRAY1DMEAN(arrayvariable)
-ARRAY1DSUM(arrayvariable)
-ARRAY1DSTD(arrayvariable)
-ARRAY1DMEDIAN(arrayvariable)
-ARRAY1DPCT(arrayvariable, pct) ' pct=0-100
+ARRAY1DMEAN(arrayvariable)     ' mean
+ARRAY1DSUM(arrayvariable)      ' sum
+ARRAY1DSTD(arrayvariable)      ' standard deviation
+ARRAY1DMEDIAN(arrayvariable)   ' median
+ARRAY1DPCT(arrayvariable, pct) ' percentile, where pct=0-100
 ```
 
 Example:
