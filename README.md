@@ -145,7 +145,16 @@ $ mvn generate-sources
 1. PuffinBASIC's grammar is defined using antlr4.
 1. At runtime, the user source code is parsed using antlr4 lexer+parser.
 1. After parsing, an intermediate representation (IR) of the source code is generated. A symbol table keeps track of variables, scalars, arrays, etc. objects.
-1. A runtime, processes the IR instructions and executes them.
+1. A runtime, the interpreter processes the IR instructions and executes them.
+
+## Planned Improvements
+
+1. Improve the IR especially w.r.t. multiple argument handling.
+1. Verify variable is defined before being used (partially checked currently).
+1. Add decimal data type.
+1. Add variable reference data type.
+1. Add sound, mouse and joystick support.
+1. ...
 
 ## Performance
 
