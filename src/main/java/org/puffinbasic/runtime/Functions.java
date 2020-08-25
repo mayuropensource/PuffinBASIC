@@ -71,8 +71,28 @@ public class Functions {
         applyDoubleFunction(symbolTable, instruction, Math::tan);
     }
 
+    public static void asin(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
+        applyDoubleFunction(symbolTable, instruction, Math::asin);
+    }
+
+    public static void acos(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
+        applyDoubleFunction(symbolTable, instruction, Math::acos);
+    }
+
     public static void atn(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
         applyDoubleFunction(symbolTable, instruction, Math::atan);
+    }
+
+    public static void sinh(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
+        applyDoubleFunction(symbolTable, instruction, Math::sinh);
+    }
+
+    public static void cosh(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
+        applyDoubleFunction(symbolTable, instruction, Math::cosh);
+    }
+
+    public static void tanh(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
+        applyDoubleFunction(symbolTable, instruction, Math::tanh);
     }
 
     public static void sqr(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
@@ -83,7 +103,91 @@ public class Functions {
         applyDoubleFunction(symbolTable, instruction, Math::log);
     }
 
-    public static void applyDoubleFunction(
+    public static void log10(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
+        applyDoubleFunction(symbolTable, instruction, Math::log10);
+    }
+
+    public static void exp(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
+        applyDoubleFunction(symbolTable, instruction, Math::exp);
+    }
+
+    public static void toRad(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
+        applyDoubleFunction(symbolTable, instruction, Math::toRadians);
+    }
+
+    public static void toDeg(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
+        applyDoubleFunction(symbolTable, instruction, Math::toDegrees);
+    }
+
+    public static void floor(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
+        applyDoubleFunction(symbolTable, instruction, Math::floor);
+    }
+
+    public static void ceil(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
+        applyDoubleFunction(symbolTable, instruction, Math::ceil);
+    }
+
+    public static void round(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
+        applyDoubleFunction(symbolTable, instruction, Math::round);
+    }
+
+    public static void e(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setFloat64(Math.E);
+    }
+
+    public static void pi(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setFloat64(Math.PI);
+    }
+
+    public static void min(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
+        var v1 = symbolTable.get(instruction.op1).getValue();
+        var v2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+
+        switch (result.getDataType()) {
+            case INT32:
+                result.setInt32(Math.min(v1.getInt32(), v2.getInt32()));
+                break;
+            case INT64:
+                result.setInt64(Math.min(v1.getInt64(), v2.getInt64()));
+                break;
+            case FLOAT:
+                result.setFloat32(Math.min(v1.getFloat32(), v2.getFloat32()));
+                break;
+            case DOUBLE:
+                result.setFloat64(Math.min(v1.getFloat64(), v2.getFloat64()));
+                break;
+            default:
+                throwUnsupportedType(result.getDataType());
+        }
+    }
+
+    public static void max(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
+        var v1 = symbolTable.get(instruction.op1).getValue();
+        var v2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+
+        switch (result.getDataType()) {
+            case INT32:
+                result.setInt32(Math.max(v1.getInt32(), v2.getInt32()));
+                break;
+            case INT64:
+                result.setInt64(Math.max(v1.getInt64(), v2.getInt64()));
+                break;
+            case FLOAT:
+                result.setFloat32(Math.max(v1.getFloat32(), v2.getFloat32()));
+                break;
+            case DOUBLE:
+                result.setFloat64(Math.max(v1.getFloat64(), v2.getFloat64()));
+                break;
+            default:
+                throwUnsupportedType(result.getDataType());
+        }
+    }
+
+    private static void applyDoubleFunction(
             PuffinBasicSymbolTable symbolTable,
             Instruction instruction,
             Double2DoubleFunction function)

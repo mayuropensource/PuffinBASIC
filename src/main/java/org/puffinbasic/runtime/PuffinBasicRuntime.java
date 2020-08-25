@@ -10,7 +10,7 @@ import org.puffinbasic.file.PuffinBasicFiles;
 import org.puffinbasic.file.SystemInputOutputFile;
 import org.puffinbasic.parser.PuffinBasicIR;
 import org.puffinbasic.parser.PuffinBasicIR.Instruction;
-import org.puffinbasic.runtime.Arrays.ArrayState;
+import org.puffinbasic.runtime.ArraysUtil.ArrayState;
 import org.puffinbasic.runtime.Formatter.FormatterCache;
 import org.puffinbasic.runtime.GraphicsRuntime.GraphicsState;
 import org.puffinbasic.runtime.Statements.ReadData;
@@ -156,13 +156,13 @@ public class PuffinBasicRuntime {
                 Statements.flush(files, printBuffer, ir.getSymbolTable(), instruction);
                 break;
             case RESET_ARRAY_IDX:
-                Arrays.resetIndex(arrayState, ir.getSymbolTable(), instruction);
+                ArraysUtil.resetIndex(arrayState, ir.getSymbolTable(), instruction);
                 break;
             case SET_ARRAY_IDX:
-                Arrays.setIndex(arrayState, ir.getSymbolTable(), instruction);
+                ArraysUtil.setIndex(arrayState, ir.getSymbolTable(), instruction);
                 break;
             case ARRAYREF:
-                Arrays.arrayref(ir.getSymbolTable(), instruction);
+                ArraysUtil.arrayref(ir.getSymbolTable(), instruction);
                 break;
             case LABEL:
                 break;
@@ -247,14 +247,68 @@ public class PuffinBasicRuntime {
             case TAN:
                 Functions.tan(ir.getSymbolTable(), instruction);
                 break;
+            case ASIN:
+                Functions.asin(ir.getSymbolTable(), instruction);
+                break;
+            case ACOS:
+                Functions.acos(ir.getSymbolTable(), instruction);
+                break;
             case ATN:
                 Functions.atn(ir.getSymbolTable(), instruction);
+                break;
+            case SINH:
+                Functions.sinh(ir.getSymbolTable(), instruction);
+                break;
+            case COSH:
+                Functions.cosh(ir.getSymbolTable(), instruction);
+                break;
+            case TANH:
+                Functions.tanh(ir.getSymbolTable(), instruction);
                 break;
             case SQR:
                 Functions.sqr(ir.getSymbolTable(), instruction);
                 break;
             case LOG:
                 Functions.log(ir.getSymbolTable(), instruction);
+                break;
+            case LOG10:
+                Functions.log10(ir.getSymbolTable(), instruction);
+                break;
+            case EEXP:
+                Functions.exp(ir.getSymbolTable(), instruction);
+                break;
+            case TORAD:
+                Functions.toRad(ir.getSymbolTable(), instruction);
+                break;
+            case TODEG:
+                Functions.toDeg(ir.getSymbolTable(), instruction);
+                break;
+            case FLOOR:
+                Functions.floor(ir.getSymbolTable(), instruction);
+                break;
+            case CEIL:
+                Functions.ceil(ir.getSymbolTable(), instruction);
+                break;
+            case ROUND:
+                Functions.round(ir.getSymbolTable(), instruction);
+                break;
+            case E:
+                Functions.e(ir.getSymbolTable(), instruction);
+                break;
+            case PI:
+                Functions.pi(ir.getSymbolTable(), instruction);
+                break;
+            case MIN:
+                Functions.min(ir.getSymbolTable(), instruction);
+                break;
+            case MAX:
+                Functions.max(ir.getSymbolTable(), instruction);
+                break;
+            case ARRAYFILL:
+                ArraysUtil.arrayfill(ir.getSymbolTable(), instruction);
+                break;
+            case ARRAYCOPY:
+                ArraysUtil.arraycopy(ir.getSymbolTable(), instruction);
                 break;
             case CINT:
                 Functions.cint(ir.getSymbolTable(), instruction);

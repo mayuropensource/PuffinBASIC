@@ -126,7 +126,12 @@ func
     | SIN  LPAREN expr RPAREN                               # FuncSin
     | COS  LPAREN expr RPAREN                               # FuncCos
     | TAN  LPAREN expr RPAREN                               # FuncTan
+    | ASIN  LPAREN expr RPAREN                              # FuncASin
+    | ACOS  LPAREN expr RPAREN                              # FuncACos
     | ATN  LPAREN expr RPAREN                               # FuncAtn
+    | SINH  LPAREN expr RPAREN                              # FuncSinh
+    | COSH  LPAREN expr RPAREN                              # FuncCosh
+    | TANH  LPAREN expr RPAREN                              # FuncTanh
     | SQR  LPAREN expr RPAREN                               # FuncSqr
     | CINT LPAREN expr RPAREN                               # FuncCint
     | CLNG LPAREN expr RPAREN                               # FuncClng
@@ -147,6 +152,17 @@ func
     | INT LPAREN expr RPAREN                                # FuncInt
     | FIX LPAREN expr RPAREN                                # FuncFix
     | LOG LPAREN expr RPAREN                                # FuncLog
+    | LOG10 LPAREN expr RPAREN                              # FuncLog10
+    | EXP LPAREN expr RPAREN                                # FuncExp
+    | TORAD LPAREN expr RPAREN                              # FuncToRad
+    | TODEG LPAREN expr RPAREN                              # FuncToDeg
+    | CEIL LPAREN expr RPAREN                               # FuncCeil
+    | FLOOR LPAREN expr RPAREN                              # FuncFloor
+    | ROUND LPAREN expr RPAREN                              # FuncRound
+    | MIN LPAREN expr COMMA expr RPAREN                     # FuncMin
+    | MAX LPAREN expr COMMA expr RPAREN                     # FuncMax
+    | PI LPAREN RPAREN                                      # FuncPI
+    | EULERE LPAREN RPAREN                                  # FuncE
     | LEN LPAREN expr RPAREN                                # FuncLen
     | HEXDLR LPAREN expr RPAREN                             # FuncHexDlr
     | OCTDLR LPAREN expr RPAREN                             # FuncOctDlr
@@ -164,6 +180,17 @@ func
     | LOF LPAREN expr RPAREN                                # FuncLof
     | INPUTDLR LPAREN expr (COMMA HASH? expr)? RPAREN       # FuncInputDlr
     | INKEYDLR                                              # FuncInkeyDlr
+    | ARRAYFILL LPAREN variable COMMA expr RPAREN           # FuncArrayNDFill
+    | ARRAY1DMEAN LPAREN variable RPAREN                      # FuncArray1DMean
+    | ARRAY1DSTD LPAREN variable RPAREN                       # FuncArray1DStd
+    | ARRAY1DMEDIAN LPAREN variable RPAREN                    # FuncArray1DMedian
+    | ARRAY1DPCT LPAREN variable COMMA p=expr RPAREN          # FuncArray1DPct
+    | ARRAY1DSORT LPAREN variable RPAREN                      # FuncArray1DSort
+    | ARRAY1DBINSEARCH LPAREN variable COMMA expr RPAREN      # FuncArray1DBinSearch
+    | ARRAYCOPY LPAREN src=variable COMMA dst=variable RPAREN # FuncArrayNDCopy
+    | ARRAY1DCOPY LPAREN src=variable COMMA src0=expr COMMA dst=variable COMMA dst0=expr COMMA len=expr RPAREN # FuncArray1DCopy
+    | ARRAY2DSHIFTHOR LPAREN variable COMMA step=expr RPAREN  # FuncArray2DShiftHor
+    | ARRAY2DSHIFTVER LPAREN variable COMMA step=expr RPAREN  # FuncArray2DShiftVer
     ;
 
 gosubstmt
@@ -862,6 +889,122 @@ MANUAL_REPAINT
 
 REPAINT
     : R E P A I N T
+    ;
+
+ASIN
+    : A S I N
+    ;
+
+ACOS
+    : A C O S
+    ;
+
+SINH
+    : S I N H
+    ;
+
+COSH
+    : C O S H
+    ;
+
+TANH
+    : T A N H
+    ;
+
+EULERE
+    : E U L E R E
+    ;
+
+PI
+    : P I
+    ;
+
+MIN
+    : M I N
+    ;
+
+MAX
+    : M A X
+    ;
+
+FLOOR
+    : F L O O R
+    ;
+
+CEIL
+    : C E I L
+    ;
+
+ROUND
+    : R O U N D
+    ;
+
+LOG10
+    : L O G '1' '0'
+    ;
+
+EXP
+    : E X P
+    ;
+
+TORAD
+    : T O R A D
+    ;
+
+TODEG
+    : T O D E G
+    ;
+
+TRUE
+    : T R U E
+    ;
+
+FALSE
+    : F A L S E
+    ;
+
+ARRAYFILL
+    : A R R A Y F I L L
+    ;
+
+ARRAY1DMEAN
+    : A R R A Y '1' D M E A N
+    ;
+
+ARRAY1DSTD
+    : A R R A Y '1' D S T D
+    ;
+
+ARRAY1DMEDIAN
+    : A R R A Y '1' D M E D I A N
+    ;
+
+ARRAY1DPCT
+    : A R R A Y '1' D P C T
+    ;
+
+ARRAY1DSORT
+    : A R R A Y '1' D S O R T
+    ;
+
+ARRAY1DBINSEARCH
+    : A R R A Y '1' D B I N S E A R C H
+    ;
+
+ARRAYCOPY
+    : A R R A Y C O P Y
+    ;
+
+ARRAY1DCOPY
+    : A R R A Y '1' D C O P Y
+    ;
+
+ARRAY2DSHIFTHOR
+    : A R R A Y '2' D S H I F T H O R
+    ;
+
+ARRAY2DSHIFTVER
+    : A R R A Y '2' D S H I F T V E R
     ;
 
 string

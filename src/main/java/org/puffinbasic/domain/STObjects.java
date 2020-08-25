@@ -258,6 +258,9 @@ public class STObjects {
         default IntList getArrayDimensions() {
             return new IntArrayList();
         }
+        default int getTotalLength() {
+            return 0;
+        }
         default int getNumArrayDimensions() {
             return 0;
         }
@@ -270,6 +273,12 @@ public class STObjects {
             throw new PuffinBasicInternalError("Unsupported");
         }
         default int[] getInt32Array1D() {
+            throw new PuffinBasicInternalError("Unsupported");
+        }
+        default void fill(Number fill) {
+            throw new PuffinBasicInternalError("Unsupported");
+        }
+        default void fillString(String fill) {
             throw new PuffinBasicInternalError("Unsupported");
         }
     }
@@ -1033,7 +1042,8 @@ public class STObjects {
         private int index1d;
         private int ndim;
 
-        int getTotalLength() {
+        @Override
+        public int getTotalLength() {
             return totalLength;
         }
 
@@ -1091,11 +1101,16 @@ public class STObjects {
         }
     }
 
-    private static final class STInt32ArrayValue extends AbstractSTArrayValue {
+    public static final class STInt32ArrayValue extends AbstractSTArrayValue {
 
         private int[] value;
 
-        int[] getValue() {
+        @Override
+        public void fill(Number fill) {
+            Arrays.fill(value, fill.intValue());
+        }
+
+        public int[] getValue() {
             return value;
         }
 
@@ -1191,11 +1206,16 @@ public class STObjects {
         }
     }
 
-    private static final class STInt64ArrayValue extends AbstractSTArrayValue {
+    public static final class STInt64ArrayValue extends AbstractSTArrayValue {
 
         private long[] value;
 
-        long[] getValue() {
+        @Override
+        public void fill(Number fill) {
+            Arrays.fill(value, fill.longValue());
+        }
+
+        public long[] getValue() {
             return value;
         }
 
@@ -1286,11 +1306,16 @@ public class STObjects {
         }
     }
 
-    private static final class STFloat32ArrayValue extends AbstractSTArrayValue {
+    public static final class STFloat32ArrayValue extends AbstractSTArrayValue {
 
         private float[] value;
 
-        float[] getValue() {
+        @Override
+        public void fill(Number fill) {
+            Arrays.fill(value, fill.floatValue());
+        }
+
+        public float[] getValue() {
             return value;
         }
 
@@ -1381,11 +1406,16 @@ public class STObjects {
         }
     }
 
-    private static final class STFloat64ArrayValue extends AbstractSTArrayValue {
+    public static final class STFloat64ArrayValue extends AbstractSTArrayValue {
 
         private double[] value;
 
-        double[] getValue() {
+        @Override
+        public void fill(Number fill) {
+            Arrays.fill(value, fill.doubleValue());
+        }
+
+        public double[] getValue() {
             return value;
         }
 
@@ -1476,11 +1506,16 @@ public class STObjects {
         }
     }
 
-    private static final class STStringArrayValue extends AbstractSTArrayValue {
+    public static final class STStringArrayValue extends AbstractSTArrayValue {
 
         private String[] value;
 
-        String[] getValue() {
+        @Override
+        public void fillString(String fill) {
+            Arrays.fill(value, fill);
+        }
+
+        public String[] getValue() {
             return value;
         }
 

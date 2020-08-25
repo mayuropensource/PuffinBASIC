@@ -365,13 +365,25 @@ INT(-2.3)
 
 #### LOG
 
-Returns the natural logarithm of a numeric value.
+LOG returns the natural logarithm of a numeric value.
+LOG10 returns base-10 logarithm of a numeric value.
 n must be greater than 0.
 
 Syntax:
 
 ```
 LOG(n)
+LOG10(n)
+```
+
+#### EXP
+
+Returns E raised to the power of n.
+
+Syntax:
+
+```
+EXP(n)
 ```
 
 #### RND
@@ -395,13 +407,70 @@ Syntax:
 SQR(n)
 ```
 
+#### EULERE
+
+Returns the value of Euler's number E.
+
+Syntax:
+
+```
+EULERE()
+```
+
+#### PI
+
+Returns the value of PI.
+
+Syntax:
+
+```
+PI()
+```
+
+#### FLOOR, CEIL, ROUND
+
+Syntax:
+
+```
+FLOOR(n)
+CEIL(n)
+ROUND(n)
+```
+
+#### MIN
+
+Calculates min of n and m.
+n and m must be numeric values.
+
+Syntax:
+
+```
+MIN(n, m)
+```
+
+#### MAX
+
+Calculates max of n and m.
+n and m must be numeric values.
+
+Syntax:
+
+```
+MAX(n, m)
+```
+
 #### Trigonometric Functions
 
 SIN, COS and TAN take angle in radians and return sine, cosine and tangent of that angle.
 To compute angle in radians, multiply the angle in degrees with pi/180.
 
-ATN takes a numeric value, computes arc tangent of the value and returns the angle in radians. 
+ASIN, ACOS and ATN takes a numeric value, computes arc tangent of the value and returns the angle in radians. 
 To compute angle is degrees, multiply the angle in radians with 180/pi.
+
+SINH, COSH and TANH are hyperbolic sin, hyperbolic cos and hyperbolic tan functions respectively.
+
+TORAD converts degrees to radians.
+TODEG converts radians to degrees.
 
 Syntax:
 
@@ -409,7 +478,14 @@ Syntax:
 SIN(radians)
 COS(radians)
 TAN(radians)
+ASIN(value)
+ACOS(value)
 ATN(value)
+SINH(radians)
+COSH(radians)
+TANH(radians)
+TORAD(degress)
+TODEG(radians)
 ```
 
 ### Numeric Conversion Functions
@@ -629,6 +705,29 @@ Syntax:
 
 ```
 VAL(x$)
+```
+
+### Array Functions
+
+#### ARRAYFILL
+
+Fill the given array x with the value n.
+
+Syntax:
+
+```
+ARRAYFILL(x, n)
+```
+
+#### ARRAYCOPY
+
+Copy src array to dst array.
+The data types and total number of elements in src and dst much match.
+
+Syntax:
+
+```
+ARRAYCOPY(src, dst)
 ```
 
 ### Packing and Unpacking Functions
