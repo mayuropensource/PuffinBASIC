@@ -317,16 +317,6 @@ ABS(-1)
 1
 ```
 
-#### EXP
-
-Returns e to the power n.
-
-Syntax:
-
-```
-EXP(n)
-```
-
 #### FIX
 
 Truncates n to a whole number.
