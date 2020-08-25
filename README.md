@@ -193,7 +193,7 @@ DIM statement declares size of each dimension (rather than maximum value of the 
 
 ### Data Types
 
-PuffinBASIC has extended BASIC types and supports Int32, Int4, Float32, Float64, and String.
+PuffinBASIC supports Int32, Int4, Float32, Float64, and String.
 
 ## Commands
 
