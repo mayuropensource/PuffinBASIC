@@ -1262,19 +1262,6 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                 ir.getSymbolTable().addTmp(resdt, e -> {})));
     }
 
-    @Override
-    public void exitFuncArrayNDFill(PuffinBasicParser.FuncArrayNDFillContext ctx) {
-        var varInstr = getArrayNdVariableInstruction(ctx, ctx.variable());
-
-        var expr = lookupInstruction(ctx.expr());
-        Types.assertNumeric(ir.getSymbolTable().get(expr.result).getValue().getDataType(), () -> getCtxString(ctx));
-
-        nodeToInstruction.put(ctx, ir.addInstruction(
-                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.ARRAYFILL, varInstr.result, expr.result,
-                ir.getSymbolTable().addTmp(INT32, e -> {})));
-    }
-
     private Instruction getArray1dVariableInstruction(ParserRuleContext ctx, VariableContext varCtx, boolean numeric) {
         var varInstr = lookupInstruction(varCtx);
         assertVariable(ir.getSymbolTable().get(varInstr.result).getKind(), () -> getCtxString(ctx));
@@ -1315,6 +1302,15 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
     }
 
     @Override
+    public void exitFuncArray1DSum(PuffinBasicParser.FuncArray1DSumContext ctx) {
+        var var1Instr = getArray1dVariableInstruction(ctx, ctx.variable(), true);
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.ARRAY1DSUM, var1Instr.result, NULL_ID,
+                ir.getSymbolTable().addTmp(DOUBLE, e -> {})));
+    }
+
+    @Override
     public void exitFuncArray1DStd(PuffinBasicParser.FuncArray1DStdContext ctx) {
         var var1Instr = getArray1dVariableInstruction(ctx, ctx.variable(), true);
         nodeToInstruction.put(ctx, ir.addInstruction(
@@ -1333,15 +1329,6 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
     }
 
     @Override
-    public void exitFuncArray1DSort(PuffinBasicParser.FuncArray1DSortContext ctx) {
-        var var1Instr = getArray1dVariableInstruction(ctx, ctx.variable(), false);
-        nodeToInstruction.put(ctx, ir.addInstruction(
-                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.ARRAY1DSORT, var1Instr.result, NULL_ID,
-                ir.getSymbolTable().addTmp(DOUBLE, e -> {})));
-    }
-
-    @Override
     public void exitFuncArray1DBinSearch(PuffinBasicParser.FuncArray1DBinSearchContext ctx) {
         var var1Instr = getArray1dVariableInstruction(ctx, ctx.variable(), false);
         var expr = lookupInstruction(ctx.expr());
@@ -1349,7 +1336,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         nodeToInstruction.put(ctx, ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
                 OpCode.ARRAY1DBINSEARCH, var1Instr.result, expr.result,
-                ir.getSymbolTable().addTmp(DOUBLE, e -> {})));
+                ir.getSymbolTable().addTmp(INT32, e -> {})));
     }
 
     @Override
@@ -1362,66 +1349,6 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
                 OpCode.ARRAY1DPCT, var1Instr.result, expr.result,
                 ir.getSymbolTable().addTmp(DOUBLE, e -> {})));
-    }
-
-    @Override
-    public void exitFuncArrayNDCopy(PuffinBasicParser.FuncArrayNDCopyContext ctx) {
-        var var1Instr = getArrayNdVariableInstruction(ctx, ctx.variable(0));
-        var var2Instr = getArrayNdVariableInstruction(ctx, ctx.variable(1));
-        nodeToInstruction.put(ctx, ir.addInstruction(
-                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.ARRAYCOPY, var1Instr.result, var2Instr.result,
-                ir.getSymbolTable().addTmp(INT32, e -> {})));
-    }
-
-    @Override
-    public void exitFuncArray1DCopy(PuffinBasicParser.FuncArray1DCopyContext ctx) {
-        var var1Instr = getArray1dVariableInstruction(ctx, ctx.variable(0), false);
-        var var2Instr = getArray1dVariableInstruction(ctx, ctx.variable(1), false);
-
-        var src0 = lookupInstruction(ctx.src0);
-        Types.assertNumeric(ir.getSymbolTable().get(src0.result).getValue().getDataType(), () -> getCtxString(ctx));
-        var dst0 = lookupInstruction(ctx.dst0);
-        Types.assertNumeric(ir.getSymbolTable().get(dst0.result).getValue().getDataType(), () -> getCtxString(ctx));
-        var len = lookupInstruction(ctx.len);
-        Types.assertNumeric(ir.getSymbolTable().get(len.result).getValue().getDataType(), () -> getCtxString(ctx));
-
-        nodeToInstruction.put(ctx, ir.addInstruction(
-                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.ARRAY1DCOPYSRC, var1Instr.result, src0.result,
-                ir.getSymbolTable().addTmp(INT32, e -> {})));
-        nodeToInstruction.put(ctx, ir.addInstruction(
-                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.ARRAY1DCOPYDST, var2Instr.result, dst0.result,
-                ir.getSymbolTable().addTmp(INT32, e -> {})));
-        nodeToInstruction.put(ctx, ir.addInstruction(
-                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.ARRAY1DCOPY, len.result, NULL_ID,
-                ir.getSymbolTable().addTmp(INT32, e -> {})));
-    }
-
-    @Override
-    public void exitFuncArray2DShiftHor(PuffinBasicParser.FuncArray2DShiftHorContext ctx) {
-        var varInstr = getArray2dVariableInstruction(ctx, ctx.variable());
-        var expr = lookupInstruction(ctx.expr());
-        Types.assertNumeric(ir.getSymbolTable().get(expr.result).getValue().getDataType(), () -> getCtxString(ctx));
-
-        nodeToInstruction.put(ctx, ir.addInstruction(
-                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.ARRAY2DSHIFTHOR, varInstr.result, expr.result,
-                ir.getSymbolTable().addTmp(INT32, e -> {})));
-    }
-
-    @Override
-    public void exitFuncArray2DShiftVer(PuffinBasicParser.FuncArray2DShiftVerContext ctx) {
-        var varInstr = getArray2dVariableInstruction(ctx, ctx.variable());
-        var expr = lookupInstruction(ctx.expr());
-        Types.assertNumeric(ir.getSymbolTable().get(expr.result).getValue().getDataType(), () -> getCtxString(ctx));
-
-        nodeToInstruction.put(ctx, ir.addInstruction(
-                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.ARRAY2DSHIFTVER, varInstr.result, expr.result,
-                ir.getSymbolTable().addTmp(INT32, e -> {})));
     }
 
     private Instruction addFuncWithExprInstruction(
@@ -3058,6 +2985,80 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
                 OpCode.BEEP, NULL_ID, NULL_ID, NULL_ID
         );
+    }
+
+    @Override
+    public void exitArray1dsortstmt(PuffinBasicParser.Array1dsortstmtContext ctx) {
+        super.exitArray1dsortstmt(ctx);var var1Instr = getArray1dVariableInstruction(ctx, ctx.variable(), false);
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.ARRAY1DSORT, var1Instr.result, NULL_ID, NULL_ID);
+    }
+
+    @Override
+    public void exitArraycopystmt(PuffinBasicParser.ArraycopystmtContext ctx) {
+        var var1Instr = getArrayNdVariableInstruction(ctx, ctx.variable(0));
+        var var2Instr = getArrayNdVariableInstruction(ctx, ctx.variable(1));
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.ARRAYCOPY, var1Instr.result, var2Instr.result, NULL_ID);
+    }
+
+    @Override
+    public void exitArray1dcopystmt(PuffinBasicParser.Array1dcopystmtContext ctx) {
+        var var1Instr = getArray1dVariableInstruction(ctx, ctx.variable(0), false);
+        var var2Instr = getArray1dVariableInstruction(ctx, ctx.variable(1), false);
+
+        var src0 = lookupInstruction(ctx.src0);
+        Types.assertNumeric(ir.getSymbolTable().get(src0.result).getValue().getDataType(), () -> getCtxString(ctx));
+        var dst0 = lookupInstruction(ctx.dst0);
+        Types.assertNumeric(ir.getSymbolTable().get(dst0.result).getValue().getDataType(), () -> getCtxString(ctx));
+        var len = lookupInstruction(ctx.len);
+        Types.assertNumeric(ir.getSymbolTable().get(len.result).getValue().getDataType(), () -> getCtxString(ctx));
+
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.ARRAY1DCOPYSRC, var1Instr.result, src0.result, NULL_ID);
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.ARRAY1DCOPYDST, var2Instr.result, dst0.result, NULL_ID);
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.ARRAY1DCOPY, len.result, NULL_ID, NULL_ID);
+    }
+
+    @Override
+    public void exitArray2dshifthorstmt(PuffinBasicParser.Array2dshifthorstmtContext ctx) {
+        var varInstr = getArray2dVariableInstruction(ctx, ctx.variable());
+        var expr = lookupInstruction(ctx.expr());
+        Types.assertNumeric(ir.getSymbolTable().get(expr.result).getValue().getDataType(), () -> getCtxString(ctx));
+
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.ARRAY2DSHIFTHOR, varInstr.result, expr.result, NULL_ID);
+    }
+
+    @Override
+    public void exitArray2dshiftverstmt(PuffinBasicParser.Array2dshiftverstmtContext ctx) {
+        var varInstr = getArray2dVariableInstruction(ctx, ctx.variable());
+        var expr = lookupInstruction(ctx.expr());
+        Types.assertNumeric(ir.getSymbolTable().get(expr.result).getValue().getDataType(), () -> getCtxString(ctx));
+
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.ARRAY2DSHIFTVER, varInstr.result, expr.result, NULL_ID);
+    }
+
+    @Override
+    public void exitArrayfillstmt(PuffinBasicParser.ArrayfillstmtContext ctx) {
+        var varInstr = getArrayNdVariableInstruction(ctx, ctx.variable());
+
+        var expr = lookupInstruction(ctx.expr());
+        Types.assertNumeric(ir.getSymbolTable().get(expr.result).getValue().getDataType(), () -> getCtxString(ctx));
+
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.ARRAYFILL, varInstr.result, expr.result, NULL_ID);
     }
 
     private void assertGraphics() {

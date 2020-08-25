@@ -56,6 +56,11 @@ public class IntegrationTest {
     }
 
     @Test
+    public void testArrayFunc() {
+        runTest("array_func.bas", "array_func.bas.output");
+    }
+
+    @Test
     public void testWhile() {
         runTest("while.bas", "while.bas.output");
     }

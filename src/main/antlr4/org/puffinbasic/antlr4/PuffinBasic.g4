@@ -79,6 +79,12 @@ stmt
     | clsstmt
     | beepstmt
     | repaintstmt
+    | arrayfillstmt
+    | arraycopystmt
+    | array1dcopystmt
+    | array1dsortstmt
+    | array2dshifthorstmt
+    | array2dshiftverstmt
     ;
 
 variable
@@ -180,17 +186,12 @@ func
     | LOF LPAREN expr RPAREN                                # FuncLof
     | INPUTDLR LPAREN expr (COMMA HASH? expr)? RPAREN       # FuncInputDlr
     | INKEYDLR                                              # FuncInkeyDlr
-    | ARRAYFILL LPAREN variable COMMA expr RPAREN           # FuncArrayNDFill
     | ARRAY1DMEAN LPAREN variable RPAREN                      # FuncArray1DMean
+    | ARRAY1DSUM LPAREN variable RPAREN                       # FuncArray1DSum
     | ARRAY1DSTD LPAREN variable RPAREN                       # FuncArray1DStd
     | ARRAY1DMEDIAN LPAREN variable RPAREN                    # FuncArray1DMedian
     | ARRAY1DPCT LPAREN variable COMMA p=expr RPAREN          # FuncArray1DPct
-    | ARRAY1DSORT LPAREN variable RPAREN                      # FuncArray1DSort
     | ARRAY1DBINSEARCH LPAREN variable COMMA expr RPAREN      # FuncArray1DBinSearch
-    | ARRAYCOPY LPAREN src=variable COMMA dst=variable RPAREN # FuncArrayNDCopy
-    | ARRAY1DCOPY LPAREN src=variable COMMA src0=expr COMMA dst=variable COMMA dst0=expr COMMA len=expr RPAREN # FuncArray1DCopy
-    | ARRAY2DSHIFTHOR LPAREN variable COMMA step=expr RPAREN  # FuncArray2DShiftHor
-    | ARRAY2DSHIFTVER LPAREN variable COMMA step=expr RPAREN  # FuncArray2DShiftVer
     ;
 
 gosubstmt
@@ -460,6 +461,30 @@ clsstmt
 
 beepstmt
     : BEEP
+    ;
+
+arrayfillstmt
+    : ARRAYFILL variable COMMA expr
+    ;
+
+arraycopystmt
+    : ARRAYCOPY src=variable COMMA dst=variable
+    ;
+
+array1dsortstmt
+    : ARRAY1DSORT variable
+    ;
+
+array1dcopystmt
+    : ARRAY1DCOPY src=variable COMMA src0=expr COMMA dst=variable COMMA dst0=expr COMMA len=expr
+    ;
+
+array2dshifthorstmt
+    : ARRAY2DSHIFTHOR variable COMMA step=expr
+    ;
+
+array2dshiftverstmt
+    : ARRAY2DSHIFTVER variable COMMA step=expr
     ;
 
 LETTERRANGE
@@ -969,6 +994,10 @@ ARRAYFILL
 
 ARRAY1DMEAN
     : A R R A Y '1' D M E A N
+    ;
+
+ARRAY1DSUM
+    : A R R A Y '1' D S U M
     ;
 
 ARRAY1DSTD

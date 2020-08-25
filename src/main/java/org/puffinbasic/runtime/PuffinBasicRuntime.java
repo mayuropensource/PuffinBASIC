@@ -310,6 +310,27 @@ public class PuffinBasicRuntime {
             case ARRAYCOPY:
                 ArraysUtil.arraycopy(ir.getSymbolTable(), instruction);
                 break;
+            case ARRAY1DMEAN:
+                ArraysUtil.array1dMean(ir.getSymbolTable(), instruction);
+                break;
+            case ARRAY1DSUM:
+                ArraysUtil.array1dSum(ir.getSymbolTable(), instruction);
+                break;
+            case ARRAY1DSTD:
+                ArraysUtil.array1dStddev(ir.getSymbolTable(), instruction);
+                break;
+            case ARRAY1DMEDIAN:
+                ArraysUtil.array1dMedian(ir.getSymbolTable(), instruction);
+                break;
+            case ARRAY1DPCT:
+                ArraysUtil.array1dPercentile(ir.getSymbolTable(), instruction);
+                break;
+            case ARRAY1DSORT:
+                ArraysUtil.array1dSort(ir.getSymbolTable(), instruction);
+                break;
+            case ARRAY1DBINSEARCH:
+                ArraysUtil.array1dBinSearch(ir.getSymbolTable(), instruction);
+                break;
             case CINT:
                 Functions.cint(ir.getSymbolTable(), instruction);
                 break;

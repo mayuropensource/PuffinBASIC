@@ -636,7 +636,7 @@ public class Functions {
         symbolTable.get(instruction.result).getValue().setString(result);
     }
 
-    private static void throwUnsupportedType(PuffinBasicDataType type) {
+    static void throwUnsupportedType(PuffinBasicDataType type) {
         throw new PuffinBasicInternalError(
                 "Data type " + type + " is not supported"
         );

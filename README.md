@@ -702,25 +702,45 @@ VAL(x$)
 
 ### Array Functions
 
-#### ARRAYFILL
+#### ARRAY1DMEAN, ARRAY1DSUM, ARRAY1DSTD, ARRAY1DMEDIAN, ARRAY1DPCT
 
-Fill the given array x with the value n.
+Compute summary and descriptive statistics on the given 1-dimensional array.
+Syntax:
+
+```
+ARRAY1DMEAN(arrayvariable)
+ARRAY1DSUM(arrayvariable)
+ARRAY1DSTD(arrayvariable)
+ARRAY1DMEDIAN(arrayvariable)
+ARRAY1DPCT(arrayvariable, pct) ' pct=0-100
+```
+
+Example:
+
+```
+ARRAY1DMEAN(C%)
+ARRAY1DSUM(C%)
+ARRAY1DSTD(C%)
+ARRAY1DMEDIAN(C%)
+ARRAY1DPCT(C%, 90)
+```
+
+#### ARRAY1DBINSEARCH
+
+Search the value x in the given 1-dimensional array variable.
+If the value x is found, the index is returned.
+If the value is not found, (-(insertion point) - 1) is returned.
 
 Syntax:
 
 ```
-ARRAYFILL(x, n)
+ARRAY1DBINSEARCH(arrayvariable, x)
 ```
 
-#### ARRAYCOPY
-
-Copy src array to dst array.
-The data types and total number of elements in src and dst much match.
-
-Syntax:
+Example:
 
 ```
-ARRAYCOPY(src, dst)
+ARRAY1DBINSEARCH(C%, 2)
 ```
 
 ### Packing and Unpacking Functions
@@ -1333,6 +1353,57 @@ Syntax:
 
 ```
 SLEEP n
+```
+
+## ARRAY
+
+### ARRAYFILL
+
+Fill an n-dimensional array with the given value.
+
+Syntax:
+
+``
+ARRAYFILL arrayvariable, value
+``
+
+Example:
+
+```
+ARRAYFILL A%, 10
+```
+
+### ARRAYCOPY
+
+Copy values in source array variable to values in destination array variable.
+The data types and total number of elements in the array variables must match.
+
+Syntax:
+
+``
+ARRAYCOPY srcarrayvariable, dstarrayvariable
+``
+
+Example:
+
+```
+ARRAYFILL A%, B%
+```
+
+### ARRAY1DSORT
+
+Sorts (in-place) the values in the given 1-dimensional array variable.
+
+Syntax:
+
+``
+ARRAY1DSORT arrayvariable
+``
+
+Example:
+
+```
+ARRAY1DSORT A%
 ```
 
 ## Graphics
