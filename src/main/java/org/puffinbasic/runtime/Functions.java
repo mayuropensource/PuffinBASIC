@@ -107,6 +107,14 @@ public class Functions {
         applyDoubleFunction(symbolTable, instruction, Math::log10);
     }
 
+    public static void log2(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
+        applyDoubleFunction(symbolTable, instruction, Functions::mathLog2);
+    }
+
+    private static double mathLog2(double x) {
+        return Math.log(x) / Math.log(2);
+    }
+
     public static void exp(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
         applyDoubleFunction(symbolTable, instruction, Math::exp);
     }

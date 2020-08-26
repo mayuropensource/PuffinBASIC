@@ -87,6 +87,7 @@ public class PuffinBasicIR {
         FIX("fix"),
         LOG("log"),
         LOG10("log10"),
+        LOG2("log2"),
         TORAD("torad"),
         TODEG("todeg"),
         FLOOR("floor"),
@@ -185,6 +186,8 @@ public class PuffinBasicIR {
         CLS("cls"),
         BEEP("beep"),
         ARRAYREF("arrayref"),
+        HSB2RGB0("hsb2rgb0"),
+        HSB2RGB("hsb2rgb"),
         ;
 
         public final String repr;

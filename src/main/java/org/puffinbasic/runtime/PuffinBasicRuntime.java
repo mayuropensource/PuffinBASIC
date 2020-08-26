@@ -26,6 +26,7 @@ import static org.puffinbasic.parser.PuffinBasicIR.OpCode.ARRAY1DCOPYDST;
 import static org.puffinbasic.parser.PuffinBasicIR.OpCode.ARRAY1DCOPYSRC;
 import static org.puffinbasic.parser.PuffinBasicIR.OpCode.DATA;
 import static org.puffinbasic.parser.PuffinBasicIR.OpCode.FIELD_I;
+import static org.puffinbasic.parser.PuffinBasicIR.OpCode.HSB2RGB0;
 import static org.puffinbasic.parser.PuffinBasicIR.OpCode.INPUT_VAR;
 import static org.puffinbasic.parser.PuffinBasicIR.OpCode.INSTR0;
 import static org.puffinbasic.parser.PuffinBasicIR.OpCode.LABEL;
@@ -276,6 +277,9 @@ public class PuffinBasicRuntime {
             case LOG10:
                 Functions.log10(ir.getSymbolTable(), instruction);
                 break;
+            case LOG2:
+                Functions.log2(ir.getSymbolTable(), instruction);
+                break;
             case EEXP:
                 Functions.exp(ir.getSymbolTable(), instruction);
                 break;
@@ -451,6 +455,7 @@ public class PuffinBasicRuntime {
             case DRAWSTR_XY:
             case ARRAY1DCOPYSRC:
             case ARRAY1DCOPYDST:
+            case HSB2RGB0:
                 instr0.add(instruction);
                 break;
             case INSTR: {
@@ -505,6 +510,14 @@ public class PuffinBasicRuntime {
                 instr0.clear();
             }
                 break;
+            case HSB2RGB: {
+                if (instr0.size() != 1 || instr0.get(0).opCode != HSB2RGB0) {
+                    throw new PuffinBasicInternalError("Bad/null instr0: " + instr0.get(0) + ", expected: " + HSB2RGB0);
+                }
+                GraphicsRuntime.hsb2rgb(ir.getSymbolTable(), instr0.get(0), instruction);
+                instr0.clear();
+            }
+            break;
             case PUTF:
                 Statements.putf(files, ir.getSymbolTable(), instruction);
                 break;

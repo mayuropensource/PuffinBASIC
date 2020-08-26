@@ -159,6 +159,7 @@ func
     | FIX LPAREN expr RPAREN                                # FuncFix
     | LOG LPAREN expr RPAREN                                # FuncLog
     | LOG10 LPAREN expr RPAREN                              # FuncLog10
+    | LOG2 LPAREN expr RPAREN                               # FuncLog2
     | EXP LPAREN expr RPAREN                                # FuncExp
     | TORAD LPAREN expr RPAREN                              # FuncToRad
     | TODEG LPAREN expr RPAREN                              # FuncToDeg
@@ -194,6 +195,7 @@ func
     | ARRAY1DMEDIAN LPAREN variable RPAREN                  # FuncArray1DMedian
     | ARRAY1DPCT LPAREN variable COMMA p=expr RPAREN        # FuncArray1DPct
     | ARRAY1DBINSEARCH LPAREN variable COMMA expr RPAREN    # FuncArray1DBinSearch
+    | HSB2RGB LPAREN expr COMMA expr COMMA expr RPAREN      # FuncHsb2Rgb
     ;
 
 gosubstmt
@@ -970,6 +972,10 @@ LOG10
     : L O G '1' '0'
     ;
 
+LOG2
+    : L O G '2'
+    ;
+
 EXP
     : E X P
     ;
@@ -1044,6 +1050,10 @@ ARRAY2DSHIFTHOR
 
 ARRAY2DSHIFTVER
     : A R R A Y '2' D S H I F T V E R
+    ;
+
+HSB2RGB
+    : H S B '2' R G B
     ;
 
 string

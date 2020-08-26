@@ -827,6 +827,13 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
     }
 
     @Override
+    public void exitFuncLog2(PuffinBasicParser.FuncLog2Context ctx) {
+        nodeToInstruction.put(ctx, addFuncWithExprInstruction(OpCode.LOG2, ctx, ctx.expr(),
+                NumericOrString.NUMERIC,
+                ir.getSymbolTable().addTmp(DOUBLE, c -> {})));
+    }
+
+    @Override
     public void exitFuncToRad(PuffinBasicParser.FuncToRadContext ctx) {
         nodeToInstruction.put(ctx, addFuncWithExprInstruction(OpCode.TORAD, ctx, ctx.expr(),
                 NumericOrString.NUMERIC,
@@ -1367,6 +1374,23 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
                 OpCode.ARRAY1DPCT, var1Instr.result, expr.result,
                 ir.getSymbolTable().addTmp(DOUBLE, e -> {})));
+    }
+
+    @Override
+    public void exitFuncHsb2Rgb(PuffinBasicParser.FuncHsb2RgbContext ctx) {
+        var h = lookupInstruction(ctx.expr(0));
+        var s = lookupInstruction(ctx.expr(1));
+        var b = lookupInstruction(ctx.expr(2));
+        Types.assertNumeric(ir.getSymbolTable().get(h.result).getValue().getDataType(), () -> getCtxString(ctx));
+        Types.assertNumeric(ir.getSymbolTable().get(s.result).getValue().getDataType(), () -> getCtxString(ctx));
+        Types.assertNumeric(ir.getSymbolTable().get(b.result).getValue().getDataType(), () -> getCtxString(ctx));
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.HSB2RGB0, h.result, s.result, NULL_ID);
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.HSB2RGB, b.result, NULL_ID,
+                ir.getSymbolTable().addTmp(INT32, e -> {})));
     }
 
     private Instruction addFuncWithExprInstruction(

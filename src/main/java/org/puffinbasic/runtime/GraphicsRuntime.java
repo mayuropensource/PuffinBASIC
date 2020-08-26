@@ -152,6 +152,18 @@ class GraphicsRuntime {
         EventQueue.invokeLater(() -> graphicsState.getFrame().setVisible(true));
     }
 
+    public static void hsb2rgb(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instr0,
+            Instruction instruction)
+    {
+        var h = symbolTable.get(instr0.op1).getValue().getFloat32();
+        var s = symbolTable.get(instr0.op2).getValue().getFloat32();
+        var b = symbolTable.get(instruction.op1).getValue().getFloat32();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt32(Color.HSBtoRGB(h, s, b));
+    }
+
     public static void repaint(GraphicsState graphicsState) {
         graphicsState.getFrame().getDrawingCanvas().repaint();
     }

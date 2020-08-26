@@ -16,6 +16,11 @@ YouTube Video: <a href="https://youtu.be/TpsxQrxKqdg"><img src="samples/gameofli
 <a href="https://youtu.be/A5tN6cBqoAc">#2</a>
 Source: <a href="samples/gameoflife/gameoflife.bas">gameoflife.bas</a>
 
+#### Mandelbrot Set
+<a href="https://youtu.be/7CukYv9tfXA"><img src="samples/mandelbrotsnap.png" width="64"></a>
+<a href="https://youtu.be/xKp9U2BXTHM">Zoomed</a>
+Source: <a href="samples/mandelbrot.bas">mandelbrot.bas</a>
+
 ## Why Implement BASIC?
 
 1. Love and Familiarity: GWBASIC was my first programming language, I loved it and made many games in it. 
@@ -384,6 +389,7 @@ INT(-2.3)
 
 LOG returns the natural logarithm of a numeric value.
 LOG10 returns base-10 logarithm of a numeric value.
+LOG2 returns base-2 logarithm of a numeric value.
 n must be greater than 0.
 
 Syntax:
@@ -391,6 +397,7 @@ Syntax:
 ```
 LOG(n)
 LOG10(n)
+LOG2(n)
 ```
 
 #### EXP
@@ -875,6 +882,16 @@ filenum is the file number.
 
 ```
 LOF(filenum)
+```
+
+### HSB2RGB
+
+Converts HSB color float values (each 0-1) to an int32 RGB values.
+
+Syntax:
+
+```
+HSB2RGB(0.5, 1.0, 1.0)
 ```
 
 ## Statements
