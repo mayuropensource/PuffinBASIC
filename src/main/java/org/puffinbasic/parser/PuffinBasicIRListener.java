@@ -3019,6 +3019,26 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
     }
 
     @Override
+    public void exitSaveimgstmt(PuffinBasicParser.SaveimgstmtContext ctx) {
+        assertGraphics();
+
+        var path = lookupInstruction(ctx.path);
+        var varInstr = lookupInstruction(ctx.variable());
+
+        Types.assertString(ir.getSymbolTable().get(path.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        assertVariable(ir.getSymbolTable().get(varInstr.result).getKind(),
+                () -> getCtxString(ctx));
+        assertVariableDefined(((STVariable) ir.getSymbolTable().get(varInstr.result)).getVariable().getVariableName(),
+                () -> getCtxString(ctx));
+
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.SAVEIMG, path.result, varInstr.result, NULL_ID
+        );
+    }
+
+    @Override
     public void exitClsstmt(PuffinBasicParser.ClsstmtContext ctx) {
         assertGraphics();
         ir.addInstruction(

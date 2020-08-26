@@ -698,6 +698,9 @@ public class PuffinBasicRuntime {
             case LOADIMG:
                 GraphicsRuntime.loadimg(graphicsState, ir.getSymbolTable(), instruction);
                 break;
+            case SAVEIMG:
+                GraphicsRuntime.saveimg(graphicsState, ir.getSymbolTable(), instruction);
+                break;
             case DRAW:
                 GraphicsRuntime.draw(graphicsState, ir.getSymbolTable(), instruction);
                 break;

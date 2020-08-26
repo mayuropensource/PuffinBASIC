@@ -1,5 +1,6 @@
 package org.puffinbasic.runtime;
 
+import org.apache.commons.io.FilenameUtils;
 import org.puffinbasic.domain.PuffinBasicSymbolTable;
 import org.puffinbasic.domain.STObjects;
 import org.puffinbasic.domain.STObjects.STVariable;
@@ -87,6 +88,41 @@ class GraphicsRuntime {
 
     public static void beep() {
         Toolkit.getDefaultToolkit().beep();
+    }
+
+    public static void saveimg(
+            GraphicsState graphicsState,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var path = symbolTable.get(instruction.op1).getValue().getString();
+        var entry = symbolTable.get(instruction.op2);
+        var variableValue = entry.getValue();
+        if (entry.getKind() != STObjects.STKind.VARIABLE
+                || variableValue.getNumArrayDimensions() != 2
+                || variableValue.getDataType() != INT32)
+        {
+            throw new PuffinBasicRuntimeError(
+                    GRAPHICS_ERROR,
+                    "Bad Array Variable, expected Int32 2D-Array Variable: " + entry
+            );
+        }
+
+        var dims = variableValue.getArrayDimensions();
+        final BufferedImage image = new BufferedImage(dims.getInt(0), dims.getInt(1), BufferedImage.TYPE_3BYTE_BGR);
+
+        image.setRGB(0, 0, image.getWidth(), image.getHeight(),
+                variableValue.getInt32Array1D(), 0, image.getWidth());
+
+        var ext = FilenameUtils.getExtension(path);
+        try {
+            ImageIO.write(image, ext, new File(path));
+        } catch (IOException e) {
+            throw new PuffinBasicRuntimeError(
+                    IO_ERROR,
+                    "Failed to save image: " + path + ", error: " + e.getMessage()
+            );
+        }
     }
 
     public static void loadimg(

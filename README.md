@@ -891,6 +891,12 @@ Converts HSB color float values (each 0-1) to an int32 RGB values.
 Syntax:
 
 ```
+HSB2RGB(hue, saturation, brightness)
+```
+
+Example:
+
+```
 HSB2RGB(0.5, 1.0, 1.0)
 ```
 
@@ -1769,6 +1775,26 @@ Example:
 ```
 DIM A%(32, 32)
 LOADIMG "enemy1.png", A%
+```
+
+### SAVEIMG
+
+Save an image from the given array variable.
+The variable must be of Int32 type.
+Common formats such as png, jpeg, gif, bmp are supported.
+
+Syntax:
+
+```
+SAVEIMG image, variable
+```
+
+Example:
+
+```
+DIM A%(32, 32)
+...
+SAVEIMG "enemy1.png", A%
 ```
 
 ### INKEY$

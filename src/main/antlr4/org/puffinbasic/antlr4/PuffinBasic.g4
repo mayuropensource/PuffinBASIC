@@ -76,6 +76,7 @@ stmt
     | fontstmt
     | drawstrstmt
     | loadimgstmt
+    | saveimgstmt
     | clsstmt
     | beepstmt
     | repaintstmt
@@ -457,6 +458,10 @@ drawstrstmt
 
 loadimgstmt
     : LOADIMG path=expr COMMA variable
+    ;
+
+saveimgstmt
+    : SAVEIMG path=expr COMMA variable
     ;
 
 clsstmt
@@ -902,6 +907,10 @@ DRAWSTR
 
 LOADIMG
     : L O A D I M G
+    ;
+
+SAVEIMG
+    : S A V E I M G
     ;
 
 CLS

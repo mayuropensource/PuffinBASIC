@@ -96,7 +96,7 @@ class GraphicsUtil {
             this.keyBufferSize = keyBufferSize;
         }
 
-        synchronized BufferedImage getImage() {
+        BufferedImage getImage() {
             return image;
         }
 
@@ -115,7 +115,7 @@ class GraphicsUtil {
             }
         }
 
-        synchronized void startRefresh() {
+        void startRefresh() {
             timer.start();
         }
 
@@ -127,7 +127,7 @@ class GraphicsUtil {
             return graphics;
         }
 
-        private synchronized void draw(java.awt.Graphics g) {
+        private void draw(java.awt.Graphics g) {
             g.drawImage(image, 0, 0, null);
         }
 
@@ -144,11 +144,11 @@ class GraphicsUtil {
             repaint();
         }
 
-        synchronized void floodFill(int x, int y, int r, int g, int b) {
+        void floodFill(int x, int y, int r, int g, int b) {
             iterativeFloodFill(image, x, y, graphics.getColor(), new Color(r, g, b));
         }
 
-        synchronized void point(int x, int y, int r, int g, int b) {
+        void point(int x, int y, int r, int g, int b) {
             Color color;
             if (r != -1 && g != -1 && b != -1) {
                 color = new Color(r, g, b);
@@ -158,13 +158,13 @@ class GraphicsUtil {
             image.setRGB(x, y, color.getRGB());
         }
 
-        synchronized void copyGraphicsToArray(int x1, int y1, int x2, int y2, int[] dest) {
+        void copyGraphicsToArray(int x1, int y1, int x2, int y2, int[] dest) {
             int w = Math.abs(x1 - x2);
             int h = Math.abs(y1 - y2);
             image.getRGB(x1, y1, w, h, dest, 0, w);
         }
 
-        synchronized void copyArrayToGraphics(int x, int y, int w, int h, String action, int[] src) {
+        void copyArrayToGraphics(int x, int y, int w, int h, String action, int[] src) {
             if (action.equalsIgnoreCase(PUT_PSET)) {
                 image.setRGB(x, y, w, h, src, 0, w);
             } else {
@@ -191,7 +191,7 @@ class GraphicsUtil {
             }
         }
 
-        synchronized void clear() {
+        void clear() {
             image.setRGB(0, 0, w, h, clearBuffer, 0, w);
         }
     }

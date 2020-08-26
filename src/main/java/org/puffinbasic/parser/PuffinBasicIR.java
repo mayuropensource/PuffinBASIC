@@ -178,6 +178,7 @@ public class PuffinBasicIR {
         GGET_X2Y2("gget_x2y2"),
         GGET("gget"),
         LOADIMG("loadimg"),
+        SAVEIMG("saveimg"),
         DRAWSTR_XY("drawstr_xy"),
         DRAWSTR("drawstr"),
         DRAW("draw"),
