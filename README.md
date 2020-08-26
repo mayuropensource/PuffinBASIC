@@ -11,6 +11,11 @@ PuffinBASIC conforms most closely to GWBASIC.
 YouTube Video: <a href="https://youtu.be/L8xkM-g3Zms"><img src="samples/tessel/images/tesselsnap1.png" width="64"></a>
 Source: <a href="samples/tessel/tessel.bas">tessel.bas</a>
 
+#### Conway's Game of Life
+YouTube Video: <a href="https://youtu.be/TpsxQrxKqdg"><img src="samples/gameoflife/images/gameoflifesnap.png" width="64"></a>
+<a href="https://youtu.be/A5tN6cBqoAc">#2</a>
+Source: <a href="samples/gameoflife/gameoflife.bas">gameoflife.bas</a>
+
 ## Why Implement BASIC?
 
 1. Love and Familiarity: GWBASIC was my first programming language, I loved it and made many games in it. 
