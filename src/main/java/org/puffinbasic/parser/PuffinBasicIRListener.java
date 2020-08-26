@@ -437,7 +437,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                     int i = 0;
                     for (var exprCtx : ctx.expr()) {
                       var exprInstr = lookupInstruction(exprCtx);
-                      var declParamId = udfEntry.getDeclaraedParam(i++);
+                      var declParamId = udfEntry.getDeclaredParam(i++);
                       ir.addInstruction(
                           currentLineNumber,
                           ctx.start.getStartIndex(),
@@ -584,7 +584,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
 
     @Override
     public void exitExprFloatDiv(PuffinBasicParser.ExprFloatDivContext ctx) {
-        addArithmeticOpExpr(ctx, OpCode.FDIV, ctx.expr(0), ctx.expr(1));
+        addArithmeticOpExpr(ctx, OpCode.FDIV, ctx.expr(0), ctx.expr(1), DOUBLE);
     }
 
     @Override
@@ -628,6 +628,24 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                         ir.getSymbolTable().get(exprR.result).getValue().getDataType(),
                         () -> getCtxString(parent)),
                 e -> {});
+        nodeToInstruction.put(parent, ir.addInstruction(
+                currentLineNumber, parent.start.getStartIndex(), parent.stop.getStopIndex(),
+                opCode, exprL.result, exprR.result, result
+        ));
+    }
+
+    private void addArithmeticOpExpr(
+            ParserRuleContext parent,
+            OpCode opCode,
+            PuffinBasicParser.ExprContext exprLeft,
+            PuffinBasicParser.ExprContext exprRight,
+            PuffinBasicDataType resultDataType) {
+        var exprL = lookupInstruction(exprLeft);
+        var exprR = lookupInstruction(exprRight);
+        var dt1 = ir.getSymbolTable().get(exprL.result).getValue().getDataType();
+        var dt2 = ir.getSymbolTable().get(exprR.result).getValue().getDataType();
+        Types.assertNumeric(dt1, dt2, () -> getCtxString(parent));
+        var result = ir.getSymbolTable().addTmp(resultDataType, e -> {});
         nodeToInstruction.put(parent, ir.addInstruction(
                 currentLineNumber, parent.start.getStartIndex(), parent.stop.getStopIndex(),
                 opCode, exprL.result, exprR.result, result

@@ -12,7 +12,7 @@ import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.FLOAT;
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.INT64;
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.STRING;
 
-public class Operators {
+final class Operators {
 
     public static void unaryMinus(
             PuffinBasicSymbolTable symbolTable,

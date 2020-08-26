@@ -7,8 +7,8 @@ import org.puffinbasic.domain.STObjects.ArrayReferenceValue;
 import org.puffinbasic.domain.STObjects.PuffinBasicDataType;
 import org.puffinbasic.domain.STObjects.STArrayReference;
 import org.puffinbasic.domain.STObjects.STEntry;
-import org.puffinbasic.domain.STObjects.STTmp;
 import org.puffinbasic.domain.STObjects.STVariable;
+import org.puffinbasic.domain.Scope.GlobalScope;
 import org.puffinbasic.domain.Variable.VariableName;
 import org.puffinbasic.error.PuffinBasicInternalError;
 
@@ -33,7 +33,7 @@ public class PuffinBasicSymbolTable {
     public PuffinBasicSymbolTable() {
         this.idmaker = new AtomicInteger();
         this.defaultDataTypes = new Char2ObjectOpenHashMap<>();
-        this.currentScope = new Scope(null);
+        this.currentScope = new GlobalScope();
     }
 
     private int generateNextId() {

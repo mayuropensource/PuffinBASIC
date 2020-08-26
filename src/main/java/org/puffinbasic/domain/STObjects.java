@@ -210,8 +210,8 @@ public class STObjects {
             return paramIds.size();
         }
 
-        public int getDeclaraedParam(int i) {
-            return paramIds.get(i);
+        public int getDeclaredParam(int i) {
+            return paramIds.getInt(i);
         }
     }
 
