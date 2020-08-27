@@ -24,14 +24,14 @@
 240   GOSUB 3500 ' Init Enemy
 250   GOSUB 4000 ' Init Reward
 255   LOOPWAV SOUNDBG1%
-260   run% = 1 : points% = 0
+260   run% = 1 : points% = 0 : sound% = 1
 270   WHILE run% = 1
 280     GOSUB 1500 ' Draw Grid BG
 290     GOSUB 2000 ' Draw Player
 300     GOSUB 4500 ' Draw FG
 310     GOSUB 6000 ' Draw Points
 320     GOSUB 5500 ' Check collision
-330     IF collenemy% <> 0 THEN STOPWAV SOUNDBG1% : PLAYWAV SOUNDDEAD1% : hi% = points% : run% = 0 : GOSUB 10000
+330     IF collenemy% <> 0 THEN STOPWAV SOUNDBG1% : STOPWAV SOUNDBG2% : PLAYWAV SOUNDDEAD1% : hi% = points% : run% = 0 : GOSUB 10000
 335     IF collreward% = 1 THEN PLAYWAV SOUNDEAT1%
 340     REPAINT : SLEEP 30
 350     GOSUB 2200 ' Erase Player
@@ -45,6 +45,7 @@
 430     points% = points% + 1 : ptsstep% = points% \ 1000
 440     IF ptsstep% = 1 THEN speedstep% = 2 : maxenemy% = 3 : maxreward% = 3
 450     IF ptsstep% = 2 THEN speedstep% = 3 : maxenemy% = 4 : maxreward% = 4
+455     IF ptsstep% = 2 AND sound% = 1 THEN sound% = 2 : STOPWAV SOUNDBG1% : LOOPWAV SOUNDBG2%
 460     IF ptsstep% = 3 THEN speedstep% = 4 : maxenemy% = 5 : maxreward% = 5
 470     IF ptsstep% = 5 THEN maxenemy% = 6 : maxreward% = 6
 480     IF ptsstep% = 6 THEN maxenemy% = 7 : maxreward% = 7
@@ -64,10 +65,11 @@
 1060 LOADIMG "samples/puffingame/images/reward1.png", REWARD1%
 1070 RETURN
 1200 ' LOAD SOUNDS
-1210 LOADWAV "samples/puffingame/sounds/eat1.wav", SOUNDEAT1%
+1210 LOADWAV "samples/puffingame/sounds/eat2.wav", SOUNDEAT1%
 1220 LOADWAV "samples/puffingame/sounds/bg1.wav", SOUNDBG1%
-1230 LOADWAV "samples/puffingame/sounds/dead1.wav", SOUNDDEAD1%
-1240 RETURN
+1230 LOADWAV "samples/puffingame/sounds/bg2.wav", SOUNDBG2%
+1240 LOADWAV "samples/puffingame/sounds/dead1.wav", SOUNDDEAD1%
+1250 RETURN
 1500 ' DRAW GRID BG
 1510 FOR y% = 0 TO GRIDY% - 1
 1520   FOR x% = 0 TO GRIDX% - 1
