@@ -127,5 +127,6 @@ public class SoundState implements AutoCloseable {
     @Override
     public void close() {
         state.values().forEach(s -> s.clip.close());
+        executor.shutdownNow();
     }
 }
