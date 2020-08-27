@@ -7,9 +7,13 @@ BASIC (Beginners' All-purpose Symbolic Instruction Code) is a general-purpose hi
 language from the 1960s. PuffinBASIC is an implementation of the BASIC language specification.
 PuffinBASIC conforms most closely to GWBASIC.
 
-#### TESSEL - A 2D Tile Game written in PuffinBASIC
+#### TESSEL - A 2D Tile Game written
 YouTube Video: <a href="https://youtu.be/L8xkM-g3Zms"><img src="samples/tessel/images/tesselsnap1.png" width="64"></a>
 Source: <a href="samples/tessel/tessel.bas">tessel.bas</a>
+
+#### FlyPuffinFly - A Scrolling Game
+YouTube Video: <a href="https://youtu.be/QeNG-S2BFro"><img src="samples/puffingame/images/flypuffinflysnap.png" width="64"></a>
+Source: <a href="samples/puffingame/flypuffinfly.bas">flypuffinfly.bas</a>
 
 #### Conway's Game of Life
 YouTube Video: <a href="https://youtu.be/TpsxQrxKqdg"><img src="samples/gameoflife/images/gameoflifesnap.png" width="64"></a>
@@ -17,7 +21,7 @@ YouTube Video: <a href="https://youtu.be/TpsxQrxKqdg"><img src="samples/gameofli
 Source: <a href="samples/gameoflife/gameoflife.bas">gameoflife.bas</a>
 
 #### Mandelbrot Set
-<a href="https://youtu.be/7CukYv9tfXA"><img src="samples/mandelbrotsnap.png" width="64"></a>
+YouTube Video: <a href="https://youtu.be/7CukYv9tfXA"><img src="samples/mandelbrotsnap.png" width="64"></a>
 <a href="https://youtu.be/xKp9U2BXTHM">Zoomed</a>
 Source: <a href="samples/mandelbrot.bas">mandelbrot.bas</a>
 
@@ -1743,10 +1747,12 @@ Copy array variable contents to the drawing canvas at x,y position.
 The variable must be of Int32 type.
 x,y must be within the bounds of the drawing canvas.
 
+Mode can be XOR, OR, AND, PSET (overwrite), and MIX (overwrite opaque parts only).
+
 Syntax:
 
 ```
-PUT (x, y), variable
+PUT (x, y), variable[, mode]
 ```
 
 Example:

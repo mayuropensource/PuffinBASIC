@@ -33,6 +33,7 @@ class GraphicsUtil {
     private static final String PUT_OR = "OR";
     private static final String PUT_AND = "AND";
     private static final String PUT_PSET = "PSET";
+    private static final String PUT_MIX = "MIX";
 
     static class BasicFrame extends JFrame {
 
@@ -172,6 +173,12 @@ class GraphicsUtil {
                 if (action.equalsIgnoreCase(PUT_XOR)) {
                     for (int i = 0; i < copy.length; i++) {
                         copy[i] = copy[i] ^ src[i];
+                    }
+                } else if (action.equalsIgnoreCase(PUT_MIX)) {
+                    for (int i = 0; i < copy.length; i++) {
+                        if (src[i] != 0) {
+                            copy[i] = src[i];
+                        }
                     }
                 } else if (action.equalsIgnoreCase(PUT_OR)) {
                     for (int i = 0; i < copy.length; i++) {
