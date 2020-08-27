@@ -12,7 +12,7 @@ YouTube Video: <a href="https://youtu.be/L8xkM-g3Zms"><img src="samples/tessel/i
 Source: <a href="samples/tessel/tessel.bas">tessel.bas</a>
 
 #### FlyPuffinFly - A Scrolling Game
-YouTube Video: <a href="https://youtu.be/QeNG-S2BFro"><img src="samples/puffingame/images/flypuffinflysnap.png" width="64"></a>
+YouTube Video: <a href="https://youtu.be/SO0HKTAPgTs"><img src="samples/puffingame/images/flypuffinflysnap.png" width="64"></a>
 Source: <a href="samples/puffingame/flypuffinfly.bas">flypuffinfly.bas</a>
 
 #### Conway's Game of Life
