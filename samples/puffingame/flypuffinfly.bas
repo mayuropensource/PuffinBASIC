@@ -11,7 +11,7 @@
 110 DIM GRIDPREV%(16, 30)
 120 playery%=5 : playerx%=2 : playerspr%=1 : playerPrevSpr% = -1
 130 MAXENEMY%=10 : MAXREWARD%=10
-140 GOSUB 1000 ' Load Images
+140 GOSUB 1000 : GOSUB 1200 ' Load Images & Sounds
 150 SCREEN "Fly Puffin Fly - A Scrolling Game Written in PuffinBASIC", W%, H%, MANUALREPAINT
 160 hi% = 0
 170 WHILE -1
@@ -23,6 +23,7 @@
 230   GOSUB 2500 ' Init Grid BG
 240   GOSUB 3500 ' Init Enemy
 250   GOSUB 4000 ' Init Reward
+255   LOOPWAV SOUNDBG1%
 260   run% = 1 : points% = 0
 270   WHILE run% = 1
 280     GOSUB 1500 ' Draw Grid BG
@@ -30,7 +31,8 @@
 300     GOSUB 4500 ' Draw FG
 310     GOSUB 6000 ' Draw Points
 320     GOSUB 5500 ' Check collision
-330     IF collenemy% <> 0 THEN hi% = points% : run% = 0 : GOSUB 10000
+330     IF collenemy% <> 0 THEN STOPWAV SOUNDBG1% : PLAYWAV SOUNDDEAD1% : hi% = points% : run% = 0 : GOSUB 10000
+335     IF collreward% = 1 THEN PLAYWAV SOUNDEAT1%
 340     REPAINT : SLEEP 30
 350     GOSUB 2200 ' Erase Player
 360     GOSUB 4800 ' Erase FG
@@ -59,6 +61,11 @@
 1050 LOADIMG "samples/puffingame/images/enemy1.png", ENEMY1%
 1060 LOADIMG "samples/puffingame/images/reward1.png", REWARD1%
 1070 RETURN
+1200 ' LOAD SOUNDS
+1210 LOADWAV "samples/puffingame/sounds/eat1.wav", SOUNDEAT1%
+1220 LOADWAV "samples/puffingame/sounds/bg1.wav", SOUNDBG1%
+1230 LOADWAV "samples/puffingame/sounds/dead1.wav", SOUNDDEAD1%
+1240 RETURN
 1500 ' DRAW GRID BG
 1510 FOR y% = 0 TO GRIDY% - 1
 1520   FOR x% = 0 TO GRIDX% - 1
@@ -162,7 +169,7 @@
 6020 LSET pointsstr$ = STR$(points%) + " pts  " + STR$(MAX(hi%, points%)) + " hi"
 6030 FONT "Courier", "B", 16
 6040 COLOR 255, 255, 255
-6050 DRAWSTR pointsstr$, W% - 150, 20
+6050 DRAWSTR pointsstr$, W% - 200, 20
 6090 RETURN
 10000 ' GAME OVER
 10010 gover$ = "Oops! GAME OVER! Your Score=" + str$(points%) + ", try again" : PRINT gover$

@@ -3048,6 +3048,69 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
     }
 
     @Override
+    public void exitLoadwavstmt(PuffinBasicParser.LoadwavstmtContext ctx) {
+        assertGraphics();
+
+        var path = lookupInstruction(ctx.path);
+        var varInstr = lookupInstruction(ctx.variable());
+
+        Types.assertString(ir.getSymbolTable().get(path.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        assertVariable(ir.getSymbolTable().get(varInstr.result).getKind(),
+                () -> getCtxString(ctx));
+
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.LOADWAV, path.result, varInstr.result, NULL_ID
+        );
+    }
+
+    @Override
+    public void exitPlaywavstmt(PuffinBasicParser.PlaywavstmtContext ctx) {
+        assertGraphics();
+
+        var varInstr = lookupInstruction(ctx.variable());
+
+        assertVariable(ir.getSymbolTable().get(varInstr.result).getKind(),
+                () -> getCtxString(ctx));
+
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.PLAYWAV, varInstr.result, NULL_ID, NULL_ID
+        );
+    }
+
+    @Override
+    public void exitStopwavstmt(PuffinBasicParser.StopwavstmtContext ctx) {
+        assertGraphics();
+
+        var varInstr = lookupInstruction(ctx.variable());
+
+        assertVariable(ir.getSymbolTable().get(varInstr.result).getKind(),
+                () -> getCtxString(ctx));
+
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.STOPWAV, varInstr.result, NULL_ID, NULL_ID
+        );
+    }
+
+    @Override
+    public void exitLoopwavstmt(PuffinBasicParser.LoopwavstmtContext ctx) {
+        assertGraphics();
+
+        var varInstr = lookupInstruction(ctx.variable());
+
+        assertVariable(ir.getSymbolTable().get(varInstr.result).getKind(),
+                () -> getCtxString(ctx));
+
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.LOOPWAV, varInstr.result, NULL_ID, NULL_ID
+        );
+    }
+
+    @Override
     public void exitSleepstmt(PuffinBasicParser.SleepstmtContext ctx) {
         var millis = lookupInstruction(ctx.expr());
         Types.assertNumeric(ir.getSymbolTable().get(millis.result).getValue().getDataType(),

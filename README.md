@@ -1864,3 +1864,43 @@ Syntax:
 ```
 REPAINT
 ```
+
+### LOADWAV
+
+Load sound (wav) file.
+
+Syntax:
+
+```
+LOADWAV path, variable
+```
+
+### PLAYWAV
+
+Play sound, loaded earlier via the LOADWAV statement.
+
+Syntax:
+
+```
+PLAYWAV variable
+```
+
+### STOPWAV
+
+Stop the playing sound.
+
+Syntax:
+
+```
+STOPWAV variable
+```
+
+### LOOPWAV
+
+Loop (continuously) the sound, loaded earlier via the LOADWAV statement.
+
+Syntax:
+
+```
+LOOPWAV variable
+```

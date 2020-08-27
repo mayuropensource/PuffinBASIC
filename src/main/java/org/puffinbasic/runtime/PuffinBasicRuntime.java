@@ -52,6 +52,7 @@ public class PuffinBasicRuntime {
     private final PrintStream out;
     private final Environment env;
     private GraphicsState graphicsState;
+    private SoundState soundState;
 
     public PuffinBasicRuntime(PuffinBasicIR ir, PrintStream out, Environment env) {
         this.ir = ir;
@@ -112,18 +113,23 @@ public class PuffinBasicRuntime {
         this.files = new PuffinBasicFiles(new SystemInputOutputFile(System.in, out));
         this.readData = processDataInstructions(instructions);
         this.graphicsState = new GraphicsState();
+        this.soundState = new SoundState();
 
-        var numInstructions = instructions.size();
-        boolean end = false;
-        while (!end && programCounter < numInstructions) {
-            var instruction = instructions.get(programCounter);
-            try {
-                end = runInstruction(instruction);
-            } catch (PuffinBasicRuntimeError e) {
-                throw new PuffinBasicRuntimeError(e, instruction, ir.getCodeStreamFor(instruction));
+        try {
+            var numInstructions = instructions.size();
+            boolean end = false;
+            while (!end && programCounter < numInstructions) {
+                var instruction = instructions.get(programCounter);
+                try {
+                    end = runInstruction(instruction);
+                } catch (PuffinBasicRuntimeError e) {
+                    throw new PuffinBasicRuntimeError(e, instruction, ir.getCodeStreamFor(instruction));
+                }
             }
+        } finally {
+            GraphicsRuntime.end(graphicsState);
+            soundState.close();
         }
-        GraphicsRuntime.end(graphicsState);
     }
 
     private ReadData processDataInstructions(List<Instruction> instructions) {
@@ -712,6 +718,18 @@ public class PuffinBasicRuntime {
                 break;
             case BEEP:
                 GraphicsRuntime.beep();
+                break;
+            case LOADWAV:
+                GraphicsRuntime.loadwav(soundState, ir.getSymbolTable(), instruction);
+                break;
+            case PLAYWAV:
+                GraphicsRuntime.playwav(soundState, ir.getSymbolTable(), instruction);
+                break;
+            case STOPWAV:
+                GraphicsRuntime.stopwav(soundState, ir.getSymbolTable(), instruction);
+                break;
+            case LOOPWAV:
+                GraphicsRuntime.loopwav(soundState, ir.getSymbolTable(), instruction);
                 break;
         }
 

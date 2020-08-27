@@ -189,6 +189,10 @@ public class PuffinBasicIR {
         ARRAYREF("arrayref"),
         HSB2RGB0("hsb2rgb0"),
         HSB2RGB("hsb2rgb"),
+        LOADWAV("loadwav"),
+        PLAYWAV("playwav"),
+        STOPWAV("stopwav"),
+        LOOPWAV("loopwav"),
         ;
 
         public final String repr;

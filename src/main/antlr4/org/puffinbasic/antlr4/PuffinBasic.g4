@@ -86,6 +86,10 @@ stmt
     | array1dsortstmt
     | array2dshifthorstmt
     | array2dshiftverstmt
+    | loadwavstmt
+    | playwavstmt
+    | stopwavstmt
+    | loopwavstmt
     ;
 
 variable
@@ -494,6 +498,22 @@ array2dshifthorstmt
 
 array2dshiftverstmt
     : ARRAY2DSHIFTVER variable COMMA step=expr
+    ;
+
+loadwavstmt
+    : LOADWAV path=expr COMMA variable
+    ;
+
+playwavstmt
+    : PLAYWAV variable
+    ;
+
+stopwavstmt
+    : STOPWAV variable
+    ;
+
+loopwavstmt
+    : LOOPWAV variable
     ;
 
 LETTERRANGE
@@ -911,6 +931,22 @@ LOADIMG
 
 SAVEIMG
     : S A V E I M G
+    ;
+
+LOADWAV
+    : L O A D W A V
+    ;
+
+PLAYWAV
+    : P L A Y W A V
+    ;
+
+STOPWAV
+    : S T O P W A V
+    ;
+
+LOOPWAV
+    : L O O P W A V
     ;
 
 CLS

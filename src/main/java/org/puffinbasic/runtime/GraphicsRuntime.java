@@ -606,4 +606,41 @@ class GraphicsRuntime {
         var key = graphicsState.getFrame().getDrawingCanvas().takeNextKey();
         symbolTable.get(instruction.result).getValue().setString(key);
     }
+
+    public static void loadwav(
+            SoundState soundState,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var file = symbolTable.get(instruction.op1).getValue().getString();
+        var variable = symbolTable.get(instruction.op2).getValue();
+        variable.setInt32(soundState.load(file));
+    }
+
+    public static void playwav(
+            SoundState soundState,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var id = symbolTable.get(instruction.op1).getValue().getInt32();
+        soundState.play(id);
+    }
+
+    public static void stopwav(
+            SoundState soundState,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var id = symbolTable.get(instruction.op1).getValue().getInt32();
+        soundState.stop(id);
+    }
+
+    public static void loopwav(
+            SoundState soundState,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var id = symbolTable.get(instruction.op1).getValue().getInt32();
+        soundState.loop(id);
+    }
 }
