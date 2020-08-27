@@ -125,7 +125,7 @@
 5191    IF hitbottom% = 0 AND collision% = 0 AND drot% = 1 THEN checkrot% = 1 ELSE checkrot% = 0 ' Check if rotation causes collision
 5192    IF checkrot% = 1 THEN collision% = 0 : rot% = newrot% : GOSUB 6000 : GOSUB 8000 ' Copy rotated tile and check for collision
 5193    IF checkrot% = 1 THEN rot% = oldrot% : GOSUB 6000 ' Revert rotated tile
-5194    IF checkrot% = 1 AND collision <> 0 THEN rot% = oldrot% ELSE IF checkrot% = 1 THEN rot% = newrot%
+5194    IF checkrot% = 1 AND collision% <> 0 THEN rot% = oldrot% ELSE IF checkrot% = 1 THEN rot% = newrot%
 5200    REPAINT : SLEEP 40
 5210    GOSUB 7000 ' Erase Tile and Update tile x,y
 5220    tilex% = tilex% + dx%

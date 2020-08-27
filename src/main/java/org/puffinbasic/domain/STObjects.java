@@ -6,6 +6,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.puffinbasic.error.PuffinBasicInternalError;
 import org.puffinbasic.error.PuffinBasicRuntimeError;
+import org.puffinbasic.error.PuffinBasicSemanticError;
 import org.puffinbasic.runtime.Formatter;
 
 import java.time.LocalDate;
@@ -15,6 +16,7 @@ import java.util.Arrays;
 
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.ARRAY_INDEX_OUT_OF_BOUNDS;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.ILLEGAL_FUNCTION_PARAM;
+import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.NOT_INITIALIZED;
 
 public class STObjects {
 
@@ -281,11 +283,28 @@ public class STObjects {
         default void fillString(String fill) {
             throw new PuffinBasicInternalError("Unsupported");
         }
+        default boolean isInitialized() {
+            return true;
+        }
+        default void checkInitialized() {
+            if (!isInitialized()) {
+                throw new PuffinBasicRuntimeError(
+                        NOT_INITIALIZED,
+                        "Value cannot be read without initializing"
+                );
+            }
+        }
     }
 
     private static final class STInt32ScalarValue implements STValue {
 
+        private boolean isSet;
         private int value;
+
+        @Override
+        public boolean isInitialized() {
+            return isSet;
+        }
 
         @Override
         public PuffinBasicDataType getDataType() {
@@ -294,46 +313,55 @@ public class STObjects {
 
         @Override
         public String printFormat() {
+            checkInitialized();
             return Formatter.printFormatInt32(value);
         }
 
         @Override
         public String writeFormat() {
+            checkInitialized();
             return Formatter.writeFormatInt32(value);
         }
 
         @Override
         public void assign(STValue entry) {
+            this.isSet = true;
             this.value = entry.getInt32();
         }
 
         @Override
         public int getInt32() {
+            checkInitialized();
             return value;
         }
 
         @Override
         public long getInt64() {
+            checkInitialized();
             return value;
         }
 
         @Override
         public float getFloat32() {
+            checkInitialized();
             return value;
         }
 
         @Override
         public double getFloat64() {
+            checkInitialized();
             return value;
         }
 
         @Override
         public int getRoundedInt32() {
+            checkInitialized();
             return value;
         }
 
         @Override
         public long getRoundedInt64() {
+            checkInitialized();
             return value;
         }
 
@@ -344,21 +372,25 @@ public class STObjects {
 
         @Override
         public void setInt32(int value) {
+            this.isSet = true;
             this.value = value;
         }
 
         @Override
         public void setInt64(long value) {
+            this.isSet = true;
             this.value = (int) value;
         }
 
         @Override
         public void setFloat32(float value) {
+            this.isSet = true;
             this.value = (int) value;
         }
 
         @Override
         public void setFloat64(double value) {
+            this.isSet = true;
             this.value = (int) value;
         }
 
@@ -370,7 +402,13 @@ public class STObjects {
 
     private static final class STInt64ScalarValue implements STValue {
 
+        private boolean isSet;
         private long value;
+
+        @Override
+        public boolean isInitialized() {
+            return isSet;
+        }
 
         @Override
         public PuffinBasicDataType getDataType() {
@@ -379,46 +417,55 @@ public class STObjects {
 
         @Override
         public String printFormat() {
+            checkInitialized();
             return Formatter.printFormatInt64(value);
         }
 
         @Override
         public String writeFormat() {
+            checkInitialized();
             return Formatter.writeFormatInt64(value);
         }
 
         @Override
         public void assign(STValue entry) {
+            this.isSet = true;
             this.value = entry.getInt64();
         }
 
         @Override
         public int getInt32() {
+            checkInitialized();
             return (int) value;
         }
 
         @Override
         public long getInt64() {
+            checkInitialized();
             return value;
         }
 
         @Override
         public float getFloat32() {
+            checkInitialized();
             return value;
         }
 
         @Override
         public double getFloat64() {
+            checkInitialized();
             return value;
         }
 
         @Override
         public int getRoundedInt32() {
+            checkInitialized();
             return (int) value;
         }
 
         @Override
         public long getRoundedInt64() {
+            checkInitialized();
             return value;
         }
 
@@ -429,21 +476,25 @@ public class STObjects {
 
         @Override
         public void setInt32(int value) {
+            this.isSet = true;
             this.value = value;
         }
 
         @Override
         public void setInt64(long value) {
+            this.isSet = true;
             this.value = value;
         }
 
         @Override
         public void setFloat32(float value) {
+            this.isSet = true;
             this.value = (long) value;
         }
 
         @Override
         public void setFloat64(double value) {
+            this.isSet = true;
             this.value = (long) value;
         }
 
@@ -455,7 +506,13 @@ public class STObjects {
 
     private static final class STFloat32ScalarValue implements STValue {
 
+        private boolean isSet;
         private float value;
+
+        @Override
+        public boolean isInitialized() {
+            return isSet;
+        }
 
         @Override
         public PuffinBasicDataType getDataType() {
@@ -464,46 +521,55 @@ public class STObjects {
 
         @Override
         public String printFormat() {
+            checkInitialized();
             return Formatter.printFormatFloat32(value);
         }
 
         @Override
         public String writeFormat() {
+            checkInitialized();
             return Formatter.writeFormatFloat32(value);
         }
 
         @Override
         public void assign(STValue entry) {
+            this.isSet = true;
             this.value = entry.getFloat32();
         }
 
         @Override
         public int getInt32() {
+            checkInitialized();
             return (int) value;
         }
 
         @Override
         public long getInt64() {
+            checkInitialized();
             return (long) value;
         }
 
         @Override
         public float getFloat32() {
+            checkInitialized();
             return value;
         }
 
         @Override
         public double getFloat64() {
+            checkInitialized();
             return value;
         }
 
         @Override
         public int getRoundedInt32() {
+            checkInitialized();
             return Math.round(value);
         }
 
         @Override
         public long getRoundedInt64() {
+            checkInitialized();
             return Math.round(value);
         }
 
@@ -514,21 +580,25 @@ public class STObjects {
 
         @Override
         public void setInt32(int value) {
+            this.isSet = true;
             this.value = value;
         }
 
         @Override
         public void setInt64(long value) {
+            this.isSet = true;
             this.value = value;
         }
 
         @Override
         public void setFloat32(float value) {
+            this.isSet = true;
             this.value = value;
         }
 
         @Override
         public void setFloat64(double value) {
+            this.isSet = true;
             this.value = (float) value;
         }
 
@@ -540,7 +610,13 @@ public class STObjects {
 
     private static final class STFloat64ScalarValue implements STValue {
 
+        private boolean isSet;
         private double value;
+
+        @Override
+        public boolean isInitialized() {
+            return isSet;
+        }
 
         @Override
         public PuffinBasicDataType getDataType() {
@@ -549,46 +625,55 @@ public class STObjects {
 
         @Override
         public String printFormat() {
+            checkInitialized();
             return Formatter.printFormatFloat64(value);
         }
 
         @Override
         public String writeFormat() {
+            checkInitialized();
             return Formatter.writeFormatFloat64(value);
         }
 
         @Override
         public void assign(STValue entry) {
+            this.isSet = true;
             this.value = entry.getFloat64();
         }
 
         @Override
         public int getInt32() {
+            checkInitialized();
             return (int) value;
         }
 
         @Override
         public long getInt64() {
+            checkInitialized();
             return (long) value;
         }
 
         @Override
         public float getFloat32() {
+            checkInitialized();
             return (float) value;
         }
 
         @Override
         public double getFloat64() {
+            checkInitialized();
             return value;
         }
 
         @Override
         public int getRoundedInt32() {
+            checkInitialized();
             return (int) Math.round(value);
         }
 
         @Override
         public long getRoundedInt64() {
+            checkInitialized();
             return Math.round(value);
         }
 
@@ -599,21 +684,25 @@ public class STObjects {
 
         @Override
         public void setInt32(int value) {
+            this.isSet = true;
             this.value = value;
         }
 
         @Override
         public void setInt64(long value) {
+            this.isSet = true;
             this.value = value;
         }
 
         @Override
         public void setFloat32(float value) {
+            this.isSet = true;
             this.value = value;
         }
 
         @Override
         public void setFloat64(double value) {
+            this.isSet = true;
             this.value = value;
         }
 
@@ -625,8 +714,14 @@ public class STObjects {
 
     private static final class STStringScalarValue implements STValue {
 
+        private boolean isSet;
         private int fieldLength;
         private String value = "";
+
+        @Override
+        public boolean isInitialized() {
+            return isSet;
+        }
 
         @Override
         public PuffinBasicDataType getDataType() {
@@ -635,16 +730,19 @@ public class STObjects {
 
         @Override
         public String printFormat() {
+            checkInitialized();
             return Formatter.printFormatString(value);
         }
 
         @Override
         public String writeFormat() {
+            checkInitialized();
             return Formatter.writeFormatString(value);
         }
 
         @Override
         public void assign(STValue entry) {
+            this.isSet = true;
             this.value = entry.getString();
         }
 
@@ -680,6 +778,7 @@ public class STObjects {
 
         @Override
         public String getString() {
+            checkInitialized();
             return value;
         }
 
@@ -705,6 +804,7 @@ public class STObjects {
 
         @Override
         public void setString(String value) {
+            this.isSet = true;
             this.value = value;
         }
 

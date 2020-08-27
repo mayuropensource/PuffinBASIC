@@ -1764,7 +1764,8 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         Types.assertNumeric(ir.getSymbolTable().get(end.result).getValue().getDataType(), () -> getCtxString(ctx));
 
         var forLoopState = new ForLoopState();
-        forLoopState.variable = ((STVariable) ir.getSymbolTable().get(var.result)).getVariable();
+        var stVariable = (STVariable) ir.getSymbolTable().get(var.result);
+        forLoopState.variable = stVariable.getVariable();
 
         // stepCopy = step or 1 (default)
         Instruction stepCopy;
@@ -1824,7 +1825,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
                 OpCode.LABEL, ir.getSymbolTable().addLabel(), NULL_ID, NULL_ID
         );
-        var zero = ir.getSymbolTable().addTmp(INT32, e -> {});
+        var zero = ir.getSymbolTable().addTmp(INT32, e -> e.getValue().setInt32(0));
         var t1 = ir.getSymbolTable().addTmp(INT32, e -> {});
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),

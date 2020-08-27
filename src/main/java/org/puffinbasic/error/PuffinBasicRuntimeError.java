@@ -16,6 +16,7 @@ public class PuffinBasicRuntimeError extends RuntimeException {
         OUT_OF_DATA,
         GRAPHICS_ERROR,
         INTERRUPTED_ERROR,
+        NOT_INITIALIZED,
     }
 
     private final ErrorCode errorCode;
