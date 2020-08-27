@@ -8,8 +8,9 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.DataLine;
-import javax.sound.sampled.LineUnavailableException;
 import java.io.File;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.ILLEGAL_FUNCTION_PARAM;
@@ -33,40 +34,52 @@ public class SoundState implements AutoCloseable {
         }
     }
 
+    private final ExecutorService executor;
     private final AtomicInteger counter;
     private final Int2ObjectMap<ClipState> state;
 
     SoundState() {
+        this.executor = Executors.newSingleThreadExecutor();
         this.counter = new AtomicInteger();
         this.state = new Int2ObjectOpenHashMap<>();
     }
 
     public int load(String file) {
-        var audioFile = new File(file);
-        final AudioInputStream audioStream;
+        var future = executor.submit(() -> {
+            var audioFile = new File(file);
+            final AudioInputStream audioStream;
+            try {
+                audioStream = AudioSystem.getAudioInputStream(audioFile);
+            } catch (Exception e) {
+                throw new PuffinBasicRuntimeError(
+                        IO_ERROR,
+                        "Failed to load audio file: " + file + ", error: " + e.getMessage()
+                );
+            }
+            var format = audioStream.getFormat();
+            var info = new DataLine.Info(Clip.class, format);
+            final Clip clip;
+            try {
+                clip = (Clip) AudioSystem.getLine(info);
+                clip.open(audioStream);
+            } catch (Exception e) {
+                throw new PuffinBasicRuntimeError(
+                        IO_ERROR,
+                        "Failed to get/open line from audio: " + file + ", error: " + e.getMessage()
+                );
+            }
+            var id = counter.incrementAndGet();
+            state.put(id, new ClipState(audioStream, clip));
+            return id;
+        });
         try {
-            audioStream = AudioSystem.getAudioInputStream(audioFile);
-        } catch (Exception e) {
-           throw new PuffinBasicRuntimeError(
-                   IO_ERROR,
-                   "Failed to load audio file: " + file + ", error: " + e.getMessage()
-           );
-        }
-        var format = audioStream.getFormat();
-        var info = new DataLine.Info(Clip.class, format);
-        final Clip clip;
-        try {
-            clip = (Clip) AudioSystem.getLine(info);
-            clip.open(audioStream);
+            return future.get();
         } catch (Exception e) {
             throw new PuffinBasicRuntimeError(
                     IO_ERROR,
-                    "Failed to get/open line from audio: " + file + ", error: " + e.getMessage()
+                    "Failed to get id from loaded audio: " + file + ", error: " + e.getMessage()
             );
         }
-        var id = counter.incrementAndGet();
-        state.put(id, new ClipState(audioStream, clip));
-        return id;
     }
 
     private ClipState get(int id) {
@@ -81,28 +94,34 @@ public class SoundState implements AutoCloseable {
     }
 
     public void play(int id) {
-        var clip = get(id).clip;
-        if (clip.isRunning()) {
-            clip.stop();
-        }
-        clip.setFramePosition(0);
-        clip.start();
+        executor.submit(() -> {
+            var clip = get(id).clip;
+            if (clip.isRunning()) {
+                clip.stop();
+            }
+            clip.setFramePosition(0);
+            clip.start();
+        });
     }
 
     public void stop(int id) {
-        var clip = get(id).clip;
-        if (clip.isRunning()) {
-            clip.stop();
-        }
+        executor.submit(() -> {
+            var clip = get(id).clip;
+            if (clip.isRunning()) {
+                clip.stop();
+            }
+        });
     }
 
     public void loop(int id) {
-        var clip = get(id).clip;
-        if (clip.isRunning()) {
-            clip.stop();
-        }
-        clip.setFramePosition(0);
-        clip.loop(Clip.LOOP_CONTINUOUSLY);
+        executor.submit(() -> {
+            var clip = get(id).clip;
+            if (clip.isRunning()) {
+                clip.stop();
+            }
+            clip.setFramePosition(0);
+            clip.loop(Clip.LOOP_CONTINUOUSLY);
+        });
     }
 
     @Override

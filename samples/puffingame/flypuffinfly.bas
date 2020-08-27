@@ -49,6 +49,8 @@
 470     IF ptsstep% = 5 THEN maxenemy% = 6 : maxreward% = 6
 480     IF ptsstep% = 6 THEN maxenemy% = 7 : maxreward% = 7
 490     IF ptsstep% = 7 THEN maxenemy% = 8 : maxreward% = 8
+491     IF ptsstep% = 8 THEN maxenemy% = 9 : maxreward% = 9
+492     IF ptsstep% = 9 THEN maxenemy% = 10 : maxreward% = 10
 500   WEND
 510   SLEEP 5000 : CLS
 520 WEND
@@ -166,13 +168,13 @@
 5550 RETURN
 6000 ' Show Points
 6010 pointsstr$ = SPACE$(64)
-6020 LSET pointsstr$ = STR$(points%) + " pts  " + STR$(MAX(hi%, points%)) + " hi"
+6020 LSET pointsstr$ = STR$(points%) + "  " + STR$(MAX(hi%, points%))
 6030 FONT "Courier", "B", 16
 6040 COLOR 255, 255, 255
-6050 DRAWSTR pointsstr$, W% - 200, 20
+6050 DRAWSTR pointsstr$, W% - 150, 20
 6090 RETURN
 10000 ' GAME OVER
-10010 gover$ = "Oops! GAME OVER! Your Score=" + str$(points%) + ", try again" : PRINT gover$
+10010 gover$ = "Oops! GAME OVER! Your Score=" + str$(points%) + " hi=" + STR$(hi%) + ", try again" : PRINT gover$
 10020 FONT "Courier", "B", 24
 10030 COLOR 255, 0, 0
 10040 DRAWSTR gover$, 10, H% / 2
