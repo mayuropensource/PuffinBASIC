@@ -163,7 +163,6 @@ $ mvn generate-sources
 
 ## Planned Improvements
 
-1. Improve the IR especially w.r.t. multiple argument handling.
 1. Add decimal data type.
 1. Add mouse and joystick support.
 1. Add variable reference data type.

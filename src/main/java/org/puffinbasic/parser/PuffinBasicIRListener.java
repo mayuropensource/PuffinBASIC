@@ -1096,7 +1096,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                 () -> getCtxString(ctx));
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.INSTR0, xdlr, ydlr, NULL_ID);
+                OpCode.PARAM2, xdlr, ydlr, NULL_ID);
         nodeToInstruction.put(ctx, ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
                 OpCode.INSTR, n, NULL_ID,
@@ -1125,7 +1125,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                 () -> getCtxString(ctx));
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.MIDDLR0, xdlr, n, NULL_ID);
+                OpCode.PARAM2, xdlr, n, NULL_ID);
         nodeToInstruction.put(ctx, ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
                 OpCode.MIDDLR, m, NULL_ID,
@@ -1404,7 +1404,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         Types.assertNumeric(ir.getSymbolTable().get(b.result).getValue().getDataType(), () -> getCtxString(ctx));
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.HSB2RGB0, h.result, s.result, NULL_ID);
+                OpCode.PARAM2, h.result, s.result, NULL_ID);
         nodeToInstruction.put(ctx, ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
                 OpCode.HSB2RGB, b.result, NULL_ID,
@@ -2121,7 +2121,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         // fileName, fileNumber
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.OPEN_FN_FN_0,
+                OpCode.PARAM2,
                 filenameInstr.result,
                 ir.getSymbolTable().addTmp(INT32, e -> e.getValue().setInt32(fileNumber)),
                 NULL_ID
@@ -2129,7 +2129,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         // openMode, accessMode
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.OPEN_OM_AM_1,
+                OpCode.PARAM2,
                 ir.getSymbolTable().addTmp(STRING, e -> e.getValue().setString(fileOpenMode.name())),
                 ir.getSymbolTable().addTmp(STRING, e -> e.getValue().setString(accessMode.name())),
                 NULL_ID
@@ -2137,7 +2137,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         // lockMode, recordLen
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.OPEN_LM_RL_2,
+                OpCode.OPEN,
                 ir.getSymbolTable().addTmp(STRING, e -> e.getValue().setString(lockMode.name())),
                 recordLenInstrId,
                 NULL_ID
@@ -2163,7 +2163,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         // fileName, fileNumber
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.OPEN_FN_FN_0,
+                OpCode.PARAM2,
                 filenameInstr.result,
                 ir.getSymbolTable().addTmp(INT32, e -> e.getValue().setInt32(fileNumber)),
                 NULL_ID
@@ -2171,7 +2171,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         // openMode, accessMode
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.OPEN_OM_AM_1,
+                OpCode.PARAM2,
                 ir.getSymbolTable().addTmp(STRING, e -> e.getValue().setString(fileOpenMode.name())),
                 ir.getSymbolTable().addTmp(STRING, e -> e.getValue().setString(accessMode.name())),
                 NULL_ID
@@ -2179,7 +2179,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         // lockMode, recordLen
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.OPEN_LM_RL_2,
+                OpCode.OPEN,
                 ir.getSymbolTable().addTmp(STRING, e -> e.getValue().setString(lockMode.name())),
                 recordLenInstrId,
                 NULL_ID
@@ -2225,7 +2225,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
             assertVariable(kind, () -> getCtxString(ctx));
             ir.addInstruction(
                     currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                    OpCode.FIELD_I,
+                    OpCode.PARAM2,
                     varInstr.result,
                     ir.getSymbolTable().addTmp(INT32, e -> e.getValue().setInt32(recordPartLen)),
                     NULL_ID
@@ -2340,7 +2340,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
 
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.MIDDLR0, varInstr.result, nInstr.result, NULL_ID);
+                OpCode.PARAM2, varInstr.result, nInstr.result, NULL_ID);
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
                 OpCode.MIDDLR_STMT, mInstrId, replacement.result, NULL_ID);
@@ -2456,7 +2456,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                     () -> getCtxString(ctx));
             ir.addInstruction(
                     currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                    OpCode.INPUT_VAR, varInstr.result, NULL_ID, NULL_ID
+                    OpCode.PARAM1, varInstr.result, NULL_ID, NULL_ID
             );
         }
 
@@ -2482,7 +2482,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                     () -> getCtxString(ctx));
             ir.addInstruction(
                     currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                    OpCode.INPUT_VAR, varInstr.result, NULL_ID, NULL_ID
+                    OpCode.PARAM1, varInstr.result, NULL_ID, NULL_ID
             );
         }
 
@@ -2502,7 +2502,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                 () -> getCtxString(ctx));
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.INPUT_VAR, varInstr.result, NULL_ID, NULL_ID
+                OpCode.PARAM1, varInstr.result, NULL_ID, NULL_ID
         );
 
         int promptId;
@@ -2527,7 +2527,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                 () -> getCtxString(ctx));
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.INPUT_VAR, varInstr.result, NULL_ID, NULL_ID
+                OpCode.PARAM1, varInstr.result, NULL_ID, NULL_ID
         );
 
         var fileNumInstr = lookupInstruction(ctx.filenum);
@@ -2655,7 +2655,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
 
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.SCREEN0, w.result, h.result, NULL_ID
+                OpCode.PARAM2, w.result, h.result, NULL_ID
         );
         var repaint = ir.getSymbolTable().addTmp(INT32, e -> e.getValue().setInt32(
                 manualRepaint ? 0 : -1));
@@ -2707,18 +2707,18 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         }
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.CIRCLE_XY, x.result, y.result, NULL_ID
+                OpCode.PARAM2, x.result, y.result, NULL_ID
         );
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.CIRCLE_SE,
+                OpCode.PARAM2,
                 s != null ? s.result : NULL_ID,
                 e != null ? e.result : NULL_ID,
                 NULL_ID
         );
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.CIRCLE_FILL,
+                OpCode.PARAM1,
                 fill != null ? fill.result : NULL_ID,
                 NULL_ID,
                 NULL_ID
@@ -2755,11 +2755,11 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         }
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.LINE_x1y1, x1.result, y1.result, NULL_ID
+                OpCode.PARAM2, x1.result, y1.result, NULL_ID
         );
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.LINE_x2y2, x2.result, y2.result, NULL_ID
+                OpCode.PARAM2, x2.result, y2.result, NULL_ID
         );
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
@@ -2780,7 +2780,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                 () -> getCtxString(ctx));
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.COLOR_RG, r.result, g.result, NULL_ID
+                OpCode.PARAM2, r.result, g.result, NULL_ID
         );
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
@@ -2811,11 +2811,11 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
 
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.PAINT_RG, r.result, g.result, NULL_ID
+                OpCode.PARAM2, r.result, g.result, NULL_ID
         );
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.PAINT_B, b.result, NULL_ID, NULL_ID
+                OpCode.PARAM1, b.result, NULL_ID, NULL_ID
         );
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
@@ -2854,11 +2854,11 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
 
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.PSET_RG, rId, gId, NULL_ID
+                OpCode.PARAM2, rId, gId, NULL_ID
         );
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.PSET_B, bId, NULL_ID, NULL_ID
+                OpCode.PARAM1, bId, NULL_ID, NULL_ID
         );
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
@@ -2891,11 +2891,11 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
 
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.GGET_X1Y1, x1.result, y1.result, NULL_ID
+                OpCode.PARAM2, x1.result, y1.result, NULL_ID
         );
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.GGET_X2Y2, x2.result, y2.result, NULL_ID
+                OpCode.PARAM2, x2.result, y2.result, NULL_ID
         );
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
@@ -2927,7 +2927,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
 
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.GPUT_XY, x.result, y.result, NULL_ID
+                OpCode.PARAM2, x.result, y.result, NULL_ID
         );
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
@@ -2968,7 +2968,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
 
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.FONT_SS, style.result, size.result, NULL_ID
+                OpCode.PARAM2, style.result, size.result, NULL_ID
         );
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
@@ -2991,7 +2991,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
 
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.DRAWSTR_XY, x.result, y.result, NULL_ID
+                OpCode.PARAM2, x.result, y.result, NULL_ID
         );
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
@@ -3162,10 +3162,10 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
 
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.ARRAY1DCOPYSRC, var1Instr.result, src0.result, NULL_ID);
+                OpCode.PARAM2, var1Instr.result, src0.result, NULL_ID);
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.ARRAY1DCOPYDST, var2Instr.result, dst0.result, NULL_ID);
+                OpCode.PARAM2, var2Instr.result, dst0.result, NULL_ID);
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
                 OpCode.ARRAY1DCOPY, len.result, NULL_ID, NULL_ID);

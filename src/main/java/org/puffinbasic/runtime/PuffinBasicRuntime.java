@@ -22,18 +22,8 @@ import java.util.Random;
 import java.util.stream.Collectors;
 
 import static org.puffinbasic.domain.PuffinBasicSymbolTable.NULL_ID;
-import static org.puffinbasic.parser.PuffinBasicIR.OpCode.ARRAY1DCOPYDST;
-import static org.puffinbasic.parser.PuffinBasicIR.OpCode.ARRAY1DCOPYSRC;
 import static org.puffinbasic.parser.PuffinBasicIR.OpCode.DATA;
-import static org.puffinbasic.parser.PuffinBasicIR.OpCode.FIELD_I;
-import static org.puffinbasic.parser.PuffinBasicIR.OpCode.HSB2RGB0;
-import static org.puffinbasic.parser.PuffinBasicIR.OpCode.INPUT_VAR;
-import static org.puffinbasic.parser.PuffinBasicIR.OpCode.INSTR0;
 import static org.puffinbasic.parser.PuffinBasicIR.OpCode.LABEL;
-import static org.puffinbasic.parser.PuffinBasicIR.OpCode.MIDDLR0;
-import static org.puffinbasic.parser.PuffinBasicIR.OpCode.OPEN_FN_FN_0;
-import static org.puffinbasic.parser.PuffinBasicIR.OpCode.OPEN_OM_AM_1;
-import static org.puffinbasic.parser.PuffinBasicIR.OpCode.SCREEN0;
 
 public class PuffinBasicRuntime {
 
@@ -45,7 +35,7 @@ public class PuffinBasicRuntime {
     private Random random;
     private Int2IntMap labelToInstrNum;
     private Int2IntMap lineNumToInstrNum;
-    private List<Instruction> instr0;
+    private List<Instruction> params;
     private FormatterCache formatterCache;
     private PuffinBasicFiles files;
     private ReadData readData;
@@ -109,7 +99,7 @@ public class PuffinBasicRuntime {
         this.gosubReturnLabelStack = new IntArrayList();
         this.random = new Random();
         this.formatterCache = new FormatterCache();
-        this.instr0 = new ArrayList<>(4);
+        this.params = new ArrayList<>(4);
         this.files = new PuffinBasicFiles(new SystemInputOutputFile(System.in, out));
         this.readData = processDataInstructions(instructions);
         this.graphicsState = new GraphicsState();
@@ -356,15 +346,11 @@ public class PuffinBasicRuntime {
                 ArraysUtil.array2dShiftHorizontal(ir.getSymbolTable(), instruction);
                 break;
             case ARRAY1DCOPY: {
-                if (instr0.size() != 2
-                        || (instr0.get(0).opCode != ARRAY1DCOPYSRC
-                        && instr0.get(1).opCode != ARRAY1DCOPYDST)) {
-                    throw new PuffinBasicInternalError(
-                            "Bad/null instr0: " + instr0.get(0) + ", " + instr0.get(1)
-                                    + ", expected: " + ARRAY1DCOPYSRC + " and " + ARRAY1DCOPYDST);
+                if (params.size() != 2) {
+                    throw new PuffinBasicInternalError("Expected 2 params, but found: " + params);
                 }
-                ArraysUtil.array1DCopy(ir.getSymbolTable(), instr0.get(0), instr0.get(1), instruction);
-                instr0.clear();
+                ArraysUtil.array1DCopy(ir.getSymbolTable(), params.get(0), params.get(1), instruction);
+                params.clear();
             }
             break;
             case CINT:
@@ -436,68 +422,40 @@ public class PuffinBasicRuntime {
             case RIGHTDLR:
                 Functions.rightdlr(ir.getSymbolTable(), instruction);
                 break;
-            // TODO use a stack instead of creating multiple instructions.
-            case MIDDLR0:
-            case INSTR0:
-            case OPEN_FN_FN_0:
-            case OPEN_OM_AM_1:
-            case FIELD_I:
-            case INPUT_VAR:
-            case SCREEN0:
-            case CIRCLE_XY:
-            case CIRCLE_SE:
-            case CIRCLE_FILL:
-            case LINE_x1y1:
-            case LINE_x2y2:
-            case COLOR_RG:
-            case PAINT_RG:
-            case PAINT_B:
-            case PSET_RG:
-            case PSET_B:
-            case GPUT_XY:
-            case GGET_X1Y1:
-            case GGET_X2Y2:
-            case FONT_SS:
-            case DRAWSTR_XY:
-            case ARRAY1DCOPYSRC:
-            case ARRAY1DCOPYDST:
-            case HSB2RGB0:
-                instr0.add(instruction);
+            case PARAM1:
+            case PARAM2:
+                params.add(instruction);
                 break;
             case INSTR: {
-                if (instr0.size() != 1 || instr0.get(0).opCode != INSTR0) {
-                    throw new PuffinBasicInternalError("Bad/null instr0: " + instr0.get(0) + ", expected: " + INSTR0);
+                if (params.size() != 1) {
+                    throw new PuffinBasicInternalError("Expected 1 param, but found: " + params);
                 }
-                Functions.instr(ir.getSymbolTable(), instr0.get(0), instruction);
-                instr0.clear();
+                Functions.instr(ir.getSymbolTable(), params.get(0), instruction);
+                params.clear();
             }
                 break;
             case MIDDLR: {
-                if (instr0.size() != 1 || instr0.get(0).opCode != MIDDLR0) {
-                    throw new PuffinBasicInternalError("Bad/null instr0: " + instr0.get(0) + ", expected: " + MIDDLR0);
+                if (params.size() != 1) {
+                    throw new PuffinBasicInternalError("Expected 1 param, but found: " + params);
                 }
-                Functions.middlr(ir.getSymbolTable(), instr0.get(0), instruction);
-                instr0.clear();
+                Functions.middlr(ir.getSymbolTable(), params.get(0), instruction);
+                params.clear();
             }
                 break;
             case MIDDLR_STMT: {
-                if (instr0.size() != 1 || instr0.get(0).opCode != MIDDLR0) {
-                    throw new PuffinBasicInternalError("Bad/null instr0: " + instr0.get(0) + ", expected: " + MIDDLR0);
+                if (params.size() != 1) {
+                    throw new PuffinBasicInternalError("Expected 1 param, but found: " + params);
                 }
-                Statements.middlr(ir.getSymbolTable(), instr0.get(0), instruction);
-                instr0.clear();
+                Statements.middlr(ir.getSymbolTable(), params.get(0), instruction);
+                params.clear();
             }
             break;
-            case OPEN_LM_RL_2: {
-                if (instr0.size() != 2
-                        || (instr0.get(0).opCode != OPEN_FN_FN_0
-                        && instr0.get(1).opCode != OPEN_OM_AM_1)) {
-                    throw new PuffinBasicInternalError(
-                            "Bad/null instr0: " + instr0.get(0) + ", " + instr0.get(1)
-                                    + ", expected: " + OPEN_FN_FN_0 + " and " + OPEN_OM_AM_1);
+            case OPEN: {
+                if (params.size() != 2) {
+                    throw new PuffinBasicInternalError("Expected 2 params, but found: " + params);
                 }
-                Statements.open(files, ir.getSymbolTable(), instr0.get(0), instr0.get(1), instruction);
-                instr0.clear();
+                Statements.open(files, ir.getSymbolTable(), params.get(0), params.get(1), instruction);
+                params.clear();
             }
                 break;
             case CLOSE_ALL:
@@ -507,21 +465,16 @@ public class PuffinBasicRuntime {
                 Statements.close(files, ir.getSymbolTable(), instruction);
                 break;
             case FIELD: {
-                for (var instrI : instr0) {
-                    if (instrI.opCode != FIELD_I)
-                    throw new PuffinBasicInternalError(
-                            "Bad/null instr0: " + instrI + ", expected: " + FIELD_I);
-                }
-                Statements.field(files, ir.getSymbolTable(), instr0, instruction);
-                instr0.clear();
+                Statements.field(files, ir.getSymbolTable(), params, instruction);
+                params.clear();
             }
                 break;
             case HSB2RGB: {
-                if (instr0.size() != 1 || instr0.get(0).opCode != HSB2RGB0) {
-                    throw new PuffinBasicInternalError("Bad/null instr0: " + instr0.get(0) + ", expected: " + HSB2RGB0);
+                if (params.size() != 1) {
+                    throw new PuffinBasicInternalError("Expected 1 param, but found: " + params);
                 }
-                GraphicsRuntime.hsb2rgb(ir.getSymbolTable(), instr0.get(0), instruction);
-                instr0.clear();
+                GraphicsRuntime.hsb2rgb(ir.getSymbolTable(), params.get(0), instruction);
+                params.clear();
             }
             break;
             case PUTF:
@@ -573,22 +526,16 @@ public class PuffinBasicRuntime {
                 Functions.inputdlr(files, ir.getSymbolTable(), instruction);
                 break;
             case INPUT: {
-                for (var instrI : instr0) {
-                    if (instrI.opCode != INPUT_VAR)
-                        throw new PuffinBasicInternalError(
-                                "Bad/null instr0: " + instrI + ", expected: " + INPUT_VAR);
-                }
-                Statements.input(files, ir.getSymbolTable(), instr0, instruction);
-                instr0.clear();
+                Statements.input(files, ir.getSymbolTable(), params, instruction);
+                params.clear();
             }
                 break;
             case LINE_INPUT: {
-                if (instr0.size() != 1 || instr0.get(0).opCode != INPUT_VAR) {
-                    throw new PuffinBasicInternalError(
-                            "Bad/null instr0: " + instr0.get(0) + ", expected: " + INPUT_VAR);
+                if (params.size() != 1) {
+                    throw new PuffinBasicInternalError("Expected 1 param, but found: " + params);
                 }
-                Statements.lineinput(files, ir.getSymbolTable(), instr0.get(0), instruction);
-                instr0.clear();
+                Statements.lineinput(files, ir.getSymbolTable(), params.get(0), instruction);
+                params.clear();
             }
             break;
             case WRITE:
@@ -609,96 +556,86 @@ public class PuffinBasicRuntime {
                 Statements.sleep(ir.getSymbolTable(), instruction);
                 break;
             case SCREEN: {
-                if (instr0.size() != 1 || instr0.get(0).opCode != SCREEN0) {
-                    throw new PuffinBasicInternalError("Bad/null instr0: "
-                            + instr0.get(0) + ", expected: " + SCREEN0);
+                if (params.size() != 1) {
+                    throw new PuffinBasicInternalError("Expected 1 param, but found: " + params);
                 }
-                GraphicsRuntime.screen(graphicsState, ir.getSymbolTable(), instr0.get(0), instruction);
-                instr0.clear();
+                GraphicsRuntime.screen(graphicsState, ir.getSymbolTable(), params.get(0), instruction);
+                params.clear();
             }
             break;
             case REPAINT:
                 GraphicsRuntime.repaint(graphicsState);
                 break;
             case CIRCLE: {
-                if (instr0.size() != 3) {
-                        throw new PuffinBasicInternalError(
-                                "Expected 3 instr0 for CIRCLE, but found: " + instr0.size());
+                if (params.size() != 3) {
+                        throw new PuffinBasicInternalError("Expected 3 params, but found: " + params);
                 }
-                GraphicsRuntime.circle(graphicsState, ir.getSymbolTable(), instr0, instruction);
-                instr0.clear();
+                GraphicsRuntime.circle(graphicsState, ir.getSymbolTable(), params, instruction);
+                params.clear();
             }
             break;
             case LINE: {
-                if (instr0.size() != 2) {
-                    throw new PuffinBasicInternalError(
-                            "Expected 2 instr0 for LINE, but found: " + instr0.size());
+                if (params.size() != 2) {
+                    throw new PuffinBasicInternalError("Expected 2 params, but found: " + params);
                 }
-                GraphicsRuntime.line(graphicsState, ir.getSymbolTable(), instr0, instruction);
-                instr0.clear();
+                GraphicsRuntime.line(graphicsState, ir.getSymbolTable(), params, instruction);
+                params.clear();
             }
             break;
             case COLOR: {
-                if (instr0.size() != 1) {
-                    throw new PuffinBasicInternalError(
-                            "Expected 1 instr0 for COLOR, but found: " + instr0.size());
+                if (params.size() != 1) {
+                    throw new PuffinBasicInternalError("Expected 1 params, but found: " + params);
                 }
-                GraphicsRuntime.color(graphicsState, ir.getSymbolTable(), instr0.get(0), instruction);
-                instr0.clear();
+                GraphicsRuntime.color(graphicsState, ir.getSymbolTable(), params.get(0), instruction);
+                params.clear();
             }
             break;
             case PAINT: {
-                if (instr0.size() != 2) {
-                    throw new PuffinBasicInternalError(
-                            "Expected 2 instr0 for PAINT, but found: " + instr0.size());
+                if (params.size() != 2) {
+                    throw new PuffinBasicInternalError("Expected 2 params, but found: " + params);
                 }
-                GraphicsRuntime.paint(graphicsState, ir.getSymbolTable(), instr0, instruction);
-                instr0.clear();
+                GraphicsRuntime.paint(graphicsState, ir.getSymbolTable(), params, instruction);
+                params.clear();
             }
             break;
             case PSET: {
-                if (instr0.size() != 2) {
-                    throw new PuffinBasicInternalError(
-                            "Expected 2 instr0 for PSET, but found: " + instr0.size());
+                if (params.size() != 2) {
+                    throw new PuffinBasicInternalError("Expected 2 params, but found: " + params);
                 }
-                GraphicsRuntime.pset(graphicsState, ir.getSymbolTable(), instr0, instruction);
-                instr0.clear();
+                GraphicsRuntime.pset(graphicsState, ir.getSymbolTable(), params, instruction);
+                params.clear();
             }
             break;
             case GGET: {
-                if (instr0.size() != 2) {
-                    throw new PuffinBasicInternalError(
-                            "Expected 2 instr0 for GET, but found: " + instr0.size());
+                if (params.size() != 2) {
+                    throw new PuffinBasicInternalError("Expected 2 params, but found: " + params);
                 }
-                GraphicsRuntime.get(graphicsState, ir.getSymbolTable(), instr0, instruction);
-                instr0.clear();
+                GraphicsRuntime.get(graphicsState, ir.getSymbolTable(), params, instruction);
+                params.clear();
             }
             break;
             case GPUT: {
-                if (instr0.size() != 1) {
-                    throw new PuffinBasicInternalError(
-                            "Expected 1 instr0 for PUT, but found: " + instr0.size());
+                if (params.size() != 1) {
+                    throw new PuffinBasicInternalError("Expected 1 param, but found: " + params);
                 }
-                GraphicsRuntime.put(graphicsState, ir.getSymbolTable(), instr0.get(0), instruction);
-                instr0.clear();
+                GraphicsRuntime.put(graphicsState, ir.getSymbolTable(), params.get(0), instruction);
+                params.clear();
             }
             break;
             case FONT: {
-                if (instr0.size() != 1) {
-                    throw new PuffinBasicInternalError(
-                            "Expected 1 instr0 for FONT, but found: " + instr0.size());
+                if (params.size() != 1) {
+                    throw new PuffinBasicInternalError("Expected 1 param, but found: " + params);
                 }
-                GraphicsRuntime.font(graphicsState, ir.getSymbolTable(), instr0.get(0), instruction);
-                instr0.clear();
+                GraphicsRuntime.font(graphicsState, ir.getSymbolTable(), params.get(0), instruction);
+                params.clear();
             }
             break;
             case DRAWSTR: {
-                if (instr0.size() != 1) {
-                    throw new PuffinBasicInternalError(
-                            "Expected 1 instr0 for DRAWSTR, but found: " + instr0.size());
+                if (params.size() != 1) {
+                    throw new PuffinBasicInternalError("Expected 1 param, but found: " + params);
                 }
-                GraphicsRuntime.drawstr(graphicsState, ir.getSymbolTable(), instr0.get(0), instruction);
-                instr0.clear();
+                GraphicsRuntime.drawstr(graphicsState, ir.getSymbolTable(), params.get(0), instruction);
+                params.clear();
             }
             break;
             case LOADIMG:
