@@ -465,16 +465,16 @@ final class Operators {
         var result = symbolTable.get(instruction.result).getValue();
         final long longResult;
         if (dt1 == STRING && dt2 == STRING) {
-            longResult = e1.getString().compareTo(e2.getString()) > 0 ? -1 : 0;
+            longResult = e1.getString().compareTo(e2.getString()) >= 0 ? -1 : 0;
         } else {
             if (dt1 == DOUBLE || dt2 == DOUBLE) {
-                longResult = Double.compare(e1.getFloat64(), e2.getFloat64()) > 0 ? -1 : 0;
+                longResult = Double.compare(e1.getFloat64(), e2.getFloat64()) >= 0 ? -1 : 0;
             } else if (dt1 == INT64 || dt2 == INT64) {
-                longResult = e1.getInt64() > e2.getInt64() ? -1 : 0;
+                longResult = e1.getInt64() >= e2.getInt64() ? -1 : 0;
             } else if (dt1 == FLOAT || dt2 == FLOAT) {
-                longResult = Float.compare(e1.getFloat32(), e2.getFloat32()) > 0 ? -1 : 0;
+                longResult = Float.compare(e1.getFloat32(), e2.getFloat32()) >= 0 ? -1 : 0;
             } else {
-                longResult = e1.getInt32() > e2.getInt32() ? -1 : 0;
+                longResult = e1.getInt32() >= e2.getInt32() ? -1 : 0;
             }
         }
         result.setInt64(longResult);
