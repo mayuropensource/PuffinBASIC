@@ -203,31 +203,61 @@ public class PuffinBasicRuntime {
             }
                 break;
             case EXP:
+                Operators.exp(ir.getSymbolTable(), instruction);
+                break;
             case MUL:
+                Operators.mul(ir.getSymbolTable(), instruction);
+                break;
             case IDIV:
+                Operators.idiv(ir.getSymbolTable(), instruction);
+                break;
             case FDIV:
+                Operators.fdiv(ir.getSymbolTable(), instruction);
+                break;
             case ADD:
+                Operators.add(ir.getSymbolTable(), instruction);
+                break;
             case SUB:
+                Operators.sub(ir.getSymbolTable(), instruction);
+                break;
             case MOD:
-                Operators.arithmetic(ir.getSymbolTable(), instruction);
+                Operators.mod(ir.getSymbolTable(), instruction);
                 break;
             case EQ:
+                Operators.eq(ir.getSymbolTable(), instruction);
+                break;
             case NE:
+                Operators.ne(ir.getSymbolTable(), instruction);
+                break;
             case LT:
+                Operators.lt(ir.getSymbolTable(), instruction);
+                break;
             case LE:
+                Operators.le(ir.getSymbolTable(), instruction);
+                break;
             case GT:
+                Operators.gt(ir.getSymbolTable(), instruction);
+                break;
             case GE:
-                Operators.relational(ir.getSymbolTable(), instruction);
+                Operators.ge(ir.getSymbolTable(), instruction);
                 break;
             case NOT:
                 Operators.unaryNot(ir.getSymbolTable(), instruction);
                 break;
             case AND:
+                Operators.and(ir.getSymbolTable(), instruction);
+                break;
             case OR:
+                Operators.or(ir.getSymbolTable(), instruction);
+                break;
             case XOR:
+                Operators.xor(ir.getSymbolTable(), instruction);
+                break;
             case EQV:
+                Operators.eqv(ir.getSymbolTable(), instruction);
+                break;
             case IMP:
-                Operators.logical(ir.getSymbolTable(), instruction);
+                Operators.imp(ir.getSymbolTable(), instruction);
                 break;
             case END:
                 return true;
