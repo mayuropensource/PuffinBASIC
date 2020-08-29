@@ -91,6 +91,16 @@ public class IntegrationTest {
     }
 
     @Test
+    public void testGosublabel() {
+        runTest("gosublabel.bas", "gosublabel.bas.output");
+    }
+
+    @Test
+    public void testGotolabel() {
+        runTest("gotolabel.bas", "gotolabel.bas.output");
+    }
+
+    @Test
     public void testDef() {
         runTest("def.bas", "def.bas.output");
     }

@@ -17,6 +17,7 @@ public class PuffinBasicRuntimeError extends RuntimeException {
         GRAPHICS_ERROR,
         INTERRUPTED_ERROR,
         NOT_INITIALIZED,
+        DUPLICATE_LABEL,
     }
 
     private final ErrorCode errorCode;

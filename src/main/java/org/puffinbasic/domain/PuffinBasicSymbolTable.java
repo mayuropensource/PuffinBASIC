@@ -2,6 +2,8 @@ package org.puffinbasic.domain;
 
 import it.unimi.dsi.fastutil.chars.Char2ObjectMap;
 import it.unimi.dsi.fastutil.chars.Char2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.puffinbasic.domain.STObjects.AbstractSTArrayValue;
 import org.puffinbasic.domain.STObjects.ArrayReferenceValue;
 import org.puffinbasic.domain.STObjects.PuffinBasicDataType;
@@ -11,6 +13,7 @@ import org.puffinbasic.domain.STObjects.STVariable;
 import org.puffinbasic.domain.Scope.GlobalScope;
 import org.puffinbasic.domain.Variable.VariableName;
 import org.puffinbasic.error.PuffinBasicInternalError;
+import org.puffinbasic.error.PuffinBasicRuntimeError;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -21,18 +24,21 @@ import java.util.function.Predicate;
 
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.DOUBLE;
 import static org.puffinbasic.domain.STObjects.STKind.TMP;
+import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.DUPLICATE_LABEL;
 
 public class PuffinBasicSymbolTable {
 
     public static final int NULL_ID = -1;
 
     private final Char2ObjectMap<PuffinBasicDataType> defaultDataTypes;
+    private final Object2IntMap<String> labelNameToId;
     private final AtomicInteger idmaker;
     private Scope currentScope;
 
     public PuffinBasicSymbolTable() {
-        this.idmaker = new AtomicInteger();
         this.defaultDataTypes = new Char2ObjectOpenHashMap<>();
+        this.labelNameToId = new Object2IntOpenHashMap<>();
+        this.idmaker = new AtomicInteger();
         this.currentScope = new GlobalScope();
     }
 
@@ -80,6 +86,23 @@ public class PuffinBasicSymbolTable {
             entry = (STVariable) get(id);
         }
         consumer.accept(id, entry);
+        return id;
+    }
+
+    public int addLabel(String label) {
+        var id = labelNameToId.getOrDefault(label, -1);
+        if (id == -1) {
+            id = addLabel();
+            labelNameToId.put(label, id);
+        }
+        return id;
+    }
+
+    public int getLabelForName(String label) {
+        var id = labelNameToId.getOrDefault(label, -1);
+        if (id == -1) {
+            throw new PuffinBasicInternalError("Failed to find labelId for label: " + label);
+        }
         return id;
     }
 

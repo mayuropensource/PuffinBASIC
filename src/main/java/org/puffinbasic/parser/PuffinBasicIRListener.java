@@ -232,6 +232,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         STRING
     }
 
+    private final AtomicInteger linenumGenerator;
     private final CharStream in;
     private final PuffinBasicIR ir;
     private final boolean graphics;
@@ -246,6 +247,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
     public PuffinBasicIRListener(CharStream in, PuffinBasicIR ir, boolean graphics) {
         this.in = in;
         this.ir = ir;
+        this.linenumGenerator = new AtomicInteger();
         this.graphics = graphics;
         this.nodeToInstruction = new ParseTreeProperty<>();
         this.udfStateMap = new Object2ObjectOpenHashMap<>();
@@ -290,7 +292,9 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
 
     @Override
     public void enterLine(PuffinBasicParser.LineContext ctx) {
-        this.currentLineNumber = parseLinenum(ctx.linenum().DECIMAL().getText());
+        this.currentLineNumber = ctx.linenum() != null
+                ? parseLinenum(ctx.linenum().DECIMAL().getText())
+                : linenumGenerator.incrementAndGet();
     }
 
     //
@@ -2059,6 +2063,24 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
     }
 
     @Override
+    public void exitGosublabelstmt(PuffinBasicParser.GosublabelstmtContext ctx) {
+        var gotoLabel = ir.getSymbolTable().addLabel(ctx.string().STRING().getText());
+        var pushReturnLabel = ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.PUSH_RETLABEL, ir.getSymbolTable().addGotoTarget(), NULL_ID, NULL_ID
+        );
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.GOTO_LABEL, gotoLabel, NULL_ID, NULL_ID
+        );
+        var labelReturn = ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.LABEL, ir.getSymbolTable().addLabel(), NULL_ID, NULL_ID
+        );
+        pushReturnLabel.patchOp1(labelReturn.op1);
+    }
+
+    @Override
     public void exitReturnstmt(PuffinBasicParser.ReturnstmtContext ctx) {
         if (ctx.linenum() != null) {
             var gotoLinenum = parseLinenum(ctx.linenum().getText());
@@ -2080,6 +2102,15 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
                 OpCode.GOTO_LINENUM, getGotoLineNumberOp1(gotoLinenum), NULL_ID, NULL_ID
+        );
+    }
+
+    @Override
+    public void exitGotolabelstmt(PuffinBasicParser.GotolabelstmtContext ctx) {
+        var gotoLabel = ir.getSymbolTable().addLabel(ctx.string().STRING().getText());
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.GOTO_LABEL, gotoLabel, NULL_ID, NULL_ID
         );
     }
 
@@ -2634,8 +2665,16 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         }
     }
 
-    // GraphicsRuntime
+    @Override
+    public void exitLabelstmt(PuffinBasicParser.LabelstmtContext ctx) {
+        var label = ctx.string().STRING().getText();
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.LABEL, ir.getSymbolTable().addLabel(label), NULL_ID, NULL_ID
+        );
+    }
 
+    // GraphicsRuntime
 
     @Override
     public void exitScreenstmt(PuffinBasicParser.ScreenstmtContext ctx) {

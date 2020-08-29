@@ -5,7 +5,7 @@ prog
     ;
 
 line
-    : linenum stmtlist? comment? NEWLINE
+    : linenum? stmtlist? comment? NEWLINE
     ;
 
 linenum
@@ -32,10 +32,12 @@ stmt
     | forstmt
     | nextstmt
     | gotostmt
+    | gotolabelstmt
     | endstmt
     | deffnstmt
     | dimstmt
     | gosubstmt
+    | gosublabelstmt
     | returnstmt
     | whilestmt
     | wendstmt
@@ -90,6 +92,7 @@ stmt
     | playwavstmt
     | stopwavstmt
     | loopwavstmt
+    | labelstmt
     ;
 
 variable
@@ -207,6 +210,10 @@ gosubstmt
     : GOSUB linenum
     ;
 
+gosublabelstmt
+    : GOSUB string
+    ;
+
 returnstmt
     : RETURN linenum?
     ;
@@ -269,6 +276,10 @@ nextstmt
 
 gotostmt
     : GOTO linenum
+    ;
+
+gotolabelstmt
+    : GOTO string
     ;
 
 endstmt
@@ -514,6 +525,10 @@ stopwavstmt
 
 loopwavstmt
     : LOOPWAV variable
+    ;
+
+labelstmt:
+    LABEL name=string
     ;
 
 LETTERRANGE
@@ -1099,6 +1114,10 @@ ARRAY2DSHIFTVER
 
 HSB2RGB
     : H S B '2' R G B
+    ;
+
+LABEL
+    : L A B E L
     ;
 
 string

@@ -191,6 +191,12 @@ PuffinBASIC runs within a JVM and can use as much memory as available for the JV
 
 PuffinBASIC supports indirect mode only.
 
+### Line-number and No-line-number modes
+
+PuffinBASIC programs can have one of two modes:
+1. Line-number mode: All lines must start with a line number. GOTO/GOSUB statements can use both line number and label.
+1. No-line-number mode: No line should start with a line number. GOTO/GOSUB statements can use label only.
+
 ## Compatibility
 
 PuffinBASIC is mostly compatible with Microsoft's GWBASIC.
@@ -908,7 +914,7 @@ HSB2RGB(0.5, 1.0, 1.0)
 
 Source code consists of multiple lines.
 
-Each line starts with an integer line number.
+Each line starts with an optional integer line number.
 The line number is followed by one or more statements and ends with an optional comment.
 Multiple statements in a line can be separated by colon (':').
 
@@ -1023,14 +1029,34 @@ Example:
 20 IF A > 1 GOTO 100 ELSE 200
 ```
 
+#### LABEL
+
+Create a label.
+GOSUB/GOTO can be used with the label name.
+
+Syntax:
+
+```
+LABEL "labelname"
+```
+
+Example:
+
+```
+LABEL "DRAW A LINE"
+```
+
 #### GOTO
 
 Jump to the given line number.
+In no-linenumber mode, GOTO can be used with label.
 
 Syntax:
 
 ```
 20 GOTO 100
+
+GOTO "label"
 ```
 
 #### FOR-NEXT-STEP
@@ -1080,14 +1106,21 @@ Marks the end of the program.
 
 #### GOSUB-RETURN
 
+Goto the subroutine. After subroutine finishes (on RETURN statement), 
+the program execution returns to the statement after GOSUB.
 Subroutines should be defined at the end of the program.
 Subroutines share the same scope as the main program.
+
+In no-linenumber mode, GOSUB can be used with label.
 
 Syntax:
 
 ```
 GOSUB linenum
 RETURN [linenum]
+
+GOSUB "label"
+RETURN 
 ```
 
 Example:
@@ -1100,6 +1133,17 @@ Example:
 110 REM subrouting 1
 ...
 200 RETURN
+```
+
+```
+...
+GOSUB "sub1"
+...
+END
+
+LABEL "sub1"
+...
+RETURN
 ```
 
 ### User Defined Functions
