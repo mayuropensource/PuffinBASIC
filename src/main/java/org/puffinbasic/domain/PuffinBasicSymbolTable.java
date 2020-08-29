@@ -34,12 +34,17 @@ public class PuffinBasicSymbolTable {
     private final Object2IntMap<String> labelNameToId;
     private final AtomicInteger idmaker;
     private Scope currentScope;
+    private int lastId;
+    private int lastLastId;
+    private STEntry lastEntry;
+    private STEntry lastLastEntry;
 
     public PuffinBasicSymbolTable() {
         this.defaultDataTypes = new Char2ObjectOpenHashMap<>();
         this.labelNameToId = new Object2IntOpenHashMap<>();
         this.idmaker = new AtomicInteger();
         this.currentScope = new GlobalScope();
+        this.lastId = this.lastLastId = -1;
     }
 
     private int generateNextId() {
@@ -63,9 +68,20 @@ public class PuffinBasicSymbolTable {
     }
 
     public STEntry get(int id) {
-        return findScope(s -> s.containsId(id)).orElseThrow(
+        // Cache for better performance
+        if (id == lastId) {
+            return lastEntry;
+        }
+        if (id == lastLastId) {
+            return lastLastEntry;
+        }
+        lastLastId = lastId;
+        lastLastEntry = lastEntry;
+        lastId = id;
+        lastEntry = findScope(s -> s.containsId(id)).orElseThrow(
                 () -> new PuffinBasicInternalError("Failed to find entry for id: " + id)
         ).getEntry(id);
+        return lastEntry;
     }
 
     public int addVariableOrUDF(
