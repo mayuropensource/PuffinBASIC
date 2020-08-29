@@ -169,7 +169,6 @@ Since PuffinBASIC generates IR from source code and the runtime executes the IR,
 
 1. Add decimal data type.
 1. Add mouse support.
-1. Add variable reference data type.
 1. ...
 
 ## Performance
