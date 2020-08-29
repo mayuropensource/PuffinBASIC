@@ -363,6 +363,63 @@ Logical or bit-wise:
 1. '>>'
 1. '<<'
 
+## Dictionary
+
+PuffinBASIC supports Dictionary (or Map) data structure.
+The data type of key and value can one of the primitive data types
+and must be declared at the creation of the dictionary.
+The data type is checked in every (relevant) Dictionary function call.
+
+Syntax:
+
+```
+variable = DICT keysuffix varsuffix(key1=>value1, key2=>value2, ...)
+DICTGET(variable, key, defaultValue)
+DICTPUT(variable, key, value)
+DICTCONTAINSKEY(variable, key)
+DICTSIZE(variable)
+DICTCLEAR(variable)
+```
+
+Example:
+
+```
+d% = DICT%$(1=>"ONE", 2=>"TWO")
+PRINT DICTGET(d%, 1, "")
+PRINT DICTCONTAINSKEY(d%, 1)
+DICTPUT(d%, 3, "THREE")
+PRINT DICTSIZE(d%)
+DICTCLEAR(d%)
+```
+
+## Set
+
+PuffinBASIC supports Set data structure.
+The data type of value can one of the primitive types
+and must be declared at the creation of the set.
+The data type is checked in every (relevant) Set function call.
+
+Syntax:
+
+```
+variable = SET valuesuffix(value1, value2, ...)
+SETCONTAINS(variable, value)
+SETCONTAINS(s%, "d")
+SETADD(variable, value)
+SETSIZE(variable)
+SETCLEAR(variable)
+```
+
+Example:
+
+```
+s% = SET$("a", "b", "c")
+PRINT SETCONTAINS(s%, "a")
+SETADD(s%, "d")
+PRINT SETSIZE(s%)
+SETCLEAR(s%)
+```
+
 ## Functions
 
 Functions always return a single value.

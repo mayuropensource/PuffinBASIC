@@ -8,12 +8,15 @@ import org.puffinbasic.error.PuffinBasicInternalError;
 import org.puffinbasic.error.PuffinBasicRuntimeError;
 import org.puffinbasic.file.PuffinBasicFiles;
 import org.puffinbasic.parser.PuffinBasicIR.Instruction;
+import org.puffinbasic.runtime.DS.DictState;
+import org.puffinbasic.runtime.DS.SetState;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Random;
 
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.FLOAT;
@@ -642,6 +645,134 @@ public class Functions {
         var envvar = symbolTable.get(instruction.op1).getValue().getString();
         var result = env.get(envvar);
         symbolTable.get(instruction.result).getValue().setString(result);
+    }
+
+    public static void dict(
+            DictState dictState,
+            PuffinBasicSymbolTable symbolTable,
+            List<Instruction> params,
+            Instruction instruction)
+    {
+        var keyType = symbolTable.get(instruction.op1).getValue().getDataType();
+        var valueType = symbolTable.get(instruction.op2).getValue().getDataType();
+        var result = symbolTable.get(instruction.result).getValue();
+        int id = dictState.create(keyType, valueType, mt -> {
+            for (var ii : params) {
+                dictState.put(mt, symbolTable.get(ii.op1).getValue(), symbolTable.get(ii.op2).getValue());
+            }
+        });
+        result.setInt32(id);
+    }
+
+    public static void dictGet(
+            DictState dictState,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction param,
+            Instruction instruction)
+    {
+        var id = symbolTable.get(instruction.op1).getValue().getInt32();
+        var result = symbolTable.get(instruction.result).getValue();
+        var key = symbolTable.get(param.op1).getValue();
+        var defaultValue = symbolTable.get(param.op2).getValue();
+        dictState.get(id, key, defaultValue, result);
+    }
+
+    public static void dictContains(
+            DictState dictState,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var id = symbolTable.get(instruction.op1).getValue().getInt32();
+        var key = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        dictState.containsKey(id, key, result);
+    }
+
+    public static void dictPut(
+            DictState dictState,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction param,
+            Instruction instruction)
+    {
+        var id = symbolTable.get(instruction.op1).getValue().getInt32();
+        var key = symbolTable.get(param.op1).getValue();
+        var value = symbolTable.get(param.op2).getValue();
+        dictState.put(id, key, value);
+    }
+
+    public static void dictClear(
+            DictState dictState,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var id = symbolTable.get(instruction.op1).getValue().getInt32();
+        dictState.clear(id);
+    }
+
+    public static void dictSize(
+            DictState dictState,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var id = symbolTable.get(instruction.op1).getValue().getInt32();
+        var result = symbolTable.get(instruction.result).getValue();
+        dictState.size(id, result);
+    }
+
+    public static void set(
+            SetState setState,
+            PuffinBasicSymbolTable symbolTable,
+            List<Instruction> params,
+            Instruction instruction)
+    {
+        var valueType = symbolTable.get(instruction.op1).getValue().getDataType();
+        var result = symbolTable.get(instruction.result).getValue();
+        int id = setState.create(valueType, st -> {
+            for (var ii : params) {
+                setState.add(st, symbolTable.get(ii.op1).getValue());
+            }
+        });
+        result.setInt32(id);
+    }
+
+    public static void setAdd(
+            SetState setState,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var id = symbolTable.get(instruction.op1).getValue().getInt32();
+        var value = symbolTable.get(instruction.op2).getValue();
+        setState.add(id, value);
+    }
+
+    public static void setContains(
+            SetState setState,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var id = symbolTable.get(instruction.op1).getValue().getInt32();
+        var value = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        setState.contains(id, value, result);
+    }
+
+    public static void setClear(
+            SetState setState,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var id = symbolTable.get(instruction.op1).getValue().getInt32();
+        setState.clear(id);
+    }
+
+    public static void setSize(
+            SetState setState,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var id = symbolTable.get(instruction.op1).getValue().getInt32();
+        var result = symbolTable.get(instruction.result).getValue();
+        setState.size(id, result);
     }
 
     static void throwUnsupportedType(PuffinBasicDataType type) {

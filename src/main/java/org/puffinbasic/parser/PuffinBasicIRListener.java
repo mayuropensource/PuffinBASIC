@@ -1304,6 +1304,143 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                 ir.getSymbolTable().addTmp(INT32, e -> {})));
     }
 
+    @Override
+    public void exitFuncDictCreate(PuffinBasicParser.FuncDictCreateContext ctx) {
+        var keyType = PuffinBasicDataType.lookup(ctx.varsuffix(0).getText());
+        var valueType = PuffinBasicDataType.lookup(ctx.varsuffix(1).getText());
+
+        for (int i = 0; i < ctx.expr().size(); i += 2) {
+            var k = lookupInstruction(ctx.expr(i));
+            var v = lookupInstruction(ctx.expr(i + 1));
+            ir.addInstruction(
+                    currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                    OpCode.PARAM2, k.result, v.result, NULL_ID
+            );
+        }
+
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.DICT,
+                ir.getSymbolTable().addTmp(keyType, e -> {}),
+                ir.getSymbolTable().addTmp(valueType, e -> {}),
+                ir.getSymbolTable().addTmp(INT32, e -> {})));
+    }
+
+    @Override
+    public void exitFuncDictPut(PuffinBasicParser.FuncDictPutContext ctx) {
+        var id = lookupInstruction(ctx.id);
+        var key = lookupInstruction(ctx.key);
+        var value = lookupInstruction(ctx.value);
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.PARAM2, key.result, value.result, NULL_ID
+        );
+
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.DICTPUT, id.result, NULL_ID, ir.getSymbolTable().addTmp(INT32, e -> {})));
+    }
+
+    @Override
+    public void exitFuncDictGet(PuffinBasicParser.FuncDictGetContext ctx) {
+        var id = lookupInstruction(ctx.id);
+        var key = lookupInstruction(ctx.key);
+        var defaultValue = lookupInstruction(ctx.def);
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.PARAM2, key.result, defaultValue.result, NULL_ID
+        );
+
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.DICTGET, id.result, NULL_ID,
+                ir.getSymbolTable().addTmpCompatibleWith(defaultValue.result)));
+    }
+
+    @Override
+    public void exitFuncDictContainsKey(PuffinBasicParser.FuncDictContainsKeyContext ctx) {
+        var id = lookupInstruction(ctx.id);
+        var key = lookupInstruction(ctx.key);
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.DICTCONTAINSKEY, id.result, key.result,
+                ir.getSymbolTable().addTmp(INT64, e -> {})));
+    }
+
+    @Override
+    public void exitFuncDictClear(PuffinBasicParser.FuncDictClearContext ctx) {
+        var id = lookupInstruction(ctx.id);
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.DICTCLEAR, id.result, NULL_ID,
+                ir.getSymbolTable().addTmp(INT64, e -> {})));
+    }
+
+    @Override
+    public void exitFuncDictSize(PuffinBasicParser.FuncDictSizeContext ctx) {
+        var id = lookupInstruction(ctx.id);
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.DICTSIZE, id.result, NULL_ID,
+                ir.getSymbolTable().addTmp(INT32, e -> {})));
+    }
+
+    @Override
+    public void exitFuncSetCreate(PuffinBasicParser.FuncSetCreateContext ctx) {
+        var valueType = PuffinBasicDataType.lookup(ctx.varsuffix().getText());
+
+        for (var param : ctx.expr()) {
+            var v = lookupInstruction(param);
+            ir.addInstruction(
+                    currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                    OpCode.PARAM1, v.result, NULL_ID, NULL_ID
+            );
+        }
+
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.SET,
+                ir.getSymbolTable().addTmp(valueType, e -> {}),
+                NULL_ID,
+                ir.getSymbolTable().addTmp(INT32, e -> {})));
+    }
+
+    @Override
+    public void exitFuncSetAdd(PuffinBasicParser.FuncSetAddContext ctx) {
+        var id = lookupInstruction(ctx.id);
+        var value = lookupInstruction(ctx.value);
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.SETADD, id.result, value.result, ir.getSymbolTable().addTmp(INT32, e -> {})));
+    }
+
+    @Override
+    public void exitFuncSetContains(PuffinBasicParser.FuncSetContainsContext ctx) {
+        var id = lookupInstruction(ctx.id);
+        var value = lookupInstruction(ctx.value);
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.SETCONTAINS, id.result, value.result, ir.getSymbolTable().addTmp(INT64, e -> {})));
+    }
+
+    @Override
+    public void exitFuncSetClear(PuffinBasicParser.FuncSetClearContext ctx) {
+        var id = lookupInstruction(ctx.id);
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.SETCLEAR, id.result, NULL_ID,
+                ir.getSymbolTable().addTmp(INT64, e -> {})));
+    }
+
+    @Override
+    public void exitFuncSetSize(PuffinBasicParser.FuncSetSizeContext ctx) {
+        var id = lookupInstruction(ctx.id);
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.SETSIZE, id.result, NULL_ID,
+                ir.getSymbolTable().addTmp(INT32, e -> {})));
+    }
+
     private Instruction addFuncWithExprInstruction(
             OpCode opCode, ParserRuleContext parent,
             PuffinBasicParser.ExprContext expr, NumericOrString numericOrString)

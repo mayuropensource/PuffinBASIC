@@ -211,15 +211,17 @@ func
     | ARRAY1DPCT LPAREN variable COMMA p=expr RPAREN        # FuncArray1DPct
     | ARRAY1DBINSEARCH LPAREN variable COMMA expr RPAREN    # FuncArray1DBinSearch
     | HSB2RGB LPAREN expr COMMA expr COMMA expr RPAREN      # FuncHsb2Rgb
-    | SELECT LPAREN src=expr COMMA key=DECIMAL SELECTOP value=expr
-        (COMMA key=DECIMAL SELECTOP value=expr)* COMMA DEFAULT dexpr=expr RPAREN            # FuncSelect
-    | DICT LPAREN key=expr SELECTOP value=expr (COMMA key=expr SELECTOP value=expr)* RPAREN # FuncDictCreate
-    | DICTGET LPAREN variable COMMA key=expr COMMA def=expr RPAREN                          # FuncDictGet
-    | DICTCONTAINSKEY LPAREN variable COMMA key=expr RPAREN                                 # FuncDictContainsKey
-    | DICTPUT LPAREN variable COMMA key=expr COMMA value=expr RPAREN                        # FuncDictPut
-    | SET LPAREN value=expr (COMMA value=expr)* RPAREN                                      # FuncSetCreate
-    | SETADD LPAREN variable COMMA value=expr RPAREN                                        # FuncSetAdd
-    | SETCONTAINS LPAREN variable COMMA value=expr RPAREN                                   # FuncSetContains
+    | DICT varsuffix varsuffix LPAREN expr EQGT expr (COMMA expr EQGT expr)* RPAREN # FuncDictCreate
+    | DICTGET LPAREN id=expr COMMA key=expr COMMA def=expr RPAREN                   # FuncDictGet
+    | DICTCONTAINSKEY LPAREN id=expr COMMA key=expr RPAREN                          # FuncDictContainsKey
+    | DICTPUT LPAREN id=expr COMMA key=expr COMMA value=expr RPAREN                 # FuncDictPut
+    | DICTCLEAR LPAREN id=expr RPAREN                                               # FuncDictClear
+    | DICTSIZE LPAREN id=expr RPAREN                                                # FuncDictSize
+    | SET varsuffix LPAREN expr (COMMA expr)* RPAREN                                # FuncSetCreate
+    | SETADD LPAREN id=expr COMMA value=expr RPAREN                                 # FuncSetAdd
+    | SETCONTAINS LPAREN id=expr COMMA value=expr RPAREN                            # FuncSetContains
+    | SETCLEAR LPAREN id=expr RPAREN                                                # FuncSetClear
+    | SETSIZE LPAREN id=expr RPAREN                                                 # FuncSetSize
     ;
 
 gosubstmt
@@ -560,7 +562,7 @@ labelstmt
     ;
 
 refstmt
-    : REF src=variable SELECTOP dst=variable
+    : REF src=variable EQGT dst=variable
     ;
 
 DICT
@@ -579,6 +581,14 @@ DICTPUT
     : D I C T P U T
     ;
 
+DICTCLEAR
+    : D I C T C L E A R
+    ;
+
+DICTSIZE
+    : D I C T S I Z E
+    ;
+
 SET
     : S E T
     ;
@@ -591,15 +601,19 @@ SETCONTAINS
     : S E T C O N T A I N S
     ;
 
+SETCLEAR
+    : S E T C L E A R
+    ;
+
+SETSIZE
+    : S E T S I Z E
+    ;
+
 REF
     : R E F
     ;
 
-SELECT
-    : S E L E C T
-    ;
-
-SELECTOP
+EQGT
     : '=' '>'
     ;
 

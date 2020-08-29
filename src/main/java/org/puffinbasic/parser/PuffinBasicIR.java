@@ -176,6 +176,17 @@ public class PuffinBasicIR {
         LOOPWAV("loopwav"),
         PARAM2("param2"),
         PARAM1("param1"),
+        DICT("dict"),
+        DICTPUT("dictput"),
+        DICTGET("dictget"),
+        DICTCONTAINSKEY("dictcontainskey"),
+        DICTCLEAR("dictclear"),
+        DICTSIZE("dictsize"),
+        SET("set"),
+        SETADD("setadd"),
+        SETCONTAINS("setcontains"),
+        SETCLEAR("setclear"),
+        SETSIZE("setsize"),
         ;
 
         public final String repr;
