@@ -168,7 +168,7 @@ Since PuffinBASIC generates IR from source code and the runtime executes the IR,
 ## Planned Improvements
 
 1. Add decimal data type.
-1. Add mouse and joystick support.
+1. Add mouse support.
 1. Add variable reference data type.
 1. ...
 
@@ -1031,6 +1031,34 @@ Example:
 
 ```
 20 IF A > 1 GOTO 100 ELSE 200
+```
+
+#### IF-THEN-BEGIN-ELSE-BEGIN-END_IF
+
+PuffinBASIC supports then/else blocks with IF statement.
+
+Syntax:
+
+```
+IF expr THEN BEGIN
+  stmt1
+  stmt2
+  ...
+ELSE BEGIN
+  stmtk
+  stmtk+1
+  ...
+END IF
+```
+
+Example:
+
+```
+IF A% < 20 THEN BEGIN
+  PRINT A%, "LT 20"
+ELSE BEGIN
+  PRINT A%, "GE 20"
+END IF
 ```
 
 #### LABEL

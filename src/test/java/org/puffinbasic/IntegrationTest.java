@@ -81,6 +81,11 @@ public class IntegrationTest {
     }
 
     @Test
+    public void testIfThenBegin() {
+        runTest("ifthenbegin.bas", "ifthenbegin.bas.output");
+    }
+
+    @Test
     public void testReadData() {
         runTest("readdata.bas", "readdata.bas.output");
     }

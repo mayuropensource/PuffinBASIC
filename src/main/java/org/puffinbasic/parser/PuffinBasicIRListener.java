@@ -51,6 +51,8 @@ import static org.puffinbasic.error.PuffinBasicSemanticError.ErrorCode.BAD_ASSIG
 import static org.puffinbasic.error.PuffinBasicSemanticError.ErrorCode.DATA_TYPE_MISMATCH;
 import static org.puffinbasic.error.PuffinBasicSemanticError.ErrorCode.FOR_WITHOUT_NEXT;
 import static org.puffinbasic.error.PuffinBasicSemanticError.ErrorCode.INSUFFICIENT_UDF_ARGS;
+import static org.puffinbasic.error.PuffinBasicSemanticError.ErrorCode.MISMATCHED_ELSEBEGIN;
+import static org.puffinbasic.error.PuffinBasicSemanticError.ErrorCode.MISMATCHED_ENDIF;
 import static org.puffinbasic.error.PuffinBasicSemanticError.ErrorCode.NEXT_WITHOUT_FOR;
 import static org.puffinbasic.error.PuffinBasicSemanticError.ErrorCode.NOT_DEFINED;
 import static org.puffinbasic.error.PuffinBasicSemanticError.ErrorCode.WHILE_WITHOUT_WEND;
@@ -240,6 +242,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
     private final Object2ObjectMap<Variable, UDFState> udfStateMap;
     private final LinkedList<WhileLoopState> whileLoopStateList;
     private final LinkedList<ForLoopState> forLoopStateList;
+    private final LinkedList<IfState> ifStateList;
     private final ParseTreeProperty<IfState> nodeToIfState;
     private int currentLineNumber;
     private final ObjectSet<VariableName> varDefined;
@@ -253,6 +256,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         this.udfStateMap = new Object2ObjectOpenHashMap<>();
         this.whileLoopStateList = new LinkedList<>();
         this.forLoopStateList = new LinkedList<>();
+        this.ifStateList = new LinkedList<>();
         this.nodeToIfState = new ParseTreeProperty<>();
         this.varDefined = new ObjectOpenHashSet<>();
     }
@@ -2041,6 +2045,123 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         ifState.labelAfterElse = ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
                 OpCode.LABEL, ir.getSymbolTable().addLabel(), NULL_ID, NULL_ID
+        );
+    }
+
+    //
+    // IF expr THEN BEGIN
+    // ...
+    // ELSE BEGIN
+    // ...
+    // END IF
+    //
+
+    @Override
+    public void enterIfthenbeginstmt(PuffinBasicParser.IfthenbeginstmtContext ctx) {
+        var ifState = new IfState();
+        nodeToIfState.put(ctx, ifState);
+        ifStateList.add(ifState);
+    }
+
+    //
+    // expr.result
+    // GOTO labelBeforeThen IF expr.result is true
+    // GOTO labelAfterThen|labelBeforeElse
+    // labelBeforeThen (patch GOTOIF)
+    // GOTO labelAfterThen|labelAfterElse (else begin)
+    // labelAfterThen
+    // labelBeforeElse
+    //
+
+    @Override
+    public void exitIfthenbeginstmt(PuffinBasicParser.IfthenbeginstmtContext ctx) {
+        var ifState = nodeToIfState.get(ctx);
+        var condition = lookupInstruction(ctx.expr());
+
+        // IF condition is true, GOTO labelBeforeThen
+        ifState.gotoIfConditionTrue = ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.GOTO_LABEL_IF, condition.result, ir.getSymbolTable().addLabel(), NULL_ID
+        );
+        // IF condition is false, GOTO labelAfterThen|labelBeforeElse
+        ifState.gotoIfConditionFalse = ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.GOTO_LABEL, ir.getSymbolTable().addGotoTarget(), NULL_ID, NULL_ID
+        );
+        // Add labelBeforeThen
+        ifState.labelBeforeThen = ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.LABEL, ir.getSymbolTable().addLabel(), NULL_ID, NULL_ID
+        );
+        // Patch IF true: GOTO labelBeforeThen
+        ifState.gotoIfConditionTrue.patchOp2(ifState.labelBeforeThen.op1);
+    }
+
+    @Override
+    public void enterElsebeginstmt(PuffinBasicParser.ElsebeginstmtContext ctx) {
+        if (ifStateList.isEmpty()) {
+            throw new PuffinBasicSemanticError(
+                    MISMATCHED_ELSEBEGIN,
+                    getCtxString(ctx),
+                    "ELSE BEGIN without IF THEN BEGIN"
+            );
+        }
+        var ifState = ifStateList.getLast();
+        // GOTO labelAfterThen|labelAfterElse
+        ifState.gotoFromThenAfterIf = ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.GOTO_LABEL, ir.getSymbolTable().addLabel(),
+                NULL_ID, NULL_ID
+        );
+        ifState.labelAfterThen = ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.LABEL, ir.getSymbolTable().addLabel(), NULL_ID, NULL_ID
+        );
+        ifState.labelBeforeElse = ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.LABEL, ir.getSymbolTable().addLabel(), NULL_ID, NULL_ID
+        );
+    }
+
+    @Override
+    public void exitEndifstmt(PuffinBasicParser.EndifstmtContext ctx) {
+        if (ifStateList.isEmpty()) {
+            throw new PuffinBasicSemanticError(
+                    MISMATCHED_ENDIF,
+                    getCtxString(ctx),
+                    "ENDIF without IF THEN BEGIN"
+            );
+        }
+        var ifState = ifStateList.removeLast();
+        boolean noElseStmt = ifState.labelBeforeElse == null;
+
+        if (noElseStmt) {
+            // GOTO labelAfterThen|labelAfterElse
+            ifState.gotoFromThenAfterIf = ir.addInstruction(
+                    currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                    OpCode.GOTO_LABEL, ir.getSymbolTable().addLabel(),
+                    NULL_ID, NULL_ID
+            );
+            ifState.labelAfterThen = ir.addInstruction(
+                    currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                    OpCode.LABEL, ir.getSymbolTable().addLabel(), NULL_ID, NULL_ID
+            );
+        }
+
+        // Add labelAfterElse
+        ifState.labelAfterElse = ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.LABEL, ir.getSymbolTable().addLabel(), NULL_ID, NULL_ID
+        );
+        // Patch IF true: GOTO labelBeforeThen
+        ifState.gotoIfConditionTrue.patchOp2(ifState.labelBeforeThen.op1);
+        // Patch IF false: GOTO labelAfterThen|labelBeforeElse
+        ifState.gotoIfConditionFalse.patchOp1(
+                noElseStmt ? ifState.labelAfterThen.op1 : ifState.labelBeforeElse.op1
+        );
+        // Patch THEN: GOTO labelAfterThen|labelAfterElse
+        ifState.gotoFromThenAfterIf.patchOp1(
+                noElseStmt ? ifState.labelAfterThen.op1 : ifState.labelAfterElse.op1
         );
     }
 

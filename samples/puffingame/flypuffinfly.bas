@@ -43,7 +43,14 @@ WHILE -1
     GOSUB "SHOW_POINTS" ' Draw Points
     GOSUB "CHECK_COLLISION" ' Check collision
 
-    IF collenemy% <> 0 THEN STOPWAV SOUNDBG1% : STOPWAV SOUNDBG2% : PLAYWAV SOUNDDEAD1% : hi% = points% : run% = 0 : GOSUB "GAME_OVER"
+    IF collenemy% <> 0 THEN BEGIN
+      STOPWAV SOUNDBG1%
+      STOPWAV SOUNDBG2%
+      PLAYWAV SOUNDDEAD1%
+      hi% = points%
+      run% = 0
+      GOSUB "GAME_OVER"
+    END IF
     IF collreward% = 1 THEN PLAYWAV SOUNDEAT1%
 
     REPAINT : SLEEP 30
@@ -57,7 +64,13 @@ WHILE -1
     IF k$ = CHR$(0) + CHR$(40) THEN playery% = MIN(GRIDY% - 1, playery% + 1)
 
     speed% = speed% + speedstep%
-    IF speed% >= nspeed% THEN speed% = 0 : GOSUB "SCROLL" : GOSUB "ADD_NEW_BG" : GOSUB "ADD_NEW_ENEMY" : GOSUB "ADD_NEW_REWARD" ' Scroll & Insert New Enemy
+    IF speed% >= nspeed% THEN BEGIN
+      speed% = 0
+      GOSUB "SCROLL"
+      GOSUB "ADD_NEW_BG"
+      GOSUB "ADD_NEW_ENEMY"
+      GOSUB "ADD_NEW_REWARD" ' Scroll & Insert New Enemy
+    END IF
 
     points% = points% + 1 : ptsstep% = points% \ 1000
     IF ptsstep% = 1 THEN speedstep% = 2 : maxenemy% = 3 : maxreward% = 3
@@ -211,7 +224,8 @@ DRAWSTR pointsstr$, W% - 150, 20
 RETURN
 
 LABEL "GAME_OVER" ' GAME OVER
-gover$ = "Oops! GAME OVER! Your Score=" + str$(points%) + " hi=" + STR$(hi%) + ", try again" : PRINT gover$
+gover$ = "Oops! GAME OVER! Your Score=" + str$(points%) + " hi=" + STR$(hi%) + ", try again"
+PRINT gover$
 FONT "Courier", "B", 24
 COLOR 255, 0, 0
 DRAWSTR gover$, 10, H% / 2

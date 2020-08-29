@@ -29,6 +29,9 @@ stmt
     | writehashstmt
     | letstmt
     | ifstmt
+    | ifthenbeginstmt
+    | elsebeginstmt
+    | endifstmt
     | forstmt
     | nextstmt
     | gotostmt
@@ -260,6 +263,18 @@ then
 
 elsestmt
     : linenum | stmtlist
+    ;
+
+ifthenbeginstmt
+    : IF expr THEN BEGIN
+    ;
+
+elsebeginstmt
+    : ELSE BEGIN
+    ;
+
+endifstmt
+    : END IF
     ;
 
 stmtlist
@@ -1118,6 +1133,10 @@ HSB2RGB
 
 LABEL
     : L A B E L
+    ;
+
+BEGIN
+    : B E G I N
     ;
 
 string
