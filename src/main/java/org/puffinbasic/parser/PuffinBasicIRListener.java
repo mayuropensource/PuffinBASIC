@@ -615,7 +615,32 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                     ir.getSymbolTable().addTmp(STRING, e -> {})
             ));
         } else {
-            addArithmeticOpExpr(ctx, OpCode.ADD, expr1, expr2);
+            Types.assertNumeric(dt1, dt2, () -> getCtxString(ctx));
+            var upcast = Types.upcast(dt1, dt2, () -> getCtxString(ctx));
+            var result = ir.getSymbolTable().addTmp(
+                    upcast,
+                    e -> {});
+            final OpCode opCode;
+            switch (upcast) {
+                case INT32:
+                    opCode = OpCode.ADDI32;
+                    break;
+                case INT64:
+                    opCode = OpCode.ADDI64;
+                    break;
+                case FLOAT:
+                    opCode = OpCode.ADDF32;
+                    break;
+                case DOUBLE:
+                    opCode = OpCode.ADDF64;
+                    break;
+                default:
+                    throw new PuffinBasicInternalError("Bad type: " + upcast);
+            }
+            nodeToInstruction.put(ctx, ir.addInstruction(
+                    currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                    opCode, instr1res, instr2res, result
+            ));
         }
     }
 
@@ -1765,14 +1790,14 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
 
     @Override
     public void exitForstmt(PuffinBasicParser.ForstmtContext ctx) {
-        var var = lookupInstruction(ctx.variable());
+        var varInstr = lookupInstruction(ctx.variable());
         var init = lookupInstruction(ctx.expr(0));
         var end = lookupInstruction(ctx.expr(1));
         Types.assertNumeric(ir.getSymbolTable().get(init.result).getValue().getDataType(), () -> getCtxString(ctx));
         Types.assertNumeric(ir.getSymbolTable().get(end.result).getValue().getDataType(), () -> getCtxString(ctx));
 
         var forLoopState = new ForLoopState();
-        var stVariable = (STVariable) ir.getSymbolTable().get(var.result);
+        var stVariable = (STVariable) ir.getSymbolTable().get(varInstr.result);
         forLoopState.variable = stVariable.getVariable();
 
         // stepCopy = step or 1 (default)
@@ -1795,7 +1820,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         // var=init
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.ASSIGN, var.result, init.result, var.result
+                OpCode.ASSIGN, varInstr.result, init.result, varInstr.result
         );
         // endCopy=end
         var tmpEnd = ir.getSymbolTable().addTmpCompatibleWith(end.result);
@@ -1816,14 +1841,33 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
                 OpCode.LABEL, ir.getSymbolTable().addLabel(), NULL_ID, NULL_ID
         );
-        var tmpAdd = ir.getSymbolTable().addTmpCompatibleWith(var.result);
+
+        // Add step
+        var tmpAdd = ir.getSymbolTable().addTmpCompatibleWith(varInstr.result);
+        final OpCode addOpCode;
+        switch (stVariable.getValue().getDataType()) {
+            case INT32:
+                addOpCode = OpCode.ADDI32;
+                break;
+            case INT64:
+                addOpCode = OpCode.ADDI64;
+                break;
+            case FLOAT:
+                addOpCode = OpCode.ADDF32;
+                break;
+            case DOUBLE:
+                addOpCode = OpCode.ADDF64;
+                break;
+            default:
+                throw new PuffinBasicInternalError("Bad type: " + stVariable.getValue().getDataType());
+        }
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.ADD, var.result, stepCopy.result, tmpAdd
+                addOpCode, varInstr.result, stepCopy.result, tmpAdd
         );
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.ASSIGN, var.result, tmpAdd, var.result
+                OpCode.ASSIGN, varInstr.result, tmpAdd, varInstr.result
         );
 
         // CHECK
@@ -1845,7 +1889,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         var t2 = ir.getSymbolTable().addTmp(INT32, e -> {});
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.GT, var.result, endCopy.result, t2
+                OpCode.GT, varInstr.result, endCopy.result, t2
         );
         // (step >= 0 and var > end)
         var t3 = ir.getSymbolTable().addTmp(INT32, e -> {});
@@ -1863,7 +1907,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         var t5 = ir.getSymbolTable().addTmp(INT32, e -> {});
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.LT, var.result, endCopy.result, t5
+                OpCode.LT, varInstr.result, endCopy.result, t5
         );
         // (step < 0 and var < end)
         var t6 = ir.getSymbolTable().addTmp(INT32, e -> {});

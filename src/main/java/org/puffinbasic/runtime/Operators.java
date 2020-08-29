@@ -77,33 +77,44 @@ final class Operators {
         );
     }
 
-    public static void add(
+    public static void addInt32(
             PuffinBasicSymbolTable symbolTable,
             Instruction instruction)
     {
-        var opCode = instruction.opCode;
         var v1 = symbolTable.get(instruction.op1).getValue();
         var v2 = symbolTable.get(instruction.op2).getValue();
         var result = symbolTable.get(instruction.result).getValue();
-        var dt = result.getDataType();
+        result.setInt32(v1.getInt32() + v2.getInt32());
+    }
 
-        switch (dt) {
-            case INT32:
-                result.setInt32(v1.getInt32() + v2.getInt32());
-                break;
-            case INT64:
-                result.setInt64(v1.getInt64() + v2.getInt64());
-                break;
-            case FLOAT:
-                result.setFloat32(v1.getFloat32() + v2.getFloat32());
-                break;
-            case DOUBLE:
-                result.setFloat64(v1.getFloat64() + v2.getFloat64());
-                break;
-            default:
-                throwIllegalDataTypeError(opCode, dt);
-                break;
-        }
+    public static void addInt64(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var v1 = symbolTable.get(instruction.op1).getValue();
+        var v2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt64(v1.getInt64() + v2.getInt64());
+    }
+
+    public static void addFloat32(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var v1 = symbolTable.get(instruction.op1).getValue();
+        var v2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setFloat32(v1.getFloat32() + v2.getFloat32());
+    }
+
+    public static void addFloat64(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var v1 = symbolTable.get(instruction.op1).getValue();
+        var v2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setFloat64(v1.getFloat64() + v2.getFloat64());
     }
 
     public static void sub(

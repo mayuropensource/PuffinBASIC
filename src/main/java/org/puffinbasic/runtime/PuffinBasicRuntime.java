@@ -214,8 +214,17 @@ public class PuffinBasicRuntime {
             case FDIV:
                 Operators.fdiv(ir.getSymbolTable(), instruction);
                 break;
-            case ADD:
-                Operators.add(ir.getSymbolTable(), instruction);
+            case ADDI32:
+                Operators.addInt32(ir.getSymbolTable(), instruction);
+                break;
+            case ADDI64:
+                Operators.addInt64(ir.getSymbolTable(), instruction);
+                break;
+            case ADDF32:
+                Operators.addFloat32(ir.getSymbolTable(), instruction);
+                break;
+            case ADDF64:
+                Operators.addFloat64(ir.getSymbolTable(), instruction);
                 break;
             case SUB:
                 Operators.sub(ir.getSymbolTable(), instruction);
