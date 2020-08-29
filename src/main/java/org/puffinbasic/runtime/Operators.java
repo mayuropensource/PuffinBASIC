@@ -9,6 +9,7 @@ import org.puffinbasic.parser.PuffinBasicIR.OpCode;
 
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.DOUBLE;
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.FLOAT;
+import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.INT32;
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.INT64;
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.STRING;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.DIVISION_BY_ZERO;
@@ -51,6 +52,34 @@ final class Operators {
         result.setString(v1 + v2);
     }
 
+    public static void leftShift(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var v1 = symbolTable.get(instruction.op1).getValue();
+        var v2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        if (v1.getDataType() == INT32 && v2.getDataType() == INT32) {
+            result.setInt32(v1.getRoundedInt32() << v2.getRoundedInt32());
+        } else {
+            result.setInt64(v1.getRoundedInt64() << v2.getRoundedInt64());
+        }
+    }
+
+    public static void rightShift(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var v1 = symbolTable.get(instruction.op1).getValue();
+        var v2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        if (v1.getDataType() == INT32 && v2.getDataType() == INT32) {
+            result.setInt32(v1.getRoundedInt32() >> v2.getRoundedInt32());
+        } else {
+            result.setInt64(v1.getRoundedInt64() >> v2.getRoundedInt64());
+        }
+    }
+
     public static void mod(
             PuffinBasicSymbolTable symbolTable,
             Instruction instruction)
@@ -58,7 +87,11 @@ final class Operators {
         var v1 = symbolTable.get(instruction.op1).getValue();
         var v2 = symbolTable.get(instruction.op2).getValue();
         var result = symbolTable.get(instruction.result).getValue();
-        result.setInt32(v1.getRoundedInt32() % v2.getRoundedInt32());
+        if (v1.getDataType() == INT32 && v2.getDataType() == INT32) {
+            result.setInt32(v1.getRoundedInt32() % v2.getRoundedInt32());
+        } else {
+            result.setInt64(v1.getRoundedInt64() % v2.getRoundedInt64());
+        }
     }
 
     public static void idiv(
@@ -68,7 +101,23 @@ final class Operators {
         var v1 = symbolTable.get(instruction.op1).getValue();
         var v2 = symbolTable.get(instruction.op2).getValue();
         var result = symbolTable.get(instruction.result).getValue();
-        result.setInt32(v1.getRoundedInt32() / v2.getRoundedInt32());
+        if (v1.getDataType() == INT32 && v2.getDataType() == INT32) {
+            if (v2.getRoundedInt32() == 0) {
+                throw new PuffinBasicRuntimeError(
+                        DIVISION_BY_ZERO,
+                        "Division by zero"
+                );
+            }
+            result.setInt32(v1.getRoundedInt32() / v2.getRoundedInt32());
+        } else {
+            if (v2.getRoundedInt64() == 0) {
+                throw new PuffinBasicRuntimeError(
+                        DIVISION_BY_ZERO,
+                        "Division by zero"
+                );
+            }
+            result.setInt64(v1.getRoundedInt64() / v2.getRoundedInt64());
+        }
     }
 
     private static void throwIllegalDataTypeError(OpCode opCode, PuffinBasicDataType dt) {

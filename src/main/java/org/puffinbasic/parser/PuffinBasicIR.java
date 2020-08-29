@@ -18,6 +18,8 @@ public class PuffinBasicIR {
         ASSIGN(":="),
         COPY("<-"),
         UNARY_MINUS("u-"),
+        LEFTSHIFT("<<"),
+        RIGHTSHIFT(">>"),
         PRINT("?"),
         PRINTUSING("?f"),
         FLUSH("flush"),

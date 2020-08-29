@@ -135,6 +135,8 @@ expr
     | expr LOGXOR expr          # ExprLogXor
     | expr LOGEQV expr          # ExprLogEqv
     | expr LOGIMP expr          # ExprLogImp
+    | expr BWLSFT expr          # ExprBitwiseLeftShift
+    | expr BWRSFT expr          # ExprBitwiseRightShift
     ;
 
 func
@@ -1257,6 +1259,14 @@ LOGEQV
 
 LOGIMP
     : I M P
+    ;
+
+BWRSFT
+    : '>' '>'
+    ;
+
+BWLSFT
+    : '<' '<'
     ;
 
 VARNAME

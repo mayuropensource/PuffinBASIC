@@ -268,6 +268,12 @@ public class PuffinBasicRuntime {
             case IMP:
                 Operators.imp(ir.getSymbolTable(), instruction);
                 break;
+            case LEFTSHIFT:
+                Operators.leftShift(ir.getSymbolTable(), instruction);
+                break;
+            case RIGHTSHIFT:
+                Operators.rightShift(ir.getSymbolTable(), instruction);
+                break;
             case END:
                 return true;
             case ABS:

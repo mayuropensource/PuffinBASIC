@@ -61,172 +61,6 @@ import static org.puffinbasic.parser.LinenumberListener.parseLinenum;
 import static org.puffinbasic.runtime.Types.assertNumeric;
 import static org.puffinbasic.runtime.Types.unquote;
 
-/**
- * <PRE>
- * Functions
- * =========
- * ABS              done
- * ASC              done
- * ATN              done
- * CDBL             done
- * CHR$             done
- * CINT             done
- * CLNG             done
- * COS              done
- * CSNG             done
- * CVD              done
- * CVI              done
- * CVI              done
- * CVL              done
- * CVS              done
- * ENVIRON$         NA
- * EOF              done
- * EXP              done
- * EXTERR           NA
- * FIX              done
- * FRE              NA
- * HEX$             done
- * INP              NA
- * INPUT$           done
- * INSTR            done
- * INT              done
- * IOCTL$           NA
- * LEFT$            done
- * LEN              done
- * LOC              done
- * LOF              done
- * LOG              done
- * LPOS             NA
- * MID$             done
- * MKD$             done
- * MKI$             done
- * MKS$             done
- * MKL$             done
- * OCT$             done
- * PEEK             NA
- * RND              done
- * RIGHT$           done
- * SGN              done
- * SIN              done
- * SPACE$           done
- * SPC              NA
- * SQR              done
- * STR$             done
- * STRING$          done
- * TAB              NA
- * TAN              done
- * TIMER            done
- * VAL              done
- * VARPTR           NA
- * VARPTR$          NA
- *
- * PEN              NA
- * PLAY             graphics
- * PMAP             graphics
- * POINT            graphics
- * POS              graphics
- * SCREEN           NA
- * STICK            NA
- *
- * Statements
- * ==========
- * CALL             NA
- * CHAIN            NA
- * CLOSE            done
- * CLS              NA
- * COM(n)           NA
- * COMMON           NA
- * DATA             done
- * DATE$            done
- * DEF FN           done
- * DEFINT           done
- * DEFDBL           done
- * DEFLNG           done
- * DEFSNG           done
- * DEFSTR           done
- * DEF SEG          NA
- * DEF USR          NA
- * DIM              done
- * END              done
- * ENVIRON          NA
- * ERASE            NA
- * ERROR            NA
- * FIELD            done
- * FOR-NEXT         done
- * GET              done
- * GOSUB-RETURN     done
- * GOTO             done
- * IF-THEN-ELSE     done
- * INPUT            done (not compatible)
- * INPUT#           done
- * IOCTL            NA
- * LET              done
- * LINE INPUT       done
- * LINE INPUT#      done
- * LOCK             NA
- * LPRINT           NA
- * LPRINT USING     NA
- * LSET             done
- * MID$             done
- * ON ERROR GOTO    NA
- * ON-GOSUB         NA
- * ON-GOTO          NA
- * OPEN             done
- * OPEN COM(n)      NA
- * OPTION BASE      NA
- * OUT              NA
- * ON COM(n)        NA
- * PRINT            done
- * PRINT USING      done
- * PRINT#           done
- * PRINT# USING     done
- * PUT              done
- * RANDOMIZE        done
- * READ             done
- * REM              done
- * RESTORE          done
- * RESUME           NA
- * RSET             done
- * SHELL            NA
- * STOP             NA
- * SWAP             done
- * TIME$            done
- * UNLOCK           NA
- * WAIT             NA
- * WHILE-WEND       done
- * WIDTH            NA
- * WRITE            done
- * WRTIE#           done
- *
- * SCREEN           done
- * CIRCLE           done
- * COLOR            done
- * LINE             done
- * PAINT            done
- * DRAW             graphics
- * LOCATE           graphics
- * BEEP             NA
- * KEY              NA
- * KEY(n)           NA
- * ON KEY(n)        NA
- * ON PEN(n)        NA
- * ON PLAY(n)       NA
- * ON STRIG(n)      NA
- * ON TIMER(n)      NA
- * PALETTE          NA
- * PALETTE USING    NA
- * PEN              NA
- * PLAY             graphics
- * PSET             graphics
- * POKE             NA
- * PRESET           NA
- * STRIG            NA
- * STRIG(n)         NA
- * VIEW             NA
- * VIEW PRINT       NA
- * WINDOW           NA
- * </PRE>
- */
 public class PuffinBasicIRListener extends PuffinBasicBaseListener {
 
     private enum NumericOrString {
@@ -767,7 +601,33 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         addLogicalOpExpr(ctx, OpCode.IMP, ctx.expr(0), ctx.expr(1));
     }
 
+    @Override
+    public void exitExprBitwiseLeftShift(PuffinBasicParser.ExprBitwiseLeftShiftContext ctx) {
+        addBitwiseOpExpr(ctx, OpCode.LEFTSHIFT, ctx.expr(0), ctx.expr(1));
+    }
+
+    @Override
+    public void exitExprBitwiseRightShift(PuffinBasicParser.ExprBitwiseRightShiftContext ctx) {
+        addBitwiseOpExpr(ctx, OpCode.RIGHTSHIFT, ctx.expr(0), ctx.expr(1));
+    }
+
     private void addLogicalOpExpr(
+            ParserRuleContext parent, OpCode opCode, PuffinBasicParser.ExprContext exprLeft, PuffinBasicParser.ExprContext exprRight) {
+        var exprL = lookupInstruction(exprLeft);
+        var exprR = lookupInstruction(exprRight);
+        Types.assertNumeric(
+                ir.getSymbolTable().get(exprL.result).getValue().getDataType(),
+                ir.getSymbolTable().get(exprR.result).getValue().getDataType(),
+                () -> getCtxString(parent)
+        );
+        var result = ir.getSymbolTable().addTmp(INT64, e -> {});
+        nodeToInstruction.put(parent, ir.addInstruction(
+                currentLineNumber, parent.start.getStartIndex(), parent.stop.getStopIndex(),
+                opCode, exprL.result, exprR.result, result
+        ));
+    }
+
+    private void addBitwiseOpExpr(
             ParserRuleContext parent, OpCode opCode, PuffinBasicParser.ExprContext exprLeft, PuffinBasicParser.ExprContext exprRight) {
         var exprL = lookupInstruction(exprLeft);
         var exprR = lookupInstruction(exprRight);

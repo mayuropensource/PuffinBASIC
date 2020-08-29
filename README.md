@@ -326,6 +326,7 @@ Relational:
 
 If inputs to logical operators is -1 and 0, they return -1 for true and 0 for false.
 Otherwise, logical operators work like bit-wise operators.
+'>>' and '<<' are bitwise right-shift and left-shift operators.
 
 Logical or bit-wise:
 1. 'NOT'
@@ -334,6 +335,8 @@ Logical or bit-wise:
 1. 'XOR'
 1. 'EQV'
 1. 'IMP'
+1. '>>'
+1. '<<'
 
 ## Functions
 
