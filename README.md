@@ -1,5 +1,5 @@
 # PuffinBASIC
-A cross-platform modern BASIC interpreter written in Java.
+A cross-platform modern BASIC compiler/interpreter written in Java.
 
 <img src="puffin.png" width="64"/>
 
@@ -32,7 +32,7 @@ I'm also very familiar with the language.
 1. Interpreter language: BASIC is an interpreted language and hence a good choice for implementing this interpreter.
 1. Learning antlr4: I was learning antlr4 and BASIC was the perfect language to try because 
 of its simple instruction set.
-1. Resurrect BASIC: I wanted to write games with modern graphics in BASIC that work on all platforms.
+1. Resurrect BASIC: Implementations such as GWBASIC don't work on most modern platforms. PuffinBASIC works everywhere Java works.
 1. Improve BASIC: I wanted to add modern graphics, better data types, etc.
 
 ## Version
@@ -159,7 +159,9 @@ $ mvn generate-sources
 1. PuffinBASIC's grammar is defined using antlr4.
 1. At runtime, the user source code is parsed using antlr4 lexer+parser.
 1. After parsing, an intermediate representation (IR) of the source code is generated. A symbol table keeps track of variables, scalars, arrays, etc. objects.
-1. A runtime, the interpreter processes the IR instructions and executes them.
+1. At runtime, the interpreter processes the IR instructions and executes them.
+
+Since PuffinBASIC generates IR from source code and the runtime executes the IR, we can say PuffinBASIC is both a compiler and an interpreter.
 
 ## Planned Improvements
 
