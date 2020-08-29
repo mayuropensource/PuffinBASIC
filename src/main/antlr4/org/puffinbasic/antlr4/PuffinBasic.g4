@@ -96,6 +96,8 @@ stmt
     | stopwavstmt
     | loopwavstmt
     | labelstmt
+    | refstmt
+    | func
     ;
 
 variable
@@ -209,6 +211,15 @@ func
     | ARRAY1DPCT LPAREN variable COMMA p=expr RPAREN        # FuncArray1DPct
     | ARRAY1DBINSEARCH LPAREN variable COMMA expr RPAREN    # FuncArray1DBinSearch
     | HSB2RGB LPAREN expr COMMA expr COMMA expr RPAREN      # FuncHsb2Rgb
+    | SELECT LPAREN src=expr COMMA key=DECIMAL SELECTOP value=expr
+        (COMMA key=DECIMAL SELECTOP value=expr)* COMMA DEFAULT dexpr=expr RPAREN            # FuncSelect
+    | DICT LPAREN key=expr SELECTOP value=expr (COMMA key=expr SELECTOP value=expr)* RPAREN # FuncDictCreate
+    | DICTGET LPAREN variable COMMA key=expr COMMA def=expr RPAREN                          # FuncDictGet
+    | DICTCONTAINSKEY LPAREN variable COMMA key=expr RPAREN                                 # FuncDictContainsKey
+    | DICTPUT LPAREN variable COMMA key=expr COMMA value=expr RPAREN                        # FuncDictPut
+    | SET LPAREN value=expr (COMMA value=expr)* RPAREN                                      # FuncSetCreate
+    | SETADD LPAREN variable COMMA value=expr RPAREN                                        # FuncSetAdd
+    | SETCONTAINS LPAREN variable COMMA value=expr RPAREN                                   # FuncSetContains
     ;
 
 gosubstmt
@@ -544,8 +555,56 @@ loopwavstmt
     : LOOPWAV variable
     ;
 
-labelstmt:
-    LABEL name=string
+labelstmt
+    : LABEL name=string
+    ;
+
+refstmt
+    : REF src=variable SELECTOP dst=variable
+    ;
+
+DICT
+    : D I C T
+    ;
+
+DICTGET
+    : D I C T G E T
+    ;
+
+DICTCONTAINSKEY
+    : D I C T C O N T A I N S K E Y
+    ;
+
+DICTPUT
+    : D I C T P U T
+    ;
+
+SET
+    : S E T
+    ;
+
+SETADD
+    : S E T A D D
+    ;
+
+SETCONTAINS
+    : S E T C O N T A I N S
+    ;
+
+REF
+    : R E F
+    ;
+
+SELECT
+    : S E L E C T
+    ;
+
+SELECTOP
+    : '=' '>'
+    ;
+
+DEFAULT
+    : D E F A U L T
     ;
 
 LETTERRANGE

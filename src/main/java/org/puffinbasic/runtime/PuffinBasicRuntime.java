@@ -132,11 +132,8 @@ public class PuffinBasicRuntime {
         int nextProgramCounter = programCounter + 1;
 
         switch (instruction.opCode) {
-            case COMMENT:
-                break;
-            case VARIABLE:
-                break;
-            case VALUE:
+            case VARREF:
+                Types.varref(ir.getSymbolTable(), instruction.op1, instruction.op2);
                 break;
             case ASSIGN:
             case COPY:

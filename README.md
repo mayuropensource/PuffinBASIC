@@ -295,6 +295,31 @@ Example:
 20 A%(1, 2) = 5
 ```
 
+### Variable Reference
+
+A variable can reference to another variable, i.e.
+a scalar variable can reference to another scalar variable of same data type,
+and an array variable can reference to another array variable of same data type.
+
+Syntax:
+
+```
+REF variable => refVariable
+```
+
+Example:
+
+```
+A% = 10
+REF A% => B%
+B% = 3 ' Both A% and B% have value 3.
+
+DIM X%(2,3)
+DIM Y%(0,0)
+REF X% => Y%
+Y%(0,0) = 3 ' Both X%(0,0) and Y%(0,0) have value 3.
+```
+
 ## Operators
 
 Order of operations:

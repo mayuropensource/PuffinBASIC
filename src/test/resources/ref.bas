@@ -1,0 +1,45 @@
+PRINT "SCALAR INT32"
+A% = 10
+REF A% => B%
+PRINT A%, B%
+B% = 3
+PRINT A%, B%
+
+PRINT "SCALAR INT64"
+A@ = 10
+REF A@ => B@
+PRINT A@, B@
+B@ = 3
+PRINT A@, B@
+
+PRINT "SCALAR FLOAT32"
+A! = 10
+REF A! => B!
+PRINT A!, B!
+B! = 3
+PRINT A!, B!
+
+PRINT "SCALAR FLOAT64"
+A# = 10
+REF A# => B#
+PRINT A#, B#
+B# = 3
+PRINT A#, B#
+
+PRINT "SCALAR STRING"
+A$ = "10"
+REF A$ => B$
+PRINT A$, B$
+B$ = "3"
+PRINT A$, B$
+
+PRINT "ARRAY INT32"
+DIM AA%(2,3)
+DIM AB%(0,0)
+AA%(0,0) = 10
+REF AA% => AB%
+PRINT AA%(0,0)
+PRINT AB%(0,0)
+AB%(0,0) = 3
+PRINT AA%(0,0)
+PRINT AB%(0,0)

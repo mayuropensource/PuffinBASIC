@@ -123,7 +123,7 @@ public class PuffinBasicSymbolTable {
     }
 
     public int addArrayReference(STVariable variable) {
-        var ref = new ArrayReferenceValue((AbstractSTArrayValue) variable.getValue());
+        var ref = new ArrayReferenceValue(variable);
         int id = generateNextId();
         var entry = new STArrayReference(TMP, ref);
         getCurrentScope().putEntry(id, entry);

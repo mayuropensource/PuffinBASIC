@@ -6,7 +6,6 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.puffinbasic.error.PuffinBasicInternalError;
 import org.puffinbasic.error.PuffinBasicRuntimeError;
-import org.puffinbasic.error.PuffinBasicSemanticError;
 import org.puffinbasic.runtime.Formatter;
 
 import java.time.LocalDate;
@@ -164,10 +163,14 @@ public class STObjects {
 
     public static abstract class AbstractSTEntry implements STEntry {
         private final STKind kind;
-        private final STValue value;
+        private STValue value;
 
         AbstractSTEntry(STKind kind, STValue value) {
             this.kind = kind;
+            this.value = value;
+        }
+
+        protected void setValue(STValue value) {
             this.value = value;
         }
 
@@ -192,6 +195,10 @@ public class STObjects {
 
         public Variable getVariable() {
             return variable;
+        }
+
+        public void setValue(STVariable src) {
+            setValue(src.getValue());
         }
     }
 
@@ -1027,11 +1034,15 @@ public class STObjects {
 
     static class ArrayReferenceValue implements STValue {
 
-        private final AbstractSTArrayValue array;
+        private final STVariable variable;
         private int index1d;
 
-        ArrayReferenceValue(AbstractSTArrayValue array) {
-            this.array = array;
+        ArrayReferenceValue(STVariable variable) {
+            this.variable = variable;
+        }
+
+        private AbstractSTArrayValue getValue() {
+            return (AbstractSTArrayValue) variable.getValue();
         }
 
         @Override
@@ -1041,95 +1052,110 @@ public class STObjects {
 
         @Override
         public PuffinBasicDataType getDataType() {
-            return array.getDataType();
+            return getValue().getDataType();
         }
 
         @Override
         public String printFormat() {
+            var array = getValue();
             array.setArrayIndexID(index1d);
             return array.printFormat();
         }
 
         @Override
         public String writeFormat() {
+            var array = getValue();
             array.setArrayIndexID(index1d);
             return array.writeFormat();
         }
 
         @Override
         public void assign(STValue entry) {
+            var array = getValue();
             array.setArrayIndexID(index1d);
             array.assign(entry);
         }
 
         @Override
         public int getInt32() {
+            var array = getValue();
             array.setArrayIndexID(index1d);
             return array.getInt32();
         }
 
         @Override
         public long getInt64() {
+            var array = getValue();
             array.setArrayIndexID(index1d);
             return array.getInt64();
         }
 
         @Override
         public float getFloat32() {
+            var array = getValue();
             array.setArrayIndexID(index1d);
             return array.getFloat32();
         }
 
         @Override
         public double getFloat64() {
+            var array = getValue();
             array.setArrayIndexID(index1d);
             return array.getFloat64();
         }
 
         @Override
         public int getRoundedInt32() {
+            var array = getValue();
             array.setArrayIndexID(index1d);
             return array.getRoundedInt32();
         }
 
         @Override
         public long getRoundedInt64() {
+            var array = getValue();
             array.setArrayIndexID(index1d);
             return array.getRoundedInt64();
         }
 
         @Override
         public String getString() {
+            var array = getValue();
             array.setArrayIndexID(index1d);
             return array.getString();
         }
 
         @Override
         public void setInt32(int value) {
+            var array = getValue();
             array.setArrayIndexID(index1d);
             array.setInt32(value);
         }
 
         @Override
         public void setInt64(long value) {
+            var array = getValue();
             array.setArrayIndexID(index1d);
             array.setInt64(value);
         }
 
         @Override
         public void setFloat32(float value) {
+            var array = getValue();
             array.setArrayIndexID(index1d);
             array.setFloat32(value);
         }
 
         @Override
         public void setFloat64(double value) {
+            var array = getValue();
             array.setArrayIndexID(index1d);
             array.setFloat64(value);
         }
 
         @Override
         public void setString(String value) {
+            var array = getValue();
             array.setArrayIndexID(index1d);
             array.setString(value);
         }

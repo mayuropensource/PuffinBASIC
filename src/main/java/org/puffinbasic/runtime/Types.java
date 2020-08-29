@@ -1,8 +1,9 @@
 package org.puffinbasic.runtime;
 
 import org.puffinbasic.domain.PuffinBasicSymbolTable;
-import org.puffinbasic.error.PuffinBasicSemanticError;
 import org.puffinbasic.domain.STObjects.PuffinBasicDataType;
+import org.puffinbasic.domain.STObjects.STVariable;
+import org.puffinbasic.error.PuffinBasicSemanticError;
 
 import java.util.function.Supplier;
 
@@ -19,6 +20,12 @@ public class Types {
         var toEntry = symbolTable.get(to);
         var fromEntry = symbolTable.get(from);
         toEntry.getValue().assign(fromEntry.getValue());
+    }
+
+    public static void varref(PuffinBasicSymbolTable symbolTable, int op1, int op2) {
+        var src = (STVariable) symbolTable.get(op1);
+        var dst = (STVariable) symbolTable.get(op2);
+        dst.setValue(src);
     }
 
     public static String unquote(String txt) {
