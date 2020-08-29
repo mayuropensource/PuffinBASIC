@@ -56,17 +56,19 @@ This is an active project so expect large changes at frequent intervals.
 ```
 ### Print prime numbers between 1 and 100
 
+Line numbers are optional in PuffinBASIC.
+
 ```
-10 FOR I% = 1 TO 100
-20   J% = 3
-30   N% = I% \ 2
-40   ISPRIME% = (I% > 1) AND ((I% MOD 2 <> 0) OR (I% = 2))
-50   WHILE J% <= N% AND ISPRIME% = -1
-60     ISPRIME% = I% MOD J% <> 0
-70     J% = J% + 2
-80   WEND
-90   IF ISPRIME% THEN PRINT STR$(I%), " is prime"
-100 NEXT I%
+FOR I% = 1 TO 100
+  J% = 3
+  N% = I% \ 2
+  ISPRIME% = (I% > 1) AND ((I% MOD 2 <> 0) OR (I% = 2))
+  WHILE J% <= N% AND ISPRIME% = -1
+    ISPRIME% = I% MOD J% <> 0
+    J% = J% + 2
+  WEND
+  IF ISPRIME% THEN PRINT STR$(I%), " is prime"
+NEXT I%
 ```
 
 ### Print Fibonacci Series
