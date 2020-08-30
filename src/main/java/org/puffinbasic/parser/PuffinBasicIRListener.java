@@ -12,6 +12,7 @@ import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.puffinbasic.antlr4.PuffinBasicBaseListener;
 import org.puffinbasic.antlr4.PuffinBasicParser;
@@ -411,12 +412,70 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
 
     @Override
     public void exitExprExp(PuffinBasicParser.ExprExpContext ctx) {
-        addArithmeticOpExpr(ctx, OpCode.EXP, ctx.expr(0), ctx.expr(1));
+        var expr1 = ctx.expr(0);
+        var expr2 = ctx.expr(1);
+        int instr1res = lookupInstruction(expr1).result;
+        int instr2res = lookupInstruction(expr2).result;
+        var dt1 = ir.getSymbolTable().get(instr1res).getValue().getDataType();
+        var dt2 = ir.getSymbolTable().get(instr2res).getValue().getDataType();
+        Types.assertNumeric(dt1, dt2, () -> getCtxString(ctx));
+        var upcast = Types.upcast(dt1, dt2, () -> getCtxString(ctx));
+        var result = ir.getSymbolTable().addTmp(upcast, e -> {});
+        final OpCode opCode;
+        switch (upcast) {
+            case INT32:
+                opCode = OpCode.EXPI32;
+                break;
+            case INT64:
+                opCode = OpCode.EXPI64;
+                break;
+            case FLOAT:
+                opCode = OpCode.EXPF32;
+                break;
+            case DOUBLE:
+                opCode = OpCode.EXPF64;
+                break;
+            default:
+                throw new PuffinBasicInternalError("Bad type: " + upcast);
+        }
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                opCode, instr1res, instr2res, result
+        ));
     }
 
     @Override
     public void exitExprMul(PuffinBasicParser.ExprMulContext ctx) {
-        addArithmeticOpExpr(ctx, OpCode.MUL, ctx.expr(0), ctx.expr(1));
+        var expr1 = ctx.expr(0);
+        var expr2 = ctx.expr(1);
+        int instr1res = lookupInstruction(expr1).result;
+        int instr2res = lookupInstruction(expr2).result;
+        var dt1 = ir.getSymbolTable().get(instr1res).getValue().getDataType();
+        var dt2 = ir.getSymbolTable().get(instr2res).getValue().getDataType();
+        Types.assertNumeric(dt1, dt2, () -> getCtxString(ctx));
+        var upcast = Types.upcast(dt1, dt2, () -> getCtxString(ctx));
+        var result = ir.getSymbolTable().addTmp(upcast, e -> {});
+        final OpCode opCode;
+        switch (upcast) {
+            case INT32:
+                opCode = OpCode.MULI32;
+                break;
+            case INT64:
+                opCode = OpCode.MULI64;
+                break;
+            case FLOAT:
+                opCode = OpCode.MULF32;
+                break;
+            case DOUBLE:
+                opCode = OpCode.MULF64;
+                break;
+            default:
+                throw new PuffinBasicInternalError("Bad type: " + upcast);
+        }
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                opCode, instr1res, instr2res, result
+        ));
     }
 
     @Override
@@ -426,7 +485,18 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
 
     @Override
     public void exitExprFloatDiv(PuffinBasicParser.ExprFloatDivContext ctx) {
-        addArithmeticOpExpr(ctx, OpCode.FDIV, ctx.expr(0), ctx.expr(1), DOUBLE);
+        var expr1 = ctx.expr(0);
+        var expr2 = ctx.expr(1);
+        int instr1res = lookupInstruction(expr1).result;
+        int instr2res = lookupInstruction(expr2).result;
+        var dt1 = ir.getSymbolTable().get(instr1res).getValue().getDataType();
+        var dt2 = ir.getSymbolTable().get(instr2res).getValue().getDataType();
+        Types.assertNumeric(dt1, dt2, () -> getCtxString(ctx));
+        var result = ir.getSymbolTable().addTmp(DOUBLE, e -> {});
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.FDIV, instr1res, instr2res, result
+        ));
     }
 
     @Override
@@ -451,9 +521,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         } else {
             Types.assertNumeric(dt1, dt2, () -> getCtxString(ctx));
             var upcast = Types.upcast(dt1, dt2, () -> getCtxString(ctx));
-            var result = ir.getSymbolTable().addTmp(
-                    upcast,
-                    e -> {});
+            var result = ir.getSymbolTable().addTmp(upcast, e -> {});
             final OpCode opCode;
             switch (upcast) {
                 case INT32:
@@ -480,7 +548,36 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
 
     @Override
     public void exitExprMinus(PuffinBasicParser.ExprMinusContext ctx) {
-        addArithmeticOpExpr(ctx, OpCode.SUB, ctx.expr(0), ctx.expr(1));
+        var expr1 = ctx.expr(0);
+        var expr2 = ctx.expr(1);
+        int instr1res = lookupInstruction(expr1).result;
+        int instr2res = lookupInstruction(expr2).result;
+        var dt1 = ir.getSymbolTable().get(instr1res).getValue().getDataType();
+        var dt2 = ir.getSymbolTable().get(instr2res).getValue().getDataType();
+        Types.assertNumeric(dt1, dt2, () -> getCtxString(ctx));
+        var upcast = Types.upcast(dt1, dt2, () -> getCtxString(ctx));
+        var result = ir.getSymbolTable().addTmp(upcast, e -> {});
+        final OpCode opCode;
+        switch (upcast) {
+            case INT32:
+                opCode = OpCode.SUBI32;
+                break;
+            case INT64:
+                opCode = OpCode.SUBI64;
+                break;
+            case FLOAT:
+                opCode = OpCode.SUBF32;
+                break;
+            case DOUBLE:
+                opCode = OpCode.SUBF64;
+                break;
+            default:
+                throw new PuffinBasicInternalError("Bad type: " + upcast);
+        }
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                opCode, instr1res, instr2res, result
+        ));
     }
 
     private void addArithmeticOpExpr(
@@ -501,65 +598,194 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         ));
     }
 
-    private void addArithmeticOpExpr(
-            ParserRuleContext parent,
-            OpCode opCode,
-            PuffinBasicParser.ExprContext exprLeft,
-            PuffinBasicParser.ExprContext exprRight,
-            PuffinBasicDataType resultDataType) {
-        var exprL = lookupInstruction(exprLeft);
-        var exprR = lookupInstruction(exprRight);
-        var dt1 = ir.getSymbolTable().get(exprL.result).getValue().getDataType();
-        var dt2 = ir.getSymbolTable().get(exprR.result).getValue().getDataType();
-        Types.assertNumeric(dt1, dt2, () -> getCtxString(parent));
-        var result = ir.getSymbolTable().addTmp(resultDataType, e -> {});
-        nodeToInstruction.put(parent, ir.addInstruction(
-                currentLineNumber, parent.start.getStartIndex(), parent.stop.getStopIndex(),
-                opCode, exprL.result, exprR.result, result
-        ));
-    }
-
     @Override
     public void exitExprRelEq(PuffinBasicParser.ExprRelEqContext ctx) {
-        addRelationalOpExpr(ctx, OpCode.EQ, ctx.expr(0), ctx.expr(1));
+        var exprL = lookupInstruction(ctx.expr(0));
+        var exprR = lookupInstruction(ctx.expr(1));
+        var dt1 = ir.getSymbolTable().get(exprL.result).getValue().getDataType();
+        var dt2 = ir.getSymbolTable().get(exprR.result).getValue().getDataType();
+        checkDataTypeMatch(dt1, dt2, () -> getCtxString(ctx));
+
+        final OpCode opCode;
+        if (dt1 == STRING && dt2 == STRING) {
+            opCode = OpCode.EQSTR;
+        } else {
+            if (dt1 == DOUBLE || dt2 == DOUBLE) {
+                opCode = OpCode.EQF64;
+            } else if (dt1 == INT64 || dt2 == INT64) {
+                opCode = OpCode.EQI64;
+            } else if (dt1 == FLOAT || dt2 == FLOAT) {
+                opCode = OpCode.EQF32;
+            } else {
+                opCode = OpCode.EQI32;
+            }
+        }
+
+        var result = ir.getSymbolTable().addTmp(INT64, e -> {});
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                opCode, exprL.result, exprR.result, result
+        ));
     }
 
     @Override
     public void exitExprRelNeq(PuffinBasicParser.ExprRelNeqContext ctx) {
-        addRelationalOpExpr(ctx, OpCode.NE, ctx.expr(0), ctx.expr(1));
+        var exprL = lookupInstruction(ctx.expr(0));
+        var exprR = lookupInstruction(ctx.expr(1));
+        var dt1 = ir.getSymbolTable().get(exprL.result).getValue().getDataType();
+        var dt2 = ir.getSymbolTable().get(exprR.result).getValue().getDataType();
+        checkDataTypeMatch(dt1, dt2, () -> getCtxString(ctx));
+
+        final OpCode opCode;
+        if (dt1 == STRING && dt2 == STRING) {
+            opCode = OpCode.NESTR;
+        } else {
+            if (dt1 == DOUBLE || dt2 == DOUBLE) {
+                opCode = OpCode.NEF64;
+            } else if (dt1 == INT64 || dt2 == INT64) {
+                opCode = OpCode.NEI64;
+            } else if (dt1 == FLOAT || dt2 == FLOAT) {
+                opCode = OpCode.NEF32;
+            } else {
+                opCode = OpCode.NEI32;
+            }
+        }
+
+        var result = ir.getSymbolTable().addTmp(INT64, e -> {});
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                opCode, exprL.result, exprR.result, result
+        ));
     }
 
     @Override
     public void exitExprRelLt(PuffinBasicParser.ExprRelLtContext ctx) {
-        addRelationalOpExpr(ctx, OpCode.LT, ctx.expr(0), ctx.expr(1));
+        var exprL = lookupInstruction(ctx.expr(0));
+        var exprR = lookupInstruction(ctx.expr(1));
+        var dt1 = ir.getSymbolTable().get(exprL.result).getValue().getDataType();
+        var dt2 = ir.getSymbolTable().get(exprR.result).getValue().getDataType();
+        checkDataTypeMatch(dt1, dt2, () -> getCtxString(ctx));
+        final OpCode opCode = getLTOpCode(dt1, dt2);
+        var result = ir.getSymbolTable().addTmp(INT64, e -> {});
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                opCode, exprL.result, exprR.result, result
+        ));
+    }
+
+    @NotNull
+    private PuffinBasicIR.OpCode getLTOpCode(PuffinBasicDataType dt1, PuffinBasicDataType dt2) {
+        final OpCode opCode;
+        if (dt1 == STRING && dt2 == STRING) {
+            opCode = OpCode.LTSTR;
+        } else {
+            if (dt1 == DOUBLE || dt2 == DOUBLE) {
+                opCode = OpCode.LTF64;
+            } else if (dt1 == INT64 || dt2 == INT64) {
+                opCode = OpCode.LTI64;
+            } else if (dt1 == FLOAT || dt2 == FLOAT) {
+                opCode = OpCode.LTF32;
+            } else {
+                opCode = OpCode.LTI32;
+            }
+        }
+        return opCode;
     }
 
     @Override
     public void exitExprRelLe(PuffinBasicParser.ExprRelLeContext ctx) {
-        addRelationalOpExpr(ctx, OpCode.LE, ctx.expr(0), ctx.expr(1));
+        var exprL = lookupInstruction(ctx.expr(0));
+        var exprR = lookupInstruction(ctx.expr(1));
+        var dt1 = ir.getSymbolTable().get(exprL.result).getValue().getDataType();
+        var dt2 = ir.getSymbolTable().get(exprR.result).getValue().getDataType();
+        checkDataTypeMatch(dt1, dt2, () -> getCtxString(ctx));
+        final OpCode opCode;
+        if (dt1 == STRING && dt2 == STRING) {
+            opCode = OpCode.LESTR;
+        } else {
+            if (dt1 == DOUBLE || dt2 == DOUBLE) {
+                opCode = OpCode.LEF64;
+            } else if (dt1 == INT64 || dt2 == INT64) {
+                opCode = OpCode.LEI64;
+            } else if (dt1 == FLOAT || dt2 == FLOAT) {
+                opCode = OpCode.LEF32;
+            } else {
+                opCode = OpCode.LEI32;
+            }
+        }
+        var result = ir.getSymbolTable().addTmp(INT64, e -> {});
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                opCode, exprL.result, exprR.result, result
+        ));
     }
 
     @Override
     public void exitExprRelGt(PuffinBasicParser.ExprRelGtContext ctx) {
-        addRelationalOpExpr(ctx, OpCode.GT, ctx.expr(0), ctx.expr(1));
+        var exprL = lookupInstruction(ctx.expr(0));
+        var exprR = lookupInstruction(ctx.expr(1));
+        var dt1 = ir.getSymbolTable().get(exprL.result).getValue().getDataType();
+        var dt2 = ir.getSymbolTable().get(exprR.result).getValue().getDataType();
+        checkDataTypeMatch(dt1, dt2, () -> getCtxString(ctx));
+        final OpCode opCode = getGTOpCode(dt1, dt2);
+        var result = ir.getSymbolTable().addTmp(INT64, e -> {});
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                opCode, exprL.result, exprR.result, result
+        ));
+    }
+
+    @NotNull
+    private PuffinBasicIR.OpCode getGTOpCode(PuffinBasicDataType dt1, PuffinBasicDataType dt2) {
+        final OpCode opCode;
+        if (dt1 == STRING && dt2 == STRING) {
+            opCode = OpCode.GTSTR;
+        } else {
+            if (dt1 == DOUBLE || dt2 == DOUBLE) {
+                opCode = OpCode.GTF64;
+            } else if (dt1 == INT64 || dt2 == INT64) {
+                opCode = OpCode.GTI64;
+            } else if (dt1 == FLOAT || dt2 == FLOAT) {
+                opCode = OpCode.GTF32;
+            } else {
+                opCode = OpCode.GTI32;
+            }
+        }
+        return opCode;
     }
 
     @Override
     public void exitExprRelGe(PuffinBasicParser.ExprRelGeContext ctx) {
-        addRelationalOpExpr(ctx, OpCode.GE, ctx.expr(0), ctx.expr(1));
-    }
-
-    private void addRelationalOpExpr(
-            ParserRuleContext parent, OpCode opCode, PuffinBasicParser.ExprContext exprLeft, PuffinBasicParser.ExprContext exprRight) {
-        var exprL = lookupInstruction(exprLeft);
-        var exprR = lookupInstruction(exprRight);
-
-        checkDataTypeMatch(exprL.result, exprR.result, () -> getCtxString(parent));
+        var exprL = lookupInstruction(ctx.expr(0));
+        var exprR = lookupInstruction(ctx.expr(1));
+        var dt1 = ir.getSymbolTable().get(exprL.result).getValue().getDataType();
+        var dt2 = ir.getSymbolTable().get(exprR.result).getValue().getDataType();
+        checkDataTypeMatch(dt1, dt2, () -> getCtxString(ctx));
+        final OpCode opCode = getGEOpCode(dt1, dt2);
         var result = ir.getSymbolTable().addTmp(INT64, e -> {});
-        nodeToInstruction.put(parent, ir.addInstruction(
-                currentLineNumber, parent.start.getStartIndex(), parent.stop.getStopIndex(),
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
                 opCode, exprL.result, exprR.result, result
         ));
+    }
+
+    @NotNull
+    private PuffinBasicIR.OpCode getGEOpCode(PuffinBasicDataType dt1, PuffinBasicDataType dt2) {
+        final OpCode opCode;
+        if (dt1 == STRING && dt2 == STRING) {
+            opCode = OpCode.GESTR;
+        } else {
+            if (dt1 == DOUBLE || dt2 == DOUBLE) {
+                opCode = OpCode.GEF64;
+            } else if (dt1 == INT64 || dt2 == INT64) {
+                opCode = OpCode.GEI64;
+            } else if (dt1 == FLOAT || dt2 == FLOAT) {
+                opCode = OpCode.GEF32;
+            } else {
+                opCode = OpCode.GEI32;
+            }
+        }
+        return opCode;
     }
 
     @Override
@@ -1878,7 +2104,8 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         var t1 = ir.getSymbolTable().addTmp(INT32, e -> {});
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.GE, stepCopy.result, zero, t1
+                getGEOpCode(ir.getSymbolTable().get(stepCopy.result).getValue().getDataType(), INT32),
+                stepCopy.result, zero, t1
         );
         // Patch GOTO LABEL Check
         gotoLabelCheck.patchOp1(labelCheck.op1);
@@ -1886,7 +2113,9 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         var t2 = ir.getSymbolTable().addTmp(INT32, e -> {});
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.GT, varInstr.result, endCopy.result, t2
+                getGTOpCode(ir.getSymbolTable().get(varInstr.result).getValue().getDataType(),
+                        ir.getSymbolTable().get(endCopy.result).getValue().getDataType()),
+                varInstr.result, endCopy.result, t2
         );
         // (step >= 0 and var > end)
         var t3 = ir.getSymbolTable().addTmp(INT32, e -> {});
@@ -1898,13 +2127,16 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         var t4 = ir.getSymbolTable().addTmp(INT32, e -> {});
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.LT, stepCopy.result, zero, t4
+                getLTOpCode(ir.getSymbolTable().get(stepCopy.result).getValue().getDataType(), INT32),
+                stepCopy.result, zero, t4
         );
         // var < end
         var t5 = ir.getSymbolTable().addTmp(INT32, e -> {});
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.LT, varInstr.result, endCopy.result, t5
+                getLTOpCode(ir.getSymbolTable().get(varInstr.result).getValue().getDataType(),
+                        ir.getSymbolTable().get(endCopy.result).getValue().getDataType()),
+                varInstr.result, endCopy.result, t5
         );
         // (step < 0 and var < end)
         var t6 = ir.getSymbolTable().addTmp(INT32, e -> {});
@@ -3532,6 +3764,17 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                     lineSupplier.get(),
                     "Data type " + entry1.getDataType()
                             + " mismatches with " + entry2.getDataType()
+            );
+        }
+    }
+
+    private void checkDataTypeMatch(PuffinBasicDataType dt1, PuffinBasicDataType dt2, Supplier<String> lineSupplier) {
+        if ((dt1 == STRING && dt2 != STRING) ||
+                (dt1 != STRING && dt2 == STRING)) {
+            throw new PuffinBasicSemanticError(
+                    DATA_TYPE_MISMATCH,
+                    lineSupplier.get(),
+                    "Data type " + dt1 + " mismatches with " + dt2
             );
         }
     }

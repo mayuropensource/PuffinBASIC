@@ -1,17 +1,11 @@
 package org.puffinbasic.runtime;
 
 import org.puffinbasic.domain.PuffinBasicSymbolTable;
-import org.puffinbasic.domain.STObjects.PuffinBasicDataType;
 import org.puffinbasic.error.PuffinBasicInternalError;
 import org.puffinbasic.error.PuffinBasicRuntimeError;
 import org.puffinbasic.parser.PuffinBasicIR.Instruction;
-import org.puffinbasic.parser.PuffinBasicIR.OpCode;
 
-import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.DOUBLE;
-import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.FLOAT;
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.INT32;
-import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.INT64;
-import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.STRING;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.DIVISION_BY_ZERO;
 
 final class Operators {
@@ -120,12 +114,6 @@ final class Operators {
         }
     }
 
-    private static void throwIllegalDataTypeError(OpCode opCode, PuffinBasicDataType dt) {
-        throw new PuffinBasicInternalError(
-                "Illegal data type: " + opCode + " cannot be used with " + dt
-        );
-    }
-
     public static void addInt32(
             PuffinBasicSymbolTable symbolTable,
             Instruction instruction)
@@ -166,144 +154,139 @@ final class Operators {
         result.setFloat64(v1.getFloat64() + v2.getFloat64());
     }
 
-    public static void sub(
+    public static void subInt32(
             PuffinBasicSymbolTable symbolTable,
             Instruction instruction)
     {
-        var opCode = instruction.opCode;
         var v1 = symbolTable.get(instruction.op1).getValue();
         var v2 = symbolTable.get(instruction.op2).getValue();
         var result = symbolTable.get(instruction.result).getValue();
-        var dt = result.getDataType();
-
-        switch (dt) {
-            case INT32:
-                result.setInt32(v1.getInt32() - v2.getInt32());
-                break;
-            case INT64:
-                result.setInt64(v1.getInt64() - v2.getInt64());
-                break;
-            case FLOAT:
-                result.setFloat32(v1.getFloat32() - v2.getFloat32());
-                break;
-            case DOUBLE:
-                result.setFloat64(v1.getFloat64() - v2.getFloat64());
-                break;
-            default:
-                throwIllegalDataTypeError(opCode, dt);
-                break;
-        }
+        result.setInt32(v1.getInt32() - v2.getInt32());
     }
 
-    public static void mul(
+    public static void subInt64(
             PuffinBasicSymbolTable symbolTable,
             Instruction instruction)
     {
-        var opCode = instruction.opCode;
         var v1 = symbolTable.get(instruction.op1).getValue();
         var v2 = symbolTable.get(instruction.op2).getValue();
         var result = symbolTable.get(instruction.result).getValue();
-        var dt = result.getDataType();
+        result.setInt64(v1.getInt64() - v2.getInt64());
+    }
 
-        switch (dt) {
-            case INT32:
-                result.setInt32(v1.getInt32() * v2.getInt32());
-                break;
-            case INT64:
-                result.setInt64(v1.getInt64() * v2.getInt64());
-                break;
-            case FLOAT:
-                result.setFloat32(v1.getFloat32() * v2.getFloat32());
-                break;
-            case DOUBLE:
-                result.setFloat64(v1.getFloat64() * v2.getFloat64());
-                break;
-            default:
-                throwIllegalDataTypeError(opCode, dt);
-                break;
-        }
+    public static void subFloat32(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var v1 = symbolTable.get(instruction.op1).getValue();
+        var v2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setFloat32(v1.getFloat32() - v2.getFloat32());
+    }
+
+    public static void subFloat64(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var v1 = symbolTable.get(instruction.op1).getValue();
+        var v2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setFloat64(v1.getFloat64() - v2.getFloat64());
+    }
+
+    public static void mulInt32(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var v1 = symbolTable.get(instruction.op1).getValue();
+        var v2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt32(v1.getInt32() * v2.getInt32());
+    }
+
+    public static void mulInt64(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var v1 = symbolTable.get(instruction.op1).getValue();
+        var v2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt64(v1.getInt64() * v2.getInt64());
+    }
+
+    public static void mulFloat32(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var v1 = symbolTable.get(instruction.op1).getValue();
+        var v2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setFloat32(v1.getFloat32() * v2.getFloat32());
+    }
+
+    public static void mulFloat64(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var v1 = symbolTable.get(instruction.op1).getValue();
+        var v2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setFloat64(v1.getFloat64() * v2.getFloat64());
     }
 
     public static void fdiv(
             PuffinBasicSymbolTable symbolTable,
-            Instruction instruction)
-    {
-        var opCode = instruction.opCode;
+            Instruction instruction) {
         var v1 = symbolTable.get(instruction.op1).getValue();
         var v2 = symbolTable.get(instruction.op2).getValue();
         var result = symbolTable.get(instruction.result).getValue();
-        var dt = result.getDataType();
-
-        switch (dt) {
-            case INT32:
-                if (v2.getInt32() == 0) {
-                    throw new PuffinBasicRuntimeError(
-                            DIVISION_BY_ZERO,
-                            "Division by zero"
-                    );
-                }
-                result.setInt32(v1.getInt32() / v2.getInt32());
-                break;
-            case INT64:
-                if (v2.getInt64() == 0) {
-                    throw new PuffinBasicRuntimeError(
-                            DIVISION_BY_ZERO,
-                            "Division by zero"
-                    );
-                }
-                result.setInt64(v1.getInt64() / v2.getInt64());
-                break;
-            case FLOAT:
-                if (v2.getFloat32() == 0) {
-                    throw new PuffinBasicRuntimeError(
-                            DIVISION_BY_ZERO,
-                            "Division by zero"
-                    );
-                }
-                result.setFloat32(v1.getFloat32() / v2.getFloat32());
-                break;
-            case DOUBLE:
-                if (v2.getFloat64() == 0) {
-                    throw new PuffinBasicRuntimeError(
-                            DIVISION_BY_ZERO,
-                            "Division by zero"
-                    );
-                }
-                result.setFloat64(v1.getFloat64() / v2.getFloat64());
-                break;
-            default:
-                throwIllegalDataTypeError(opCode, dt);
-                break;
+        if (v2.getFloat64() == 0) {
+            throw new PuffinBasicRuntimeError(
+                    DIVISION_BY_ZERO,
+                    "Division by zero"
+            );
         }
+        result.setFloat64(v1.getFloat64() / v2.getFloat64());
     }
 
-    public static void exp(
+    public static void expInt32(
             PuffinBasicSymbolTable symbolTable,
             Instruction instruction)
     {
-        var opCode = instruction.opCode;
         var v1 = symbolTable.get(instruction.op1).getValue();
         var v2 = symbolTable.get(instruction.op2).getValue();
         var result = symbolTable.get(instruction.result).getValue();
-        var dt = result.getDataType();
+        result.setInt32((int) Math.pow(v1.getInt32(), v2.getInt32()));
+    }
 
-        switch (dt) {
-            case INT32:
-                result.setInt32((int) Math.pow(v1.getInt32(), v2.getInt32()));
-                break;
-            case INT64:
-                result.setInt64((long) Math.pow(v1.getInt64(), v2.getInt64()));
-                break;
-            case FLOAT:
-                result.setFloat32((float) Math.pow(v1.getFloat32(), v2.getFloat32()));
-                break;
-            case DOUBLE:
-                result.setFloat64(Math.pow(v1.getFloat64(), v2.getFloat64()));
-                break;
-            default:
-                throwIllegalDataTypeError(opCode, dt);
-                break;
-        }
+    public static void expInt64(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var v1 = symbolTable.get(instruction.op1).getValue();
+        var v2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt64((long) Math.pow(v1.getInt64(), v2.getInt64()));
+    }
+
+    public static void expFloat32(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var v1 = symbolTable.get(instruction.op1).getValue();
+        var v2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setFloat32((float) Math.pow(v1.getFloat32(), v2.getFloat32()));
+    }
+
+    public static void expFloat64(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var v1 = symbolTable.get(instruction.op1).getValue();
+        var v2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setFloat64(Math.pow(v1.getFloat64(), v2.getFloat64()));
     }
 
     public static void and(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
@@ -376,160 +359,306 @@ final class Operators {
         }
     }
 
-    public static void lt(
+    public static void ltInt32(
             PuffinBasicSymbolTable symbolTable,
             Instruction instruction)
     {
         var e1 = symbolTable.get(instruction.op1).getValue();
         var e2 = symbolTable.get(instruction.op2).getValue();
-        var dt1 = e1.getDataType();
-        var dt2 = e2.getDataType();
         var result = symbolTable.get(instruction.result).getValue();
-        final long longResult;
-        if (dt1 == STRING && dt2 == STRING) {
-            longResult = e1.getString().compareTo(e2.getString()) < 0 ? -1 : 0;
-        } else {
-            if (dt1 == DOUBLE || dt2 == DOUBLE) {
-                longResult = Double.compare(e1.getFloat64(), e2.getFloat64()) < 0 ? -1 : 0;
-            } else if (dt1 == INT64 || dt2 == INT64) {
-                longResult = e1.getInt64() < e2.getInt64() ? -1 : 0;
-            } else if (dt1 == FLOAT || dt2 == FLOAT) {
-                longResult = Float.compare(e1.getFloat32(), e2.getFloat32()) < 0 ? -1 : 0;
-            } else {
-                longResult = e1.getInt32() < e2.getInt32() ? -1 : 0;
-            }
-        }
-        result.setInt64(longResult);
+        result.setInt64(e1.getInt32() < e2.getInt32() ? -1 : 0);
     }
 
-    public static void le(
+    public static void ltInt64(
             PuffinBasicSymbolTable symbolTable,
             Instruction instruction)
     {
         var e1 = symbolTable.get(instruction.op1).getValue();
         var e2 = symbolTable.get(instruction.op2).getValue();
-        var dt1 = e1.getDataType();
-        var dt2 = e2.getDataType();
         var result = symbolTable.get(instruction.result).getValue();
-        final long longResult;
-        if (dt1 == STRING && dt2 == STRING) {
-            longResult = e1.getString().compareTo(e2.getString()) <= 0 ? -1 : 0;
-        } else {
-            if (dt1 == DOUBLE || dt2 == DOUBLE) {
-                longResult = Double.compare(e1.getFloat64(), e2.getFloat64()) <= 0 ? -1 : 0;
-            } else if (dt1 == INT64 || dt2 == INT64) {
-                longResult = e1.getInt64() <= e2.getInt64() ? -1 : 0;
-            } else if (dt1 == FLOAT || dt2 == FLOAT) {
-                longResult = Float.compare(e1.getFloat32(), e2.getFloat32()) <= 0 ? -1 : 0;
-            } else {
-                longResult = e1.getInt32() <= e2.getInt32() ? -1 : 0;
-            }
-        }
-        result.setInt64(longResult);
+        result.setInt64(e1.getInt64() < e2.getInt64() ? -1 : 0);
     }
 
-    public static void gt(
+    public static void ltFloat32(
             PuffinBasicSymbolTable symbolTable,
             Instruction instruction)
     {
         var e1 = symbolTable.get(instruction.op1).getValue();
         var e2 = symbolTable.get(instruction.op2).getValue();
-        var dt1 = e1.getDataType();
-        var dt2 = e2.getDataType();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt64(Float.compare(e1.getFloat32(), e2.getFloat32()) < 0 ? -1 : 0);
+    }
+
+    public static void ltFloat64(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var e1 = symbolTable.get(instruction.op1).getValue();
+        var e2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt64(Double.compare(e1.getFloat64(), e2.getFloat64()) < 0 ? -1 : 0);
+    }
+
+    public static void ltStr(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var e1 = symbolTable.get(instruction.op1).getValue();
+        var e2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt64(e1.getString().compareTo(e2.getString()) < 0 ? -1 : 0);
+    }
+
+    public static void leInt32(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var e1 = symbolTable.get(instruction.op1).getValue();
+        var e2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt64(e1.getInt32() <= e2.getInt32() ? -1 : 0);
+    }
+
+    public static void leInt64(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var e1 = symbolTable.get(instruction.op1).getValue();
+        var e2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt64(e1.getInt64() <= e2.getInt64() ? -1 : 0);
+    }
+
+    public static void leFloat32(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var e1 = symbolTable.get(instruction.op1).getValue();
+        var e2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt64(Float.compare(e1.getFloat32(), e2.getFloat32()) <= 0 ? -1 : 0);
+    }
+
+    public static void leFloat64(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var e1 = symbolTable.get(instruction.op1).getValue();
+        var e2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt64(Double.compare(e1.getFloat64(), e2.getFloat64()) <= 0 ? -1 : 0);
+    }
+
+    public static void leStr(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var e1 = symbolTable.get(instruction.op1).getValue();
+        var e2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt64(e1.getString().compareTo(e2.getString()) <= 0 ? -1 : 0);
+    }
+
+    public static void gtInt32(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var e1 = symbolTable.get(instruction.op1).getValue();
+        var e2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt64(e1.getInt32() > e2.getInt32() ? -1 : 0);
+    }
+
+    public static void gtInt64(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var e1 = symbolTable.get(instruction.op1).getValue();
+        var e2 = symbolTable.get(instruction.op2).getValue();
         var result = symbolTable.get(instruction.result).getValue();
         final long longResult;
-        if (dt1 == STRING && dt2 == STRING) {
-            longResult = e1.getString().compareTo(e2.getString()) > 0 ? -1 : 0;
-        } else {
-            if (dt1 == DOUBLE || dt2 == DOUBLE) {
-                longResult = Double.compare(e1.getFloat64(), e2.getFloat64()) > 0 ? -1 : 0;
-            } else if (dt1 == INT64 || dt2 == INT64) {
                 longResult = e1.getInt64() > e2.getInt64() ? -1 : 0;
-            } else if (dt1 == FLOAT || dt2 == FLOAT) {
-                longResult = Float.compare(e1.getFloat32(), e2.getFloat32()) > 0 ? -1 : 0;
-            } else {
-                longResult = e1.getInt32() > e2.getInt32() ? -1 : 0;
-            }
-        }
         result.setInt64(longResult);
     }
 
-    public static void ge(
+    public static void gtFloat32(
             PuffinBasicSymbolTable symbolTable,
             Instruction instruction)
     {
         var e1 = symbolTable.get(instruction.op1).getValue();
         var e2 = symbolTable.get(instruction.op2).getValue();
-        var dt1 = e1.getDataType();
-        var dt2 = e2.getDataType();
         var result = symbolTable.get(instruction.result).getValue();
-        final long longResult;
-        if (dt1 == STRING && dt2 == STRING) {
-            longResult = e1.getString().compareTo(e2.getString()) >= 0 ? -1 : 0;
-        } else {
-            if (dt1 == DOUBLE || dt2 == DOUBLE) {
-                longResult = Double.compare(e1.getFloat64(), e2.getFloat64()) >= 0 ? -1 : 0;
-            } else if (dt1 == INT64 || dt2 == INT64) {
-                longResult = e1.getInt64() >= e2.getInt64() ? -1 : 0;
-            } else if (dt1 == FLOAT || dt2 == FLOAT) {
-                longResult = Float.compare(e1.getFloat32(), e2.getFloat32()) >= 0 ? -1 : 0;
-            } else {
-                longResult = e1.getInt32() >= e2.getInt32() ? -1 : 0;
-            }
-        }
-        result.setInt64(longResult);
+        result.setInt64(Float.compare(e1.getFloat32(), e2.getFloat32()) > 0 ? -1 : 0);
     }
 
-    public static void eq(
+    public static void gtFloat64(
             PuffinBasicSymbolTable symbolTable,
             Instruction instruction)
     {
         var e1 = symbolTable.get(instruction.op1).getValue();
         var e2 = symbolTable.get(instruction.op2).getValue();
-        var dt1 = e1.getDataType();
-        var dt2 = e2.getDataType();
         var result = symbolTable.get(instruction.result).getValue();
-        final long longResult;
-        if (dt1 == STRING && dt2 == STRING) {
-            longResult = e1.getString().equals(e2.getString()) ? -1 : 0;
-        } else {
-            if (dt1 == DOUBLE || dt2 == DOUBLE) {
-                longResult = Double.compare(e1.getFloat64(), e2.getFloat64()) == 0 ? -1 : 0;
-            } else if (dt1 == INT64 || dt2 == INT64) {
-                longResult = e1.getInt64() == e2.getInt64() ? -1 : 0;
-            } else if (dt1 == FLOAT || dt2 == FLOAT) {
-                longResult = Float.compare(e1.getFloat32(), e2.getFloat32()) == 0 ? -1 : 0;
-            } else {
-                longResult = e1.getInt32() == e2.getInt32() ? -1 : 0;
-            }
-        }
-        result.setInt64(longResult);
+        result.setInt64(Double.compare(e1.getFloat64(), e2.getFloat64()) > 0 ? -1 : 0);
     }
 
-    public static void ne(
+    public static void gtStr(
             PuffinBasicSymbolTable symbolTable,
             Instruction instruction)
     {
         var e1 = symbolTable.get(instruction.op1).getValue();
         var e2 = symbolTable.get(instruction.op2).getValue();
-        var dt1 = e1.getDataType();
-        var dt2 = e2.getDataType();
         var result = symbolTable.get(instruction.result).getValue();
-        final long longResult;
-        if (dt1 == STRING && dt2 == STRING) {
-            longResult = !e1.getString().equals(e2.getString()) ? -1 : 0;
-        } else {
-            if (dt1 == DOUBLE || dt2 == DOUBLE) {
-                longResult = Double.compare(e1.getFloat64(), e2.getFloat64()) != 0 ? -1 : 0;
-            } else if (dt1 == INT64 || dt2 == INT64) {
-                longResult = e1.getInt64() != e2.getInt64() ? -1 : 0;
-            } else if (dt1 == FLOAT || dt2 == FLOAT) {
-                longResult = Float.compare(e1.getFloat32(), e2.getFloat32()) != 0 ? -1 : 0;
-            } else {
-                longResult = e1.getInt32() != e2.getInt32() ? -1 : 0;
-            }
-        }
-        result.setInt64(longResult);
+        result.setInt64(e1.getString().compareTo(e2.getString()) > 0 ? -1 : 0);
+    }
+
+    public static void geInt32(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var e1 = symbolTable.get(instruction.op1).getValue();
+        var e2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt64(e1.getInt32() >= e2.getInt32() ? -1 : 0);
+    }
+
+    public static void geInt64(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var e1 = symbolTable.get(instruction.op1).getValue();
+        var e2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt64(e1.getInt64() >= e2.getInt64() ? -1 : 0);
+    }
+
+    public static void geFloat32(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var e1 = symbolTable.get(instruction.op1).getValue();
+        var e2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt64(Float.compare(e1.getFloat32(), e2.getFloat32()) >= 0 ? -1 : 0);
+    }
+
+    public static void geFloat64(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var e1 = symbolTable.get(instruction.op1).getValue();
+        var e2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt64(Double.compare(e1.getFloat64(), e2.getFloat64()) >= 0 ? -1 : 0);
+    }
+
+    public static void geStr(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var e1 = symbolTable.get(instruction.op1).getValue();
+        var e2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt64(e1.getString().compareTo(e2.getString()) >= 0 ? -1 : 0);
+    }
+
+    public static void eqInt32(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var e1 = symbolTable.get(instruction.op1).getValue();
+        var e2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt64(e1.getInt32() == e2.getInt32() ? -1 : 0);
+    }
+
+    public static void eqInt64(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var e1 = symbolTable.get(instruction.op1).getValue();
+        var e2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt64(e1.getInt64() == e2.getInt64() ? -1 : 0);
+    }
+
+    public static void eqFloat32(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var e1 = symbolTable.get(instruction.op1).getValue();
+        var e2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt64(Float.compare(e1.getFloat32(), e2.getFloat32()) == 0 ? -1 : 0);
+    }
+
+    public static void eqFloat64(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var e1 = symbolTable.get(instruction.op1).getValue();
+        var e2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt64(Double.compare(e1.getFloat64(), e2.getFloat64()) == 0 ? -1 : 0);
+    }
+
+    public static void eqStr(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var e1 = symbolTable.get(instruction.op1).getValue();
+        var e2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt64(e1.getString().equals(e2.getString()) ? -1 : 0);
+    }
+
+    public static void neInt32(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var e1 = symbolTable.get(instruction.op1).getValue();
+        var e2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt64(e1.getInt32() != e2.getInt32() ? -1 : 0);
+    }
+
+    public static void neInt64(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var e1 = symbolTable.get(instruction.op1).getValue();
+        var e2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt64(e1.getInt64() != e2.getInt64() ? -1 : 0);
+    }
+
+    public static void neFloat32(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var e1 = symbolTable.get(instruction.op1).getValue();
+        var e2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt64(Float.compare(e1.getFloat32(), e2.getFloat32()) != 0 ? -1 : 0);
+    }
+
+    public static void neFloat64(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var e1 = symbolTable.get(instruction.op1).getValue();
+        var e2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt64(Double.compare(e1.getFloat64(), e2.getFloat64()) != 0 ? -1 : 0);
+    }
+
+    public static void neStr(
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var e1 = symbolTable.get(instruction.op1).getValue();
+        var e2 = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+        result.setInt64(!e1.getString().equals(e2.getString()) ? -1 : 0);
     }
 
     public static void unaryNot(

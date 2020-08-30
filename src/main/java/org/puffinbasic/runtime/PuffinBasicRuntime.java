@@ -205,11 +205,29 @@ public class PuffinBasicRuntime {
                 }
             }
                 break;
-            case EXP:
-                Operators.exp(ir.getSymbolTable(), instruction);
+            case EXPI32:
+                Operators.expInt32(ir.getSymbolTable(), instruction);
                 break;
-            case MUL:
-                Operators.mul(ir.getSymbolTable(), instruction);
+            case EXPI64:
+                Operators.expInt64(ir.getSymbolTable(), instruction);
+                break;
+            case EXPF32:
+                Operators.expFloat32(ir.getSymbolTable(), instruction);
+                break;
+            case EXPF64:
+                Operators.expFloat64(ir.getSymbolTable(), instruction);
+                break;
+            case MULI32:
+                Operators.mulInt32(ir.getSymbolTable(), instruction);
+                break;
+            case MULI64:
+                Operators.mulInt64(ir.getSymbolTable(), instruction);
+                break;
+            case MULF32:
+                Operators.mulFloat32(ir.getSymbolTable(), instruction);
+                break;
+            case MULF64:
+                Operators.mulFloat64(ir.getSymbolTable(), instruction);
                 break;
             case IDIV:
                 Operators.idiv(ir.getSymbolTable(), instruction);
@@ -229,29 +247,110 @@ public class PuffinBasicRuntime {
             case ADDF64:
                 Operators.addFloat64(ir.getSymbolTable(), instruction);
                 break;
-            case SUB:
-                Operators.sub(ir.getSymbolTable(), instruction);
+            case SUBI32:
+                Operators.subInt32(ir.getSymbolTable(), instruction);
+                break;
+            case SUBI64:
+                Operators.subInt64(ir.getSymbolTable(), instruction);
+                break;
+            case SUBF32:
+                Operators.subFloat32(ir.getSymbolTable(), instruction);
+                break;
+            case SUBF64:
+                Operators.subFloat64(ir.getSymbolTable(), instruction);
                 break;
             case MOD:
                 Operators.mod(ir.getSymbolTable(), instruction);
                 break;
-            case EQ:
-                Operators.eq(ir.getSymbolTable(), instruction);
+            case EQI32:
+                Operators.eqInt32(ir.getSymbolTable(), instruction);
                 break;
-            case NE:
-                Operators.ne(ir.getSymbolTable(), instruction);
+            case EQI64:
+                Operators.eqInt64(ir.getSymbolTable(), instruction);
                 break;
-            case LT:
-                Operators.lt(ir.getSymbolTable(), instruction);
+            case EQF32:
+                Operators.eqFloat32(ir.getSymbolTable(), instruction);
                 break;
-            case LE:
-                Operators.le(ir.getSymbolTable(), instruction);
+            case EQF64:
+                Operators.eqFloat64(ir.getSymbolTable(), instruction);
                 break;
-            case GT:
-                Operators.gt(ir.getSymbolTable(), instruction);
+            case EQSTR:
+                Operators.eqStr(ir.getSymbolTable(), instruction);
                 break;
-            case GE:
-                Operators.ge(ir.getSymbolTable(), instruction);
+            case NEI32:
+                Operators.neInt32(ir.getSymbolTable(), instruction);
+                break;
+            case NEI64:
+                Operators.neInt64(ir.getSymbolTable(), instruction);
+                break;
+            case NEF32:
+                Operators.neFloat32(ir.getSymbolTable(), instruction);
+                break;
+            case NEF64:
+                Operators.neFloat64(ir.getSymbolTable(), instruction);
+                break;
+            case NESTR:
+                Operators.neStr(ir.getSymbolTable(), instruction);
+                break;
+            case LTI32:
+                Operators.ltInt32(ir.getSymbolTable(), instruction);
+                break;
+            case LTI64:
+                Operators.ltInt64(ir.getSymbolTable(), instruction);
+                break;
+            case LTF32:
+                Operators.ltFloat32(ir.getSymbolTable(), instruction);
+                break;
+            case LTF64:
+                Operators.ltFloat64(ir.getSymbolTable(), instruction);
+                break;
+            case LTSTR:
+                Operators.ltStr(ir.getSymbolTable(), instruction);
+                break;
+            case LEI32:
+                Operators.leInt32(ir.getSymbolTable(), instruction);
+                break;
+            case LEI64:
+                Operators.leInt64(ir.getSymbolTable(), instruction);
+                break;
+            case LEF32:
+                Operators.leFloat32(ir.getSymbolTable(), instruction);
+                break;
+            case LEF64:
+                Operators.leFloat64(ir.getSymbolTable(), instruction);
+                break;
+            case LESTR:
+                Operators.leStr(ir.getSymbolTable(), instruction);
+                break;
+            case GTI32:
+                Operators.gtInt32(ir.getSymbolTable(), instruction);
+                break;
+            case GTI64:
+                Operators.gtInt64(ir.getSymbolTable(), instruction);
+                break;
+            case GTF32:
+                Operators.gtFloat32(ir.getSymbolTable(), instruction);
+                break;
+            case GTF64:
+                Operators.gtFloat64(ir.getSymbolTable(), instruction);
+                break;
+            case GTSTR:
+                Operators.gtStr(ir.getSymbolTable(), instruction);
+                break;
+            case GEI32:
+                Operators.geInt32(ir.getSymbolTable(), instruction);
+                break;
+            case GEI64:
+                Operators.geInt64(ir.getSymbolTable(), instruction);
+                break;
+            case GEF32:
+                Operators.geFloat32(ir.getSymbolTable(), instruction);
+                break;
+            case GEF64:
+                Operators.geFloat64(ir.getSymbolTable(), instruction);
+                break;
+            case GESTR:
+                Operators.geStr(ir.getSymbolTable(), instruction);
                 break;
             case NOT:
                 Operators.unaryNot(ir.getSymbolTable(), instruction);
