@@ -578,24 +578,40 @@ class GraphicsRuntime {
                     "Bad variable! Expected Int32 2D-Array variable: " + variable.getVariable()
             );
         }
-        if (x < 0 || y < 0
-                || x > graphicsState.getCanvasWidth()
-                || y > graphicsState.getCanvasHeight()) {
-            throw new PuffinBasicRuntimeError(
-                    GRAPHICS_ERROR,
-                    "x/y misaligned/out-of-bounds: (" + x + ", " + y + ")"
-                        + " Canvas: " + graphicsState.getCanvasWidth() + ","
-                        + graphicsState.getCanvasHeight()
-            );
-        }
+
+        int CW = graphicsState.getCanvasWidth();
+        int CH = graphicsState.getCanvasHeight();
 
         var dims = value.getArrayDimensions();
-        int w = dims.getInt(0);
-        int h = dims.getInt(1);
+        int iw = dims.getInt(0);
+        int ih = dims.getInt(1);
 
-        graphicsState.getFrame().getDrawingCanvas().copyArrayToGraphics(
-                x, y, w, h, action, value.getInt32Array1D()
-        );
+        int offset = 0;
+        int w, h;
+        int xx, yy;
+        if (x >= 0) {
+            w = Math.min(iw, CW - x);
+            xx = x;
+        } else {
+            w = Math.min(iw, iw + x);
+            xx = 0;
+            offset += Math.abs(x);
+        }
+        if (y >= 0) {
+            h = Math.min(ih, CH - y);
+            yy = y;
+        } else {
+            h = Math.min(ih, ih + y);
+            yy = 0;
+            offset += Math.abs(y) * iw;
+        }
+
+        // draw only if the image falls on the screen
+        if (w > 0 && h > 0 && offset < iw * ih) {
+            graphicsState.getFrame().getDrawingCanvas().copyArrayToGraphics(
+                    xx, yy, w, h, action, value.getInt32Array1D(), offset, iw
+            );
+        }
     }
 
     public static void inkeydlr(

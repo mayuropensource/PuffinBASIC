@@ -165,11 +165,11 @@ class GraphicsUtil {
             image.getRGB(x1, y1, w, h, dest, 0, w);
         }
 
-        void copyArrayToGraphics(int x, int y, int w, int h, String action, int[] src) {
+        void copyArrayToGraphics(int x, int y, int w, int h, String action, int[] src, int offset, int scanWidth) {
             if (action.equalsIgnoreCase(PUT_PSET)) {
-                image.setRGB(x, y, w, h, src, 0, w);
+                image.setRGB(x, y, w, h, src, offset, scanWidth);
             } else {
-                var copy = image.getRGB(x, y, w, h, null, 0, w);
+                var copy = image.getRGB(x, y, w, h, null, offset, scanWidth);
                 if (action.equalsIgnoreCase(PUT_XOR)) {
                     for (int i = 0; i < copy.length; i++) {
                         copy[i] = copy[i] ^ src[i];
@@ -194,7 +194,7 @@ class GraphicsUtil {
                             "Bad PUT action: " + action
                     );
                 }
-                image.setRGB(x, y, w, h, copy, 0, w);
+                image.setRGB(x, y, w, h, copy, offset, scanWidth);
             }
         }
 
