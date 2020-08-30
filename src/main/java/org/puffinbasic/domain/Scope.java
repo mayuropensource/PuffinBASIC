@@ -4,8 +4,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectList;
 import org.puffinbasic.domain.STObjects.STEntry;
 import org.puffinbasic.domain.Variable.VariableName;
 
@@ -23,27 +21,29 @@ public interface Scope {
     boolean containsVariable(VariableName variableName);
     void putEntry(int id, STEntry entry);
     STEntry getEntry(int id);
-    boolean containsId(int id);
+    STEntry getNullableEntry(int id);
 
     final class GlobalScope implements Scope {
+        private static final int INITIAL_ENTRY_TABLE_SIZE = 1024;
         private final int callerInstrId;
         private final Int2ObjectMap<Scope> funcIdToScope;
         // This is an optimization to make entry access fast at runtime.
-        private final ObjectList<STEntry> entryMap;
+        //private final ObjectList<STEntry> entryMap;
+        private STEntry[] entryMap;
         private final Object2IntMap<VariableName> variableNameToEntry;
 
         GlobalScope() {
             this(
                 NULL_ID,
                 new Int2ObjectOpenHashMap<>(),
-                new ObjectArrayList<>(),
+                new STEntry[INITIAL_ENTRY_TABLE_SIZE],
                 new Object2IntOpenHashMap<>());
         }
 
         private GlobalScope(
             int callerInstrId,
             Int2ObjectMap<Scope> funcIdToScope,
-            ObjectList<STEntry> entryMap,
+            STEntry[] entryMap,
             Object2IntMap<VariableName> variableNameToEntry)
         {
             this.callerInstrId = callerInstrId;
@@ -101,32 +101,38 @@ public interface Scope {
             return variableNameToEntry.containsKey(variableName);
         }
 
+        private void resize(int index) {
+            int newLen = entryMap.length << 1;
+            if (newLen < index) {
+                do {
+                    newLen = newLen << 1;
+                } while (newLen < index);
+            }
+            var newEntryMap = new STEntry[newLen];
+            System.arraycopy(entryMap, 0, newEntryMap, 0, entryMap.length);
+            entryMap = newEntryMap;
+        }
+
         @Override
         public void putEntry(int id, STEntry entry) {
-            int sz = entryMap.size();
-            if (id == sz) {
-                entryMap.add(entry);
-            } else if (id < sz) {
-                entryMap.set(id, entry);
-            } else {
-                for (int i = sz; i < id; i++) {
-                    entryMap.add(null);
-                }
-                entryMap.add(entry);
+            int sz = entryMap.length;
+            if (id >= sz) {
+                resize(id);
             }
+            entryMap[id] = entry;
         }
 
         @Override
         public STEntry getEntry(int id) {
-            return entryMap.get(id);
+            return entryMap[id];
         }
 
         @Override
-        public boolean containsId(int id) {
-            if (id >= 0 && id < entryMap.size()) {
-                return entryMap.get(id) != null;
+        public STEntry getNullableEntry(int id) {
+            if (id >= 0 && id < entryMap.length) {
+                return entryMap[id];
             }
-            return false;
+            return null;
         }
     }
 
@@ -221,8 +227,8 @@ public interface Scope {
         }
 
         @Override
-        public boolean containsId(int id) {
-            return entryMap.containsKey(id);
+        public STEntry getNullableEntry(int id) {
+            return entryMap.get(id);
         }
     }
 }

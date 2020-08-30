@@ -4,7 +4,6 @@ import it.unimi.dsi.fastutil.chars.Char2ObjectMap;
 import it.unimi.dsi.fastutil.chars.Char2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import org.puffinbasic.domain.STObjects.AbstractSTArrayValue;
 import org.puffinbasic.domain.STObjects.ArrayReferenceValue;
 import org.puffinbasic.domain.STObjects.PuffinBasicDataType;
 import org.puffinbasic.domain.STObjects.STArrayReference;
@@ -13,7 +12,6 @@ import org.puffinbasic.domain.STObjects.STVariable;
 import org.puffinbasic.domain.Scope.GlobalScope;
 import org.puffinbasic.domain.Variable.VariableName;
 import org.puffinbasic.error.PuffinBasicInternalError;
-import org.puffinbasic.error.PuffinBasicRuntimeError;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -24,7 +22,6 @@ import java.util.function.Predicate;
 
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.DOUBLE;
 import static org.puffinbasic.domain.STObjects.STKind.TMP;
-import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.DUPLICATE_LABEL;
 
 public class PuffinBasicSymbolTable {
 
@@ -67,6 +64,24 @@ public class PuffinBasicSymbolTable {
         return Optional.empty();
     }
 
+    private STEntry getEntry(int id) {
+        var scope = getCurrentScope();
+        var entry = scope.getNullableEntry(id);
+        if (entry != null) {
+            return entry;
+        } else {
+            scope = scope.getParent();
+            while (scope != null) {
+                entry = scope.getNullableEntry(id);
+                if (entry != null) {
+                    return entry;
+                }
+                scope = scope.getParent();
+            }
+        }
+        throw new PuffinBasicInternalError("Failed to find entry for id: " + id);
+    }
+
     public STEntry get(int id) {
         // Cache for better performance
         if (id == lastId) {
@@ -78,9 +93,7 @@ public class PuffinBasicSymbolTable {
         lastLastId = lastId;
         lastLastEntry = lastEntry;
         lastId = id;
-        lastEntry = findScope(s -> s.containsId(id)).orElseThrow(
-                () -> new PuffinBasicInternalError("Failed to find entry for id: " + id)
-        ).getEntry(id);
+        lastEntry = getEntry(id);
         return lastEntry;
     }
 
