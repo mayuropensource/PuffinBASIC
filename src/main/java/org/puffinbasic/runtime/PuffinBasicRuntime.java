@@ -857,6 +857,27 @@ public class PuffinBasicRuntime {
             case SETSIZE:
                 Functions.setSize(setState, ir.getSymbolTable(), instruction);
                 break;
+            case MOUSEMOVEDX:
+                GraphicsRuntime.mouseMovedX(graphicsState, ir.getSymbolTable(), instruction);
+                break;
+            case MOUSEMOVEDY:
+                GraphicsRuntime.mouseMovedY(graphicsState, ir.getSymbolTable(), instruction);
+                break;
+            case MOUSEDRAGGEDX:
+                GraphicsRuntime.mouseDraggedX(graphicsState, ir.getSymbolTable(), instruction);
+                break;
+            case MOUSEDRAGGEDY:
+                GraphicsRuntime.mouseDraggedY(graphicsState, ir.getSymbolTable(), instruction);
+                break;
+            case MOUSEBUTTONCLICKED:
+                GraphicsRuntime.mouseButtonClicked(graphicsState, ir.getSymbolTable(), instruction);
+                break;
+            case MOUSEBUTTONPRESSED:
+                GraphicsRuntime.mouseButtonPressed(graphicsState, ir.getSymbolTable(), instruction);
+                break;
+            case MOUSEBUTTONRELEASED:
+                GraphicsRuntime.mouseButtonReleased(graphicsState, ir.getSymbolTable(), instruction);
+                break;
         }
 
         this.programCounter = nextProgramCounter;

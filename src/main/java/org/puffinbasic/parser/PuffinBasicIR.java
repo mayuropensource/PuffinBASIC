@@ -220,6 +220,13 @@ public class PuffinBasicIR {
         SETCONTAINS("setcontains"),
         SETCLEAR("setclear"),
         SETSIZE("setsize"),
+        MOUSEMOVEDX("mousemovedx"),
+        MOUSEMOVEDY("mousemovedy"),
+        MOUSEDRAGGEDX("mousedraggedx"),
+        MOUSEDRAGGEDY("mousedraggedy"),
+        MOUSEBUTTONCLICKED("mousebuttonclicked"),
+        MOUSEBUTTONPRESSED("mousebuttonpressed"),
+        MOUSEBUTTONRELEASED("mousebuttonreleased"),
         ;
 
         public final String repr;

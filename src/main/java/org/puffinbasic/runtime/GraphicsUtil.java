@@ -8,18 +8,24 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.GRAPHICS_ERROR;
 
@@ -48,7 +54,9 @@ class GraphicsUtil {
         }
 
         private DrawingCanvas init(String title, int w, int h, boolean autoRepaint) {
-            var drawingCanvas = new DrawingCanvas(w, h, REFRESH_MILLIS, KEY_BUFFER_SIZE);
+            var mouseState = new BasicMouseState(this);
+
+            var drawingCanvas = new DrawingCanvas(w, h, REFRESH_MILLIS, KEY_BUFFER_SIZE, mouseState);
             add(drawingCanvas);
 
             addWindowListener(new WindowAdapter() {
@@ -82,8 +90,9 @@ class GraphicsUtil {
         private final int w;
         private final int h;
         private final int[] clearBuffer;
+        private final BasicMouseState mouseState;
 
-        DrawingCanvas(int w, int h, int refreshMillis, int keyBufferSize) {
+        DrawingCanvas(int w, int h, int refreshMillis, int keyBufferSize, BasicMouseState mouseState) {
             this.w = w;
             this.h = h;
             this.clearBuffer = new int[w * h];
@@ -95,6 +104,11 @@ class GraphicsUtil {
             this.timer = new Timer(refreshMillis, this);
             this.keyBuffer = new ArrayDeque<>();
             this.keyBufferSize = keyBufferSize;
+            this.mouseState = mouseState;
+        }
+
+        public BasicMouseState getMouseState() {
+            return mouseState;
         }
 
         BufferedImage getImage() {
@@ -300,6 +314,168 @@ class GraphicsUtil {
                         || nextC.getBlue() != fill.getBlue()) {
                     queue.enqueue(createPoint(x, y + 1));
                 }
+            }
+        }
+    }
+
+    static final class BasicMouseState {
+        private final ReadWriteLock lock;
+        private int buttonClicked = -1;
+        private int buttonPressed = -1;
+        private int buttonReleased = -1;
+        private int draggedX = -1;
+        private int draggedY = -1;
+        private int movedX = -1;
+        private int movedY = -1;
+
+        BasicMouseState(Component component) {
+            this.lock = new ReentrantReadWriteLock();
+            component.addMouseListener(new BasicMouseAdapter());
+            component.addMouseMotionListener(new BasicMouseMotionAdapter());
+        }
+
+        void onMoved(MouseEvent e) {
+            lock.writeLock().lock();
+            try {
+                movedX = e.getX();
+                movedY = e.getY();
+            } finally {
+                lock.writeLock().unlock();
+            }
+        }
+
+        void onDragged(MouseEvent e) {
+            lock.writeLock().lock();
+            try {
+                draggedX = e.getX();
+                draggedY = e.getY();
+            } finally {
+                lock.writeLock().unlock();
+            }
+        }
+
+        void onClicked(MouseEvent e) {
+            lock.writeLock().lock();
+            try {
+                buttonClicked = e.getButton();
+            } finally {
+                lock.writeLock().unlock();
+            }
+        }
+
+        void onPressed(MouseEvent e) {
+            lock.writeLock().lock();
+            try {
+                buttonPressed = e.getButton();
+            } finally {
+                lock.writeLock().unlock();
+            }
+        }
+
+        void onReleased(MouseEvent e) {
+            lock.writeLock().lock();
+            try {
+                buttonReleased = e.getButton();
+            } finally {
+                lock.writeLock().unlock();
+            }
+        }
+
+        int getButtonClicked() {
+            lock.writeLock().lock();
+            try {
+                var result = buttonClicked;
+                buttonClicked = -1;
+                return result;
+            } finally {
+                lock.writeLock().unlock();
+            }
+        }
+
+        int getButtonPressed() {
+            lock.writeLock().lock();
+            try {
+                var result = buttonPressed;
+                buttonPressed = -1;
+                return result;
+            } finally {
+                lock.writeLock().unlock();
+            }
+        }
+
+        int getButtonReleased() {
+            lock.writeLock().lock();
+            try {
+                var result = buttonReleased;
+                buttonReleased = -1;
+                return result;
+            } finally {
+                lock.writeLock().unlock();
+            }
+        }
+
+        int getMovedX() {
+            lock.readLock().lock();
+            try {
+                return movedX;
+            } finally {
+                lock.readLock().unlock();
+            }
+        }
+
+        int getMovedY() {
+            lock.readLock().lock();
+            try {
+                return movedY;
+            } finally {
+                lock.readLock().unlock();
+            }
+        }
+
+        int getDraggedX() {
+            lock.readLock().lock();
+            try {
+                return draggedX;
+            } finally {
+                lock.readLock().unlock();
+            }
+        }
+
+        int getDraggedY() {
+            lock.readLock().lock();
+            try {
+                return draggedY;
+            } finally {
+                lock.readLock().unlock();
+            }
+        }
+
+        private final class BasicMouseMotionAdapter extends MouseMotionAdapter {
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                onDragged(e);
+            }
+
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                onMoved(e);
+            }
+        }
+
+        private final class BasicMouseAdapter extends MouseAdapter {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                onClicked(e);
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                onPressed(e);
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                onReleased(e);
             }
         }
     }

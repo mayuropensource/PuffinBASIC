@@ -222,6 +222,13 @@ func
     | SETCONTAINS LPAREN id=expr COMMA value=expr RPAREN                            # FuncSetContains
     | SETCLEAR LPAREN id=expr RPAREN                                                # FuncSetClear
     | SETSIZE LPAREN id=expr RPAREN                                                 # FuncSetSize
+    | MOUSEMOVEDX LPAREN RPAREN                             # FuncMouseMovedX
+    | MOUSEMOVEDY LPAREN RPAREN                             # FuncMouseMovedY
+    | MOUSEDRAGGEDX LPAREN RPAREN                           # FuncMouseDraggedX
+    | MOUSEDRAGGEDY LPAREN RPAREN                           # FuncMouseDraggedY
+    | MOUSEBUTTONCLICKED LPAREN RPAREN                      # FuncMouseButtonClicked
+    | MOUSEBUTTONPRESSED LPAREN RPAREN                      # FuncMouseButtonPressed
+    | MOUSEBUTTONRELEASED LPAREN RPAREN                     # FuncMouseButtonReleased
     ;
 
 gosubstmt
@@ -1212,6 +1219,34 @@ LABEL
 
 BEGIN
     : B E G I N
+    ;
+
+MOUSEMOVEDX
+    : M O U S E M O V E D X
+    ;
+
+MOUSEMOVEDY
+    : M O U S E M O V E D Y
+    ;
+
+MOUSEDRAGGEDX
+    : M O U S E D R A G G E D X
+    ;
+
+MOUSEDRAGGEDY
+    : M O U S E D R A G G E D Y
+    ;
+
+MOUSEBUTTONCLICKED
+    : M O U S E B U T T O N C L I C K E D
+    ;
+
+MOUSEBUTTONPRESSED
+    : M O U S E B U T T O N P R E S S E D
+    ;
+
+MOUSEBUTTONRELEASED
+    : M O U S E B U T T O N R E L E A S E D
     ;
 
 string

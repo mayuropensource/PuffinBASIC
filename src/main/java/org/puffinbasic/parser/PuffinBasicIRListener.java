@@ -1667,6 +1667,69 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                 ir.getSymbolTable().addTmp(INT32, e -> {})));
     }
 
+    @Override
+    public void exitFuncMouseMovedX(PuffinBasicParser.FuncMouseMovedXContext ctx) {
+        assertGraphics();
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.MOUSEMOVEDX, NULL_ID, NULL_ID,
+                ir.getSymbolTable().addTmp(INT32, e -> {})));
+    }
+
+    @Override
+    public void exitFuncMouseMovedY(PuffinBasicParser.FuncMouseMovedYContext ctx) {
+        assertGraphics();
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.MOUSEMOVEDY, NULL_ID, NULL_ID,
+                ir.getSymbolTable().addTmp(INT32, e -> {})));
+    }
+
+    @Override
+    public void exitFuncMouseDraggedX(PuffinBasicParser.FuncMouseDraggedXContext ctx) {
+        assertGraphics();
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.MOUSEDRAGGEDX, NULL_ID, NULL_ID,
+                ir.getSymbolTable().addTmp(INT32, e -> {})));
+    }
+
+    @Override
+    public void exitFuncMouseDraggedY(PuffinBasicParser.FuncMouseDraggedYContext ctx) {
+        assertGraphics();
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.MOUSEDRAGGEDY, NULL_ID, NULL_ID,
+                ir.getSymbolTable().addTmp(INT32, e -> {})));
+    }
+
+    @Override
+    public void exitFuncMouseButtonClicked(PuffinBasicParser.FuncMouseButtonClickedContext ctx) {
+        assertGraphics();
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.MOUSEBUTTONCLICKED, NULL_ID, NULL_ID,
+                ir.getSymbolTable().addTmp(INT32, e -> {})));
+    }
+
+    @Override
+    public void exitFuncMouseButtonPressed(PuffinBasicParser.FuncMouseButtonPressedContext ctx) {
+        assertGraphics();
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.MOUSEBUTTONPRESSED, NULL_ID, NULL_ID,
+                ir.getSymbolTable().addTmp(INT32, e -> {})));
+    }
+
+    @Override
+    public void exitFuncMouseButtonReleased(PuffinBasicParser.FuncMouseButtonReleasedContext ctx) {
+        assertGraphics();
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.MOUSEBUTTONRELEASED, NULL_ID, NULL_ID,
+                ir.getSymbolTable().addTmp(INT32, e -> {})));
+    }
+
     private Instruction addFuncWithExprInstruction(
             OpCode opCode, ParserRuleContext parent,
             PuffinBasicParser.ExprContext expr, NumericOrString numericOrString)

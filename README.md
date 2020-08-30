@@ -168,7 +168,6 @@ Since PuffinBASIC generates IR from source code and the runtime executes the IR,
 ## Planned Improvements
 
 1. Add decimal data type.
-1. Add mouse support.
 1. ...
 
 ## Performance
@@ -994,6 +993,27 @@ Example:
 
 ```
 HSB2RGB(0.5, 1.0, 1.0)
+```
+
+### Mouse Functions
+
+Mouse functions work in graphics mode only.
+
+Mouse x/y functions returns x/y coordinate relative to the window.
+
+Mouse button functions return the button number. 
+They return -1 if no button was pressed since last function call.
+
+Syntax:
+
+```
+MOUSEMOVEDX()
+MOUSEMOVEDY()
+MOUSEDRAGGEDX()
+MOUSEDRAGGEDY()
+MOUSEBUTTONCLICKED()
+MOUSEBUTTONPRESSED()
+MOUSEBUTTONRELEASED()
 ```
 
 ## Statements

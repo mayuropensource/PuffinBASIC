@@ -659,4 +659,67 @@ class GraphicsRuntime {
         var id = symbolTable.get(instruction.op1).getValue().getInt32();
         soundState.loop(id);
     }
+
+    public static void mouseMovedX(
+            GraphicsState graphicsState,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        symbolTable.get(instruction.result).getValue().setInt32(
+                graphicsState.getFrame().getDrawingCanvas().getMouseState().getMovedX());
+    }
+
+    public static void mouseMovedY(
+            GraphicsState graphicsState,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        symbolTable.get(instruction.result).getValue().setInt32(
+                graphicsState.getFrame().getDrawingCanvas().getMouseState().getMovedY());
+    }
+
+    public static void mouseDraggedX(
+            GraphicsState graphicsState,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        symbolTable.get(instruction.result).getValue().setInt32(
+                graphicsState.getFrame().getDrawingCanvas().getMouseState().getDraggedX());
+    }
+
+    public static void mouseDraggedY(
+            GraphicsState graphicsState,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        symbolTable.get(instruction.result).getValue().setInt32(
+                graphicsState.getFrame().getDrawingCanvas().getMouseState().getDraggedY());
+    }
+
+    public static void mouseButtonClicked(
+            GraphicsState graphicsState,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        symbolTable.get(instruction.result).getValue().setInt32(
+                graphicsState.getFrame().getDrawingCanvas().getMouseState().getButtonClicked());
+    }
+
+    public static void mouseButtonPressed(
+            GraphicsState graphicsState,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        symbolTable.get(instruction.result).getValue().setInt32(
+                graphicsState.getFrame().getDrawingCanvas().getMouseState().getButtonPressed());
+    }
+
+    public static void mouseButtonReleased(
+            GraphicsState graphicsState,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        symbolTable.get(instruction.result).getValue().setInt32(
+                graphicsState.getFrame().getDrawingCanvas().getMouseState().getButtonReleased());
+    }
 }
