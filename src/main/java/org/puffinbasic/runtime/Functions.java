@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import it.unimi.dsi.fastutil.doubles.Double2DoubleFunction;
 import org.puffinbasic.domain.PuffinBasicSymbolTable;
 import org.puffinbasic.domain.STObjects.PuffinBasicDataType;
+import org.puffinbasic.domain.STObjects.STVariable;
 import org.puffinbasic.error.PuffinBasicInternalError;
 import org.puffinbasic.error.PuffinBasicRuntimeError;
 import org.puffinbasic.file.PuffinBasicFiles;
@@ -19,10 +20,12 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Random;
 
+import static org.puffinbasic.domain.PuffinBasicSymbolTable.NULL_ID;
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.FLOAT;
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.INT32;
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.INT64;
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.STRING;
+import static org.puffinbasic.domain.STObjects.STKind.VARIABLE;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.DATA_OUT_OF_RANGE;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.ILLEGAL_FUNCTION_PARAM;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.INDEX_OUT_OF_BOUNDS;
@@ -387,8 +390,25 @@ public class Functions {
     }
 
     public static void len(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
-        var value = symbolTable.get(instruction.op1).getValue().getString();
-        symbolTable.get(instruction.result).getValue().setInt32(value == null ? 0 : value.length());
+        var stEntry = symbolTable.get(instruction.op1);
+        var value = stEntry.getValue();
+        final int len;
+        if (stEntry.getKind() == VARIABLE && ((STVariable) stEntry).getVariable().isArray()) {
+            int axis = instruction.op2 != NULL_ID ? symbolTable.get(instruction.op2).getValue().getInt32() : 0;
+            if (axis < 0 || axis >= value.getNumArrayDimensions()) {
+                throw new PuffinBasicRuntimeError(
+                        ILLEGAL_FUNCTION_PARAM,
+                        "Bad axis=" + axis + ", #dims=" + value.getNumArrayDimensions()
+                );
+            }
+            len = value.getArrayDimensions().getInt(axis);
+        } else if (value.getDataType() == STRING) {
+            len = value.getString().length();
+        } else {
+            throw new PuffinBasicRuntimeError(ILLEGAL_FUNCTION_PARAM,
+                    "Bad LEN() call!");
+        }
+        symbolTable.get(instruction.result).getValue().setInt32(len);
     }
 
     public static void strdlr(PuffinBasicSymbolTable symbolTable, Instruction instruction) {

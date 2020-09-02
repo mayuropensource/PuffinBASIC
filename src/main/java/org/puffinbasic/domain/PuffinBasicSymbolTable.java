@@ -12,6 +12,7 @@ import org.puffinbasic.domain.STObjects.STVariable;
 import org.puffinbasic.domain.Scope.GlobalScope;
 import org.puffinbasic.domain.Variable.VariableName;
 import org.puffinbasic.error.PuffinBasicInternalError;
+import org.puffinbasic.error.PuffinBasicRuntimeError;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -22,6 +23,8 @@ import java.util.function.Predicate;
 
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.DOUBLE;
 import static org.puffinbasic.domain.STObjects.STKind.TMP;
+import static org.puffinbasic.domain.STObjects.STKind.VARIABLE;
+import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.ILLEGAL_FUNCTION_PARAM;
 
 public class PuffinBasicSymbolTable {
 
@@ -97,6 +100,17 @@ public class PuffinBasicSymbolTable {
         return lastEntry;
     }
 
+    public STVariable getVariable(int id) {
+        var entry = get(id);
+        if (entry.getKind() != VARIABLE) {
+            throw new PuffinBasicRuntimeError(
+                    ILLEGAL_FUNCTION_PARAM,
+                    "Entry for id: " + id + " is not a variable"
+            );
+        }
+        return (STVariable) entry;
+    }
+
     public int addVariableOrUDF(
             VariableName variableName,
             Function<VariableName, Variable> variableCreator,
@@ -123,14 +137,6 @@ public class PuffinBasicSymbolTable {
         if (id == -1) {
             id = addLabel();
             labelNameToId.put(label, id);
-        }
-        return id;
-    }
-
-    public int getLabelForName(String label) {
-        var id = labelNameToId.getOrDefault(label, -1);
-        if (id == -1) {
-            throw new PuffinBasicInternalError("Failed to find labelId for label: " + label);
         }
         return id;
     }

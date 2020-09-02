@@ -1191,7 +1191,7 @@ public class STObjects {
 
         @Override
         public IntList getArrayDimensions() {
-            return new IntArrayList(dimensions);
+            return dimensions;
         }
 
         @Override

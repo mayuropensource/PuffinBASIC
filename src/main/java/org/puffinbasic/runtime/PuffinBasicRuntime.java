@@ -141,6 +141,14 @@ public class PuffinBasicRuntime {
             case VARREF:
                 Types.varref(ir.getSymbolTable(), instruction.op1, instruction.op2);
                 break;
+            case DIM: {
+                if (params.size() == 0) {
+                    throw new PuffinBasicInternalError("Expected >0 params, but found none!");
+                }
+                ArraysUtil.dim(ir.getSymbolTable(), params, instruction);
+                params.clear();
+            }
+            break;
             case ASSIGN:
             case COPY:
                 Types.copy(ir.getSymbolTable(), instruction.op1, instruction.op2);

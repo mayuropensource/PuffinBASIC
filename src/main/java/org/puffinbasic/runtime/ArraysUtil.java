@@ -1,5 +1,7 @@
 package org.puffinbasic.runtime;
 
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.puffinbasic.domain.PuffinBasicSymbolTable;
@@ -13,6 +15,7 @@ import org.puffinbasic.error.PuffinBasicRuntimeError;
 import org.puffinbasic.parser.PuffinBasicIR.Instruction;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.DATA_TYPE_MISMATCH;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.ILLEGAL_FUNCTION_PARAM;
@@ -30,6 +33,14 @@ final class ArraysUtil {
         void reset() {
             dimIndex = 0;
         }
+    }
+
+    static void dim(PuffinBasicSymbolTable symbolTable, List<Instruction> params, Instruction instruction) {
+        IntList dims = new IntArrayList(params.size());
+        for (var param : params) {
+            dims.add(symbolTable.get(param.op1).getValue().getInt32());
+        }
+        symbolTable.get(instruction.op1).getValue().setArrayDimensions(dims);
     }
 
     static void resetIndex(ArrayState state, PuffinBasicSymbolTable symbolTable, Instruction instruction) {

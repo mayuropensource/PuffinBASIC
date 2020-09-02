@@ -186,7 +186,7 @@ func
     | MAX LPAREN expr COMMA expr RPAREN                     # FuncMax
     | PI LPAREN RPAREN                                      # FuncPI
     | EULERE LPAREN RPAREN                                  # FuncE
-    | LEN LPAREN expr RPAREN                                # FuncLen
+    | LEN LPAREN expr (COMMA axis=expr)? RPAREN             # FuncLen
     | HEXDLR LPAREN expr RPAREN                             # FuncHexDlr
     | OCTDLR LPAREN expr RPAREN                             # FuncOctDlr
     | RIGHTDLR LPAREN expr COMMA expr RPAREN                # FuncRightDlr
@@ -329,7 +329,7 @@ deffnstmt
     ;
 
 dimstmt
-    : DIM varname varsuffix? LPAREN DECIMAL (COMMA DECIMAL)* RPAREN
+    : DIM varname varsuffix? LPAREN expr (COMMA expr)* RPAREN
     ;
 
 whilestmt

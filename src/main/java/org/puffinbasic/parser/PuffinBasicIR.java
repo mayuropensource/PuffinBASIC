@@ -16,6 +16,7 @@ public class PuffinBasicIR {
         VARIABLE("var"),
         VALUE("val"),
         VARREF("varref"),
+        DIM("dim"),
         ASSIGN(":="),
         COPY("<-"),
         UNARY_MINUS("u-"),

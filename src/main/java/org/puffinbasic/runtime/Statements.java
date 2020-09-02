@@ -6,7 +6,6 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.puffinbasic.domain.PuffinBasicSymbolTable;
 import org.puffinbasic.domain.STObjects.STEntry;
-import org.puffinbasic.domain.STObjects.STVariable;
 import org.puffinbasic.error.PuffinBasicInternalError;
 import org.puffinbasic.error.PuffinBasicRuntimeError;
 import org.puffinbasic.file.PuffinBasicFile;
@@ -33,7 +32,6 @@ import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.STRING;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.DATA_OUT_OF_RANGE;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.DATA_TYPE_MISMATCH;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.INDEX_OUT_OF_BOUNDS;
-import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.INTERRUPTED_ERROR;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.IO_ERROR;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.OUT_OF_DATA;
 
@@ -467,12 +465,12 @@ public class Statements {
             PuffinBasicSymbolTable symbolTable,
             Instruction instruction)
     {
-        var variable = symbolTable.get(instruction.op1);
+        var variable = symbolTable.getVariable(instruction.op1);
         var data = readData.next();
         Types.assertBothStringOrNumeric(variable.getValue().getDataType(),
                 data.getValue().getDataType(),
                 () -> "Read Data mismatch for variable: "
-                        + (((STVariable) variable).getVariable())
+                        + variable.getVariable()
                         + " and data: "
                         + data.getValue().printFormat()
         );

@@ -2,9 +2,6 @@ package org.puffinbasic.runtime;
 
 import org.apache.commons.io.FilenameUtils;
 import org.puffinbasic.domain.PuffinBasicSymbolTable;
-import org.puffinbasic.domain.STObjects;
-import org.puffinbasic.domain.STObjects.STVariable;
-import org.puffinbasic.error.PuffinBasicInternalError;
 import org.puffinbasic.error.PuffinBasicRuntimeError;
 import org.puffinbasic.parser.PuffinBasicIR.Instruction;
 import org.puffinbasic.runtime.GraphicsUtil.BasicFrame;
@@ -28,8 +25,6 @@ import static org.puffinbasic.domain.PuffinBasicSymbolTable.NULL_ID;
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.INT32;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.GRAPHICS_ERROR;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.IO_ERROR;
-import static org.puffinbasic.runtime.GraphicsUtil.BUFFER_NUM_BACK1;
-import static org.puffinbasic.runtime.GraphicsUtil.BUFFER_NUM_FRONT;
 import static org.puffinbasic.runtime.GraphicsUtil.PUT_XOR;
 
 class GraphicsRuntime {
@@ -98,12 +93,9 @@ class GraphicsRuntime {
             Instruction instruction)
     {
         var path = symbolTable.get(instruction.op1).getValue().getString();
-        var entry = symbolTable.get(instruction.op2);
+        var entry = symbolTable.getVariable(instruction.op2);
         var variableValue = entry.getValue();
-        if (entry.getKind() != STObjects.STKind.VARIABLE
-                || variableValue.getNumArrayDimensions() != 2
-                || variableValue.getDataType() != INT32)
-        {
+        if (variableValue.getNumArrayDimensions() != 2 || variableValue.getDataType() != INT32) {
             throw new PuffinBasicRuntimeError(
                     GRAPHICS_ERROR,
                     "Bad Array Variable, expected Int32 2D-Array Variable: " + entry
@@ -132,12 +124,9 @@ class GraphicsRuntime {
             Instruction instruction)
     {
         var path = symbolTable.get(instruction.op1).getValue().getString();
-        var entry = symbolTable.get(instruction.op2);
+        var entry = symbolTable.getVariable(instruction.op2);
         var variableValue = entry.getValue();
-        if (entry.getKind() != STObjects.STKind.VARIABLE
-            || variableValue.getNumArrayDimensions() != 2
-            || variableValue.getDataType() != INT32)
-        {
+        if (variableValue.getNumArrayDimensions() != 2 || variableValue.getDataType() != INT32) {
             throw new PuffinBasicRuntimeError(
                     GRAPHICS_ERROR,
                     "Bad Array Variable, expected Int32 2D-Array Variable: " + entry
@@ -561,7 +550,7 @@ class GraphicsRuntime {
         var x2 = symbolTable.get(i1.op1).getValue().getInt32();
         var y2 = symbolTable.get(i1.op2).getValue().getInt32();
 
-        var variable = (STVariable) symbolTable.get(instruction.op1);
+        var variable = symbolTable.getVariable(instruction.op1);
         if (!variable.getVariable().isArray()
                 || variable.getValue().getNumArrayDimensions() != 2
                 || variable.getValue().getDataType() != INT32)
@@ -607,7 +596,7 @@ class GraphicsRuntime {
         action = action.toUpperCase();
         final int bufferNumber = symbolTable.get(instr1.op1).getValue().getInt32();
 
-        var variable = (STVariable) symbolTable.get(instruction.op2);
+        var variable = symbolTable.getVariable(instruction.op2);
         var value = variable.getValue();
         if (!variable.getVariable().isArray()
                 || value.getNumArrayDimensions() != 2
@@ -672,7 +661,7 @@ class GraphicsRuntime {
             Instruction instruction)
     {
         var file = symbolTable.get(instruction.op1).getValue().getString();
-        var variable = symbolTable.get(instruction.op2).getValue();
+        var variable = symbolTable.getVariable(instruction.op2).getValue();
         variable.setInt32(soundState.load(file));
     }
 
