@@ -194,6 +194,7 @@ public class PuffinBasicIR {
         PSET("pset"),
         GPUT("gput"),
         GGET("gget"),
+        BUFFERCOPYHOR("buffercopyhor"),
         LOADIMG("loadimg"),
         SAVEIMG("saveimg"),
         DRAWSTR("drawstr"),

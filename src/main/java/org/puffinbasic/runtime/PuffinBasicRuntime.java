@@ -703,10 +703,10 @@ public class PuffinBasicRuntime {
                 Statements.sleep(ir.getSymbolTable(), instruction);
                 break;
             case SCREEN: {
-                if (params.size() != 1) {
+                if (params.size() != 3) {
                     throw new PuffinBasicInternalError("Expected 1 param, but found: " + params);
                 }
-                GraphicsRuntime.screen(graphicsState, ir.getSymbolTable(), params.get(0), instruction);
+                GraphicsRuntime.screen(graphicsState, ir.getSymbolTable(), params, instruction);
                 params.clear();
             }
             break;
@@ -762,13 +762,21 @@ public class PuffinBasicRuntime {
             }
             break;
             case GPUT: {
-                if (params.size() != 1) {
-                    throw new PuffinBasicInternalError("Expected 1 param, but found: " + params);
+                if (params.size() != 2) {
+                    throw new PuffinBasicInternalError("Expected 2 params, but found: " + params);
                 }
-                GraphicsRuntime.put(graphicsState, ir.getSymbolTable(), params.get(0), instruction);
+                GraphicsRuntime.put(graphicsState, ir.getSymbolTable(), params.get(0), params.get(1), instruction);
                 params.clear();
             }
             break;
+            case BUFFERCOPYHOR: {
+                if (params.size() != 1) {
+                    throw new PuffinBasicInternalError("Expected 1 param, but found: " + params);
+                }
+                GraphicsRuntime.bufferCopyHor(graphicsState, ir.getSymbolTable(), params.get(0), instruction);
+                params.clear();
+            }
+                break;
             case FONT: {
                 if (params.size() != 1) {
                     throw new PuffinBasicInternalError("Expected 1 param, but found: " + params);
@@ -786,10 +794,10 @@ public class PuffinBasicRuntime {
             }
             break;
             case LOADIMG:
-                GraphicsRuntime.loadimg(graphicsState, ir.getSymbolTable(), instruction);
+                GraphicsRuntime.loadimg(ir.getSymbolTable(), instruction);
                 break;
             case SAVEIMG:
-                GraphicsRuntime.saveimg(graphicsState, ir.getSymbolTable(), instruction);
+                GraphicsRuntime.saveimg(ir.getSymbolTable(), instruction);
                 break;
             case DRAW:
                 GraphicsRuntime.draw(graphicsState, ir.getSymbolTable(), instruction);

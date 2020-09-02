@@ -2,6 +2,7 @@ package org.puffinbasic.runtime;
 
 import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import org.puffinbasic.error.PuffinBasicInternalError;
 import org.puffinbasic.error.PuffinBasicRuntimeError;
 
 import javax.swing.JFrame;
@@ -21,6 +22,7 @@ import java.awt.event.MouseMotionAdapter;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
@@ -29,7 +31,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.GRAPHICS_ERROR;
 
-class GraphicsUtil {
+public final class GraphicsUtil {
 
     static final int MAX_WIDTH = 4000;
     static final int MAX_HEIGHT = 4000;
@@ -40,23 +42,36 @@ class GraphicsUtil {
     private static final String PUT_AND = "AND";
     private static final String PUT_PSET = "PSET";
     private static final String PUT_MIX = "MIX";
+    public static final int BUFFER_NUM_FRONT = 0;
+    public static final int BUFFER_NUM_BACK1 = 1;
 
     static class BasicFrame extends JFrame {
 
         private final DrawingCanvas drawingCanvas;
 
-        BasicFrame(String title, int w, int h, boolean autoRepaint) {
-            drawingCanvas = init(title, w, h, autoRepaint);
+        BasicFrame(String title,
+                   int w, int h,
+                   int iw, int ih,
+                   boolean autoRepaint,
+                   boolean doubleBuffer)
+        {
+            drawingCanvas = init(title, w, h, iw, ih, autoRepaint, doubleBuffer);
         }
 
         DrawingCanvas getDrawingCanvas() {
             return drawingCanvas;
         }
 
-        private DrawingCanvas init(String title, int w, int h, boolean autoRepaint) {
+        private DrawingCanvas init(
+                String title,
+                int w, int h,
+                int iw, int ih,
+                boolean autoRepaint, boolean doubleBuffer)
+        {
             var mouseState = new BasicMouseState(this);
 
-            var drawingCanvas = new DrawingCanvas(w, h, REFRESH_MILLIS, KEY_BUFFER_SIZE, mouseState);
+            var drawingCanvas = new DrawingCanvas(
+                    w, h, iw, ih, REFRESH_MILLIS, KEY_BUFFER_SIZE, mouseState, doubleBuffer);
             add(drawingCanvas);
 
             addWindowListener(new WindowAdapter() {
@@ -80,39 +95,150 @@ class GraphicsUtil {
         }
     }
 
-    static class DrawingCanvas extends JPanel implements ActionListener {
+    private interface Canvas {
+        BufferedImage getFront();
+        BufferedImage getBack1();
+        Graphics2D getFrontGraphics2D();
+        Graphics2D getBackGraphics2D();
+        default BufferedImage get(int bufferNumber) {
+            if (bufferNumber == BUFFER_NUM_FRONT) {
+                return getFront();
+            } else if (bufferNumber == BUFFER_NUM_BACK1) {
+                return getBack1();
+            } else {
+                throw new PuffinBasicInternalError("Bad bufferNumber: " + bufferNumber);
+            }
+        }
 
+        void prepareToRender();
+    }
+
+    private static final class SingleImageCanvas implements Canvas {
         private final BufferedImage image;
         private final Graphics2D graphics;
+
+        SingleImageCanvas(int imageWidth, int imageHeight) {
+            this.image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
+            this.graphics = (Graphics2D) image.getGraphics();
+        }
+
+        @Override
+        public BufferedImage getBack1() {
+            return image;
+        }
+
+        @Override
+        public BufferedImage getFront() {
+            return image;
+        }
+
+        @Override
+        public Graphics2D getFrontGraphics2D() {
+            return graphics;
+        }
+
+        @Override
+        public Graphics2D getBackGraphics2D() {
+            return graphics;
+        }
+
+        @Override
+        public void prepareToRender() {
+        }
+    }
+
+    private static final class DoubleBufferedImageCanvas implements Canvas {
+        private final BufferedImage[] images;
+        private final Graphics2D[] graphics;
+        private int imageIndex;
+
+        DoubleBufferedImageCanvas(int imageWidth, int imageHeight) {
+            this.images = new BufferedImage[2];
+            this.images[0] = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
+            this.images[1] = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
+            this.graphics = new Graphics2D[2];
+            this.graphics[0] = (Graphics2D) images[0].getGraphics();
+            this.graphics[1] = (Graphics2D) images[1].getGraphics();
+        }
+
+        @Override
+        public BufferedImage getBack1() {
+            return images[imageIndex];
+        }
+
+        @Override
+        public BufferedImage getFront() {
+            return images[(imageIndex + 1) % 2];
+        }
+
+        @Override
+        public Graphics2D getBackGraphics2D() {
+            return graphics[imageIndex];
+        }
+
+        @Override
+        public Graphics2D getFrontGraphics2D() {
+            return graphics[(imageIndex + 1) % 2];
+        }
+
+        @Override
+        public void prepareToRender() {
+            imageIndex = (imageIndex + 1) % 2;
+        }
+    }
+
+    static class DrawingCanvas extends JPanel implements ActionListener {
+
         private final Timer timer;
         private final Deque<String> keyBuffer;
         private final int keyBufferSize;
         private final int w;
         private final int h;
+        private final int iw;
+        private final int ih;
         private final int[] clearBuffer;
         private final BasicMouseState mouseState;
+        private final Canvas canvas;
 
-        DrawingCanvas(int w, int h, int refreshMillis, int keyBufferSize, BasicMouseState mouseState) {
+        DrawingCanvas(
+                int w, int h, int iw, int ih,
+                int refreshMillis, int keyBufferSize,
+                BasicMouseState mouseState,
+                boolean doubleBuffer)
+        {
             this.w = w;
             this.h = h;
+            this.iw = iw;
+            this.ih = ih;
             this.clearBuffer = new int[w * h];
             Arrays.fill(clearBuffer, 0);
             // Always use setPreferredSize() here.
             setPreferredSize(new Dimension(w, h));
-            this.image = new BufferedImage(w, h, BufferedImage.TYPE_3BYTE_BGR);
-            this.graphics = (Graphics2D) image.getGraphics();
+            this.canvas = doubleBuffer ? new DoubleBufferedImageCanvas(iw, ih) : new SingleImageCanvas(iw, ih);
             this.timer = new Timer(refreshMillis, this);
             this.keyBuffer = new ArrayDeque<>();
             this.keyBufferSize = keyBufferSize;
             this.mouseState = mouseState;
         }
 
-        public BasicMouseState getMouseState() {
-            return mouseState;
+        public int getScreenWidth() {
+            return w;
         }
 
-        BufferedImage getImage() {
-            return image;
+        public int getScreenHeight() {
+            return h;
+        }
+
+        public int getImageWidth() {
+            return iw;
+        }
+
+        public int getImageHeight() {
+            return ih;
+        }
+
+        public BasicMouseState getMouseState() {
+            return mouseState;
         }
 
         String takeNextKey() {
@@ -139,11 +265,11 @@ class GraphicsUtil {
         }
 
         Graphics2D getGraphics2D() {
-            return graphics;
+            return canvas.getBackGraphics2D();
         }
 
         private void draw(java.awt.Graphics g) {
-            g.drawImage(image, 0, 0, null);
+            g.drawImage(canvas.getFront(), 0, 0, null);
         }
 
         @Override
@@ -160,10 +286,13 @@ class GraphicsUtil {
         }
 
         void floodFill(int x, int y, int r, int g, int b) {
-            iterativeFloodFill(image, x, y, graphics.getColor(), new Color(r, g, b));
+            var image = canvas.getBack1();
+            iterativeFloodFill(image, x, y, canvas.getBackGraphics2D().getColor(), new Color(r, g, b));
         }
 
         void point(int x, int y, int r, int g, int b) {
+            var image = canvas.getBack1();
+            var graphics = image.getGraphics();
             Color color;
             if (r != -1 && g != -1 && b != -1) {
                 color = new Color(r, g, b);
@@ -173,34 +302,83 @@ class GraphicsUtil {
             image.setRGB(x, y, color.getRGB());
         }
 
-        void copyGraphicsToArray(int x1, int y1, int x2, int y2, int[] dest) {
-            int w = Math.abs(x1 - x2);
-            int h = Math.abs(y1 - y2);
-            image.getRGB(x1, y1, w, h, dest, 0, w);
+        void bufferCopyHor(int srcx, int dstx, int copyW) {
+            var src = canvas.getFront();
+            var dst = canvas.getBack1();
+            int[] srcArray = ((DataBufferInt) src.getRaster().getDataBuffer()).getData();
+            int[] dstArray = ((DataBufferInt) dst.getRaster().getDataBuffer()).getData();
+            copyRect(srcArray, srcx, 0, src.getWidth(), dstArray, dstx, 0, src.getWidth(), copyW, src.getHeight());
         }
 
-        void copyArrayToGraphics(int x, int y, int w, int h, String action, int[] src, int offset, int scanWidth) {
+        private static void copyRect(int[] srcArray, int srcx, int srcy, int srcWidth,
+                                     int[] dstArray, int dstx, int dsty, int dstWidth,
+                                     int copyW, int copyH) {
+            int srcVerticalOffset = srcy * srcWidth;
+            int dstVerticalOffset = dsty * dstWidth;
+            for (int yi = srcy; yi < srcy + copyH; yi++) {
+                System.arraycopy(srcArray, srcVerticalOffset + srcx, dstArray, dstVerticalOffset + dstx, copyW);
+                srcVerticalOffset += srcWidth;
+                dstVerticalOffset += dstWidth;
+            }
+        }
+
+        void copyGraphicsToArray(int bufferNumber, int x1, int y1, int x2, int y2, int[] dest) {
+            var image = canvas.get(bufferNumber);
+            int[] srcArray = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
+            int w = Math.abs(x1 - x2);
+            int h = Math.abs(y1 - y2);
+            copyRect(srcArray, x1, y1, image.getWidth(), dest, 0, 0, w, w, h);
+        }
+
+        void copyArrayToGraphics(int bufferNumber, int x, int y, int w, int h, String action,
+                                 int[] src, int srcx, int srcy, int scanWidth) {
+            var image = canvas.get(bufferNumber);
+            int[] dstArray = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
             if (action.equalsIgnoreCase(PUT_PSET)) {
-                image.setRGB(x, y, w, h, src, offset, scanWidth);
+                copyRect(src, srcx, srcy, scanWidth, dstArray, x, y, image.getWidth(), w, h);
             } else {
-                var copy = image.getRGB(x, y, w, h, null, offset, scanWidth);
+                int srcVertOffset = srcy * iw + srcx;
+                int dstVertOffset = y * iw;
                 if (action.equalsIgnoreCase(PUT_XOR)) {
-                    for (int i = 0; i < copy.length; i++) {
-                        copy[i] = copy[i] ^ src[i];
+                    for (int yi = 0; yi < h; yi++) {
+                        for (int xi = 0; xi < w; xi++) {
+                            int srcValue = src[srcVertOffset + xi];
+                            int dstIdx = dstVertOffset + x + xi;
+                            dstArray[dstIdx] = dstArray[dstIdx] ^ srcValue;
+                        }
+                        srcVertOffset += scanWidth;
+                        dstVertOffset += iw;
                     }
                 } else if (action.equalsIgnoreCase(PUT_MIX)) {
-                    for (int i = 0; i < copy.length; i++) {
-                        if (src[i] != 0) {
-                            copy[i] = src[i];
+                    for (int yi = 0; yi < h; yi++) {
+                        for (int xi = 0; xi < w; xi++) {
+                            int srcValue = src[srcVertOffset + xi];
+                            if (srcValue != 0) {
+                                dstArray[dstVertOffset + x + xi] = srcValue;
+                            }
                         }
+                        srcVertOffset += scanWidth;
+                        dstVertOffset += iw;
                     }
                 } else if (action.equalsIgnoreCase(PUT_OR)) {
-                    for (int i = 0; i < copy.length; i++) {
-                        copy[i] = copy[i] | src[i];
+                    for (int yi = 0; yi < h; yi++) {
+                        for (int xi = 0; xi < w; xi++) {
+                            int srcValue = src[srcVertOffset + xi];
+                            int dstIdx = dstVertOffset + x + xi;
+                            dstArray[dstIdx] = dstArray[dstIdx] | srcValue;
+                        }
+                        srcVertOffset += scanWidth;
+                        dstVertOffset += iw;
                     }
                 } else if (action.equals(PUT_AND)) {
-                    for (int i = 0; i < copy.length; i++) {
-                        copy[i] = copy[i] & src[i];
+                    for (int yi = 0; yi < h; yi++) {
+                        for (int xi = 0; xi < w; xi++) {
+                            int srcValue = src[srcVertOffset + xi];
+                            int dstIdx = dstVertOffset + x + xi;
+                            dstArray[dstIdx] = dstArray[dstIdx] & srcValue;
+                        }
+                        srcVertOffset += scanWidth;
+                        dstVertOffset += iw;
                     }
                 } else {
                     throw new PuffinBasicRuntimeError(
@@ -208,12 +386,17 @@ class GraphicsUtil {
                             "Bad PUT action: " + action
                     );
                 }
-                image.setRGB(x, y, w, h, copy, offset, scanWidth);
             }
         }
 
         void clear() {
+            var image = canvas.getBack1();
             image.setRGB(0, 0, w, h, clearBuffer, 0, w);
+        }
+
+        void renderAndRepaint() {
+            canvas.prepareToRender();
+            repaint();
         }
     }
 

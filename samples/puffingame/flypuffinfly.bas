@@ -36,6 +36,7 @@ WHILE -1
   LOOPWAV SOUNDBG1%
 
   run% = 1 : points% = 0 : sound% = 1
+  t1 = TIMER
   WHILE run% = 1
     GOSUB "DRAW_GRID_BG" ' Draw Grid BG
     GOSUB "DRAW_PLAYER" ' Draw Player
@@ -53,7 +54,11 @@ WHILE -1
     END IF
     IF collreward% = 1 THEN PLAYWAV SOUNDEAT1%
 
-    REPAINT : SLEEP 30
+    REPAINT
+    t2% = CINT(1000 * (TIMER - t1))
+    t1 = TIMER
+    st% = MAX(0, 100 - t2%)
+    IF st% > 0 THEN SLEEP st%
 
     GOSUB "ERASE_PLAYER" ' Erase Player
     GOSUB "ERASE_FG" ' Erase FG
@@ -82,7 +87,9 @@ WHILE -1
     IF ptsstep% = 7 THEN maxenemy% = 8 : maxreward% = 8
     IF ptsstep% = 8 THEN maxenemy% = 9 : maxreward% = 9
     IF ptsstep% = 9 THEN maxenemy% = 10 : maxreward% = 10
+
   WEND
+
   SLEEP 5000 : CLS
 WEND
 

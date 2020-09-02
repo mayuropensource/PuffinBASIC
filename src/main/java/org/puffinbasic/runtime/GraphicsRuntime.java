@@ -4,6 +4,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.puffinbasic.domain.PuffinBasicSymbolTable;
 import org.puffinbasic.domain.STObjects;
 import org.puffinbasic.domain.STObjects.STVariable;
+import org.puffinbasic.error.PuffinBasicInternalError;
 import org.puffinbasic.error.PuffinBasicRuntimeError;
 import org.puffinbasic.parser.PuffinBasicIR.Instruction;
 import org.puffinbasic.runtime.GraphicsUtil.BasicFrame;
@@ -27,6 +28,8 @@ import static org.puffinbasic.domain.PuffinBasicSymbolTable.NULL_ID;
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.INT32;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.GRAPHICS_ERROR;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.IO_ERROR;
+import static org.puffinbasic.runtime.GraphicsUtil.BUFFER_NUM_BACK1;
+import static org.puffinbasic.runtime.GraphicsUtil.BUFFER_NUM_FRONT;
 import static org.puffinbasic.runtime.GraphicsUtil.PUT_XOR;
 
 class GraphicsRuntime {
@@ -50,12 +53,12 @@ class GraphicsRuntime {
             return getFrame().getDrawingCanvas().getGraphics2D();
         }
 
-        int getCanvasWidth() {
-            return getFrame().getDrawingCanvas().getImage().getWidth();
+        int getImageWidth() {
+            return getFrame().getDrawingCanvas().getImageWidth();
         }
 
-        int getCanvasHeight() {
-            return getFrame().getDrawingCanvas().getImage().getHeight();
+        int getImageHeight() {
+            return getFrame().getDrawingCanvas().getImageHeight();
         }
 
         void setFrame(BasicFrame frame) {
@@ -91,7 +94,6 @@ class GraphicsRuntime {
     }
 
     public static void saveimg(
-            GraphicsState graphicsState,
             PuffinBasicSymbolTable symbolTable,
             Instruction instruction)
     {
@@ -126,7 +128,6 @@ class GraphicsRuntime {
     }
 
     public static void loadimg(
-            GraphicsState graphicsState,
             PuffinBasicSymbolTable symbolTable,
             Instruction instruction)
     {
@@ -170,11 +171,16 @@ class GraphicsRuntime {
     public static void screen(
             GraphicsState graphicsState,
             PuffinBasicSymbolTable symbolTable,
-            Instruction instr0,
+            List<Instruction> instr0,
             Instruction instruction)
     {
-        var w = symbolTable.get(instr0.op1).getValue().getInt32();
-        var h = symbolTable.get(instr0.op2).getValue().getInt32();
+        var i0 = instr0.get(0);
+        var i1 = instr0.get(1);
+        var i2 = instr0.get(2);
+        var w = symbolTable.get(i0.op1).getValue().getInt32();
+        var h = symbolTable.get(i0.op2).getValue().getInt32();
+        var iw = symbolTable.get(i1.op1).getValue().getInt32();
+        var ih = symbolTable.get(i1.op2).getValue().getInt32();
         var title = symbolTable.get(instruction.op1).getValue().getString();
         if (w <= 0 || h <= 0 || w > GraphicsUtil.MAX_WIDTH || h > GraphicsUtil.MAX_HEIGHT) {
             throw new PuffinBasicRuntimeError(
@@ -182,9 +188,16 @@ class GraphicsRuntime {
                     "Screen size out-of-bounds: " + w + ", " + h
             );
         }
-        var autoRepaint = symbolTable.get(instruction.op2).getValue().getInt32() == -1;
+        if (iw <= 0 || ih <= 0 || iw > GraphicsUtil.MAX_WIDTH || ih > GraphicsUtil.MAX_HEIGHT) {
+            throw new PuffinBasicRuntimeError(
+                    GRAPHICS_ERROR,
+                    "Image size out-of-bounds: " + iw + ", " + ih
+            );
+        }
+        var autoRepaint = symbolTable.get(i2.op1).getValue().getInt32() == -1;
+        var doubleBuffer = symbolTable.get(i2.op2).getValue().getInt32() == -1;
 
-        graphicsState.setFrame(new BasicFrame(title, w, h, autoRepaint));
+        graphicsState.setFrame(new BasicFrame(title, w, h, iw, ih, autoRepaint, doubleBuffer));
         EventQueue.invokeLater(() -> graphicsState.getFrame().setVisible(true));
     }
 
@@ -201,7 +214,7 @@ class GraphicsRuntime {
     }
 
     public static void repaint(GraphicsState graphicsState) {
-        graphicsState.getFrame().getDrawingCanvas().repaint();
+        graphicsState.getFrame().getDrawingCanvas().renderAndRepaint();
     }
 
     public static void end(GraphicsState graphicsState) {
@@ -291,6 +304,7 @@ class GraphicsRuntime {
         var y = symbolTable.get(instr0.op2).getValue().getInt32();
         var text = symbolTable.get(instruction.op1).getValue().getString();
 
+        System.out.println(x + " " + y + " " + text);
         graphicsState.getGraphics2D().drawString(text, x, y);
     }
 
@@ -308,9 +322,8 @@ class GraphicsRuntime {
         }
 
         var path = new GeneralPath();
-        var image = graphicsState.getFrame().getDrawingCanvas().getImage();
-        int w = image.getWidth();
-        int h = image.getHeight();
+        int w = graphicsState.getImageWidth();
+        int h = graphicsState.getImageHeight();
         path.moveTo(w / 2, h / 2);
 
         for (var i : str.split(";")) {
@@ -467,7 +480,7 @@ class GraphicsRuntime {
         var x = symbolTable.get(instruction.op1).getValue().getInt32();
         var y = symbolTable.get(instruction.op2).getValue().getInt32();
 
-        if (x < 0 || y < 0 || x > graphicsState.getCanvasWidth() || y > graphicsState.getCanvasHeight()) {
+        if (x < 0 || y < 0 || x > graphicsState.getImageWidth() || y > graphicsState.getImageHeight()) {
             throw new PuffinBasicRuntimeError(
                     GRAPHICS_ERROR,
                     "x/y out-of-bounds: " + x + ", " + y
@@ -500,7 +513,7 @@ class GraphicsRuntime {
         g = applyColorBounds(g);
         b = applyColorBounds(b);
 
-        if (x < 0 || y < 0 || x > graphicsState.getCanvasWidth() || y > graphicsState.getCanvasHeight()) {
+        if (x < 0 || y < 0 || x > graphicsState.getImageWidth() || y > graphicsState.getImageHeight()) {
             throw new PuffinBasicRuntimeError(
                     GRAPHICS_ERROR,
                     "x/y out-of-bounds: " + x + ", " + y
@@ -510,6 +523,30 @@ class GraphicsRuntime {
         graphicsState.getFrame().getDrawingCanvas().point(x, y, r, g, b);
     }
 
+
+    public static void bufferCopyHor(
+            GraphicsState graphicsState,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instr0,
+            Instruction instruction)
+    {
+        var srcx = symbolTable.get(instr0.op1).getValue().getInt32();
+        var dstx = symbolTable.get(instr0.op2).getValue().getInt32();
+        var w = symbolTable.get(instruction.op1).getValue().getInt32();
+
+        if (srcx < 0 || dstx < 0 || w < 0
+                || srcx > graphicsState.getImageWidth()
+                || dstx > graphicsState.getImageWidth()
+                || w > graphicsState.getImageWidth()) {
+            throw new PuffinBasicRuntimeError(
+                    GRAPHICS_ERROR,
+                    "srcx/dstx/w misaligned/out-of-bounds: ("
+                            + srcx + " -> " + dstx + "), " + w + ")"
+            );
+        }
+
+        graphicsState.getFrame().getDrawingCanvas().bufferCopyHor(srcx, dstx, w);
+    }
 
     public static void get(
             GraphicsState graphicsState,
@@ -527,8 +564,8 @@ class GraphicsRuntime {
 
         var variable = (STVariable) symbolTable.get(instruction.op1);
         if (!variable.getVariable().isArray()
-            || variable.getValue().getNumArrayDimensions() != 2
-            || variable.getValue().getDataType() != INT32)
+                || variable.getValue().getNumArrayDimensions() != 2
+                || variable.getValue().getDataType() != INT32)
         {
             throw new PuffinBasicRuntimeError(
                     GRAPHICS_ERROR,
@@ -538,10 +575,10 @@ class GraphicsRuntime {
         if (x1 < 0 || y1 < 0 || x2 < 0 || y2 < 0
                 || x1 > x2
                 || y1 > y2
-                || x1 > graphicsState.getCanvasWidth()
-                || y1 > graphicsState.getCanvasHeight()
-                || x2 > graphicsState.getCanvasWidth()
-                || y2 > graphicsState.getCanvasHeight()) {
+                || x1 > graphicsState.getImageWidth()
+                || y1 > graphicsState.getImageHeight()
+                || x2 > graphicsState.getImageWidth()
+                || y2 > graphicsState.getImageHeight()) {
             throw new PuffinBasicRuntimeError(
                     GRAPHICS_ERROR,
                     "x1/y1/x2/y2 misaligned/out-of-bounds: ("
@@ -549,8 +586,10 @@ class GraphicsRuntime {
             );
         }
 
+        final int bufferNumber = symbolTable.get(instruction.op2).getValue().getInt32();
+
         graphicsState.getFrame().getDrawingCanvas().copyGraphicsToArray(
-                x1, y1, x2, y2, variable.getValue().getInt32Array1D()
+                bufferNumber, x1, y1, x2, y2, variable.getValue().getInt32Array1D()
         );
     }
 
@@ -558,6 +597,7 @@ class GraphicsRuntime {
             GraphicsState graphicsState,
             PuffinBasicSymbolTable symbolTable,
             Instruction instr0,
+            Instruction instr1,
             Instruction instruction)
     {
         var x = symbolTable.get(instr0.op1).getValue().getInt32();
@@ -566,6 +606,7 @@ class GraphicsRuntime {
                 ? symbolTable.get(instruction.op1).getValue().getString()
                 : PUT_XOR;
         action = action.toUpperCase();
+        final int bufferNumber = symbolTable.get(instr1.op1).getValue().getInt32();
 
         var variable = (STVariable) symbolTable.get(instruction.op2);
         var value = variable.getValue();
@@ -579,8 +620,8 @@ class GraphicsRuntime {
             );
         }
 
-        int CW = graphicsState.getCanvasWidth();
-        int CH = graphicsState.getCanvasHeight();
+        int CW = graphicsState.getImageWidth();
+        int CH = graphicsState.getImageHeight();
 
         var dims = value.getArrayDimensions();
         int iw = dims.getInt(0);
@@ -589,27 +630,30 @@ class GraphicsRuntime {
         int offset = 0;
         int w, h;
         int xx, yy;
+        int srcx, srcy;
         if (x >= 0) {
             w = Math.min(iw, CW - x);
             xx = x;
+            srcx = 0;
         } else {
             w = Math.min(iw, iw + x);
             xx = 0;
-            offset += Math.abs(x);
+            srcx = Math.abs(x);
         }
         if (y >= 0) {
             h = Math.min(ih, CH - y);
             yy = y;
+            srcy = 0;
         } else {
             h = Math.min(ih, ih + y);
             yy = 0;
-            offset += Math.abs(y) * iw;
+            srcy = Math.abs(y);
         }
 
         // draw only if the image falls on the screen
         if (w > 0 && h > 0 && offset < iw * ih) {
             graphicsState.getFrame().getDrawingCanvas().copyArrayToGraphics(
-                    xx, yy, w, h, action, value.getInt32Array1D(), offset, iw
+                    bufferNumber, xx, yy, w, h, action, value.getInt32Array1D(), srcx, srcy, iw
             );
         }
     }

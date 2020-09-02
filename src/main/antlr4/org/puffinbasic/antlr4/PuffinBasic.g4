@@ -78,6 +78,7 @@ stmt
     | drawstmt
     | graphicsgetstmt
     | graphicsputstmt
+    | graphicsbuffercopyhorstmt
     | fontstmt
     | drawstrstmt
     | loadimgstmt
@@ -456,7 +457,9 @@ sleepstmt
     ;
 
 screenstmt
-    : SCREEN title=expr COMMA w=expr COMMA h=expr (COMMA mr=MANUAL_REPAINT)?
+    : SCREEN title=expr COMMA w=expr COMMA h=expr
+        (COMMA iw=expr COMMA ih=expr)?
+        (COMMA mr=MANUAL_REPAINT)? (COMMA db=DOUBLE_BUFFER)?
     ;
 
 repaintstmt
@@ -493,11 +496,15 @@ drawstmt
 
 graphicsgetstmt
     : GET LPAREN x1=expr COMMA y1=expr RPAREN MINUS LPAREN x2=expr COMMA y2=expr RPAREN
-        COMMA variable
+        COMMA variable (COMMA buffer=(FRONT|BACK1))?
     ;
 
 graphicsputstmt
-    : PUT LPAREN x=expr COMMA y=expr RPAREN COMMA variable (COMMA action=expr)?
+    : PUT LPAREN x=expr COMMA y=expr RPAREN COMMA variable (COMMA action=expr)? (COMMA buffer=(FRONT|BACK1))?
+    ;
+
+graphicsbuffercopyhorstmt
+    : BUFFERCOPYHOR srcx=expr EQGT dstx=expr COMMA w=expr
     ;
 
 fontstmt
@@ -1073,6 +1080,10 @@ MANUAL_REPAINT
     : M A N U A L R E P A I N T
     ;
 
+DOUBLE_BUFFER
+    : D O U B L E B U F F E R
+    ;
+
 REPAINT
     : R E P A I N T
     ;
@@ -1247,6 +1258,18 @@ MOUSEBUTTONPRESSED
 
 MOUSEBUTTONRELEASED
     : M O U S E B U T T O N R E L E A S E D
+    ;
+
+FRONT
+    : F R O N T
+    ;
+
+BACK1
+    : B A C K '1'
+    ;
+
+BUFFERCOPYHOR
+    : B U F F E R C O P Y H O R
     ;
 
 string

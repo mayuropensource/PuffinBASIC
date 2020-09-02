@@ -31,6 +31,7 @@ import org.puffinbasic.file.PuffinBasicFile.FileOpenMode;
 import org.puffinbasic.file.PuffinBasicFile.LockMode;
 import org.puffinbasic.parser.PuffinBasicIR.Instruction;
 import org.puffinbasic.parser.PuffinBasicIR.OpCode;
+import org.puffinbasic.runtime.GraphicsUtil;
 import org.puffinbasic.runtime.Numbers;
 import org.puffinbasic.runtime.Types;
 
@@ -3140,7 +3141,10 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         var title = lookupInstruction(ctx.expr(0));
         var w = lookupInstruction(ctx.expr(1));
         var h = lookupInstruction(ctx.expr(2));
-        var manualRepaint = ctx.mr != null;
+        var iw = ctx.expr().size() == 5 ? lookupInstruction(ctx.expr(3)) : w;
+        var ih = ctx.expr().size() == 5 ? lookupInstruction(ctx.expr(4)) : h;
+        var manualRepaintFlag = ctx.mr != null;
+        var doubleBufferFlag = ctx.db != null;
 
         Types.assertString(ir.getSymbolTable().get(title.result).getValue().getDataType(),
                 () -> getCtxString(ctx));
@@ -3148,16 +3152,30 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                 () -> getCtxString(ctx));
         Types.assertNumeric(ir.getSymbolTable().get(h.result).getValue().getDataType(),
                 () -> getCtxString(ctx));
+        Types.assertNumeric(ir.getSymbolTable().get(iw.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        Types.assertNumeric(ir.getSymbolTable().get(ih.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
 
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
                 OpCode.PARAM2, w.result, h.result, NULL_ID
         );
-        var repaint = ir.getSymbolTable().addTmp(INT32, e -> e.getValue().setInt32(
-                manualRepaint ? 0 : -1));
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.SCREEN, title.result, repaint, NULL_ID
+                OpCode.PARAM2, iw.result, ih.result, NULL_ID
+        );
+        var repaint = ir.getSymbolTable().addTmp(INT32, e -> e.getValue().setInt32(
+                manualRepaintFlag ? 0 : -1));
+        var doubleBuffer = ir.getSymbolTable().addTmp(INT32, e -> e.getValue().setInt32(
+                doubleBufferFlag ? -1 : 0));
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.PARAM2, repaint, doubleBuffer, NULL_ID
+        );
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.SCREEN, title.result, NULL_ID, NULL_ID
         );
     }
 
@@ -3371,6 +3389,9 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         var x2 = lookupInstruction(ctx.x2);
         var y2 = lookupInstruction(ctx.y2);
         var varInstr = lookupInstruction(ctx.variable());
+        final int bufferNumber = ctx.BACK1() != null
+                ? GraphicsUtil.BUFFER_NUM_BACK1
+                : GraphicsUtil.BUFFER_NUM_FRONT;
 
         Types.assertNumeric(ir.getSymbolTable().get(x1.result).getValue().getDataType(),
                 () -> getCtxString(ctx));
@@ -3395,7 +3416,9 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         );
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.GGET, varInstr.result, NULL_ID, NULL_ID
+                OpCode.GGET, varInstr.result,
+                ir.getSymbolTable().addTmp(INT32, e -> e.getValue().setInt32(bufferNumber)),
+                NULL_ID
         );
     }
 
@@ -3407,6 +3430,9 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         var y = lookupInstruction(ctx.y);
         var varInstr = lookupInstruction(ctx.variable());
         var action = ctx.action != null ? lookupInstruction(ctx.action) : null;
+        final int bufferNumber = ctx.FRONT() == null
+                ? GraphicsUtil.BUFFER_NUM_BACK1
+                : GraphicsUtil.BUFFER_NUM_FRONT;
 
         Types.assertNumeric(ir.getSymbolTable().get(x.result).getValue().getDataType(),
                 () -> getCtxString(ctx));
@@ -3427,10 +3453,41 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         );
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.PARAM1,
+                ir.getSymbolTable().addTmp(INT32, e -> e.getValue().setInt32(bufferNumber)),
+                NULL_ID, NULL_ID
+        );
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
                 OpCode.GPUT,
                 action != null ? action.result : NULL_ID,
                 varInstr.result,
                 NULL_ID
+        );
+    }
+
+    @Override
+    public void exitGraphicsbuffercopyhorstmt(PuffinBasicParser.GraphicsbuffercopyhorstmtContext ctx) {
+        assertGraphics();
+
+        var srcx = lookupInstruction(ctx.srcx);
+        var dstx = lookupInstruction(ctx.dstx);
+        var w = lookupInstruction(ctx.w);
+
+        Types.assertNumeric(ir.getSymbolTable().get(srcx.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        Types.assertNumeric(ir.getSymbolTable().get(dstx.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+        Types.assertNumeric(ir.getSymbolTable().get(w.result).getValue().getDataType(),
+                () -> getCtxString(ctx));
+
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.PARAM2, srcx.result, dstx.result, NULL_ID
+        );
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.BUFFERCOPYHOR, w.result, NULL_ID, NULL_ID
         );
     }
 
@@ -3629,7 +3686,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
 
     @Override
     public void exitArray1dsortstmt(PuffinBasicParser.Array1dsortstmtContext ctx) {
-        super.exitArray1dsortstmt(ctx);var var1Instr = getArray1dVariableInstruction(ctx, ctx.variable(), false);
+        var var1Instr = getArray1dVariableInstruction(ctx, ctx.variable(), false);
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
                 OpCode.ARRAY1DSORT, var1Instr.result, NULL_ID, NULL_ID);

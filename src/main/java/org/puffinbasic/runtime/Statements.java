@@ -22,6 +22,8 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 
 import static org.puffinbasic.domain.PuffinBasicSymbolTable.NULL_ID;
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.DOUBLE;
@@ -49,14 +51,7 @@ public class Statements {
             );
         }
 
-        try {
-            Thread.sleep(millis);
-        } catch (InterruptedException e) {
-            throw new PuffinBasicRuntimeError(
-                    INTERRUPTED_ERROR,
-                    "Sleep was interrupted, error: " + e.getMessage()
-            );
-        }
+        LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(millis));
     }
 
     public static final class ReadData {
