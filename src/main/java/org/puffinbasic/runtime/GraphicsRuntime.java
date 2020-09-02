@@ -304,7 +304,6 @@ class GraphicsRuntime {
         var y = symbolTable.get(instr0.op2).getValue().getInt32();
         var text = symbolTable.get(instruction.op1).getValue().getString();
 
-        System.out.println(x + " " + y + " " + text);
         graphicsState.getGraphics2D().drawString(text, x, y);
     }
 
