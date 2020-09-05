@@ -3,6 +3,7 @@ package org.puffinbasic.file;
 import com.google.common.base.Preconditions;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.puffinbasic.domain.PuffinBasicSymbolTable;
+import org.puffinbasic.domain.STObjects;
 import org.puffinbasic.error.PuffinBasicInternalError;
 import org.puffinbasic.error.PuffinBasicRuntimeError;
 import org.jetbrains.annotations.NotNull;
@@ -70,14 +71,15 @@ public class PuffinBasicRandomAccessFile implements PuffinBasicFile {
 
         int totalComputedLength = 0;
         for (var recordPart : recordParts) {
-            var entry = symbolTable.get(recordPart).getValue();
-            var dataType = entry.getDataType();
+            var entry = symbolTable.get(recordPart);
+            var value = entry.getValue();
+            var dataType = entry.getType().getAtomType();
             if (dataType != STRING) {
                 throw new PuffinBasicInternalError(
                         "Expected String recordPart but found: " + dataType
                 );
             }
-            totalComputedLength += entry.getFieldLength();
+            totalComputedLength += value.getFieldLength();
         }
         if (totalComputedLength != recordLength) {
             throw new PuffinBasicInternalError(

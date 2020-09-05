@@ -18,6 +18,7 @@ public class PuffinBasicRuntimeError extends RuntimeException {
         INTERRUPTED_ERROR,
         NOT_INITIALIZED,
         DUPLICATE_LABEL,
+        BAD_FIELD,
     }
 
     private final ErrorCode errorCode;

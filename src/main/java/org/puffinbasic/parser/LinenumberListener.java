@@ -60,10 +60,6 @@ public class LinenumberListener extends PuffinBasicBaseListener {
     @Override
     public void exitLine(PuffinBasicParser.LineContext ctx) {
         final String line = input.getText(new Interval(ctx.start.getStartIndex(), ctx.stop.getStopIndex()));
-        // Skip empty lines
-        if (line.trim().isEmpty()) {
-            return;
-        }
 
         final int linenum;
         if (ctx.linenum() != null) {

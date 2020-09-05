@@ -34,12 +34,12 @@ final class DS {
             return (Map<K, V>) map;
         }
 
-        void checkKeyType(STValue value) {
-            assertDataType(value, keyType, "key");
+        void checkKeyType(PuffinBasicDataType actualType) {
+            assertDataType(actualType, keyType, "key");
         }
 
-        void checkValueType(STValue value) {
-            assertDataType(value, valueType, "value");
+        void checkValueType(PuffinBasicDataType actualType) {
+            assertDataType(actualType, valueType, "value");
         }
     }
 
@@ -47,12 +47,12 @@ final class DS {
         private final AtomicInteger counter;
         private final Int2ObjectMap<DictAndTypes> state;
 
-        public DictState() {
+        DictState() {
             this.counter = new AtomicInteger();
             this.state = new Int2ObjectOpenHashMap<>();
         }
 
-        public int create(
+        int create(
                 PuffinBasicDataType ketType,
                 PuffinBasicDataType valueType,
                 Consumer<DictAndTypes> consumer)
@@ -64,32 +64,37 @@ final class DS {
             return id;
         }
 
-        public void get(int id, STValue key, STValue defaultValue, STValue result) {
+        public void get(int id, STValue key, STValue defaultValue,
+                        PuffinBasicDataType keyType,
+                        PuffinBasicDataType valueType,
+                        STValue result) {
             var mt = getDict(id);
-            mt.checkKeyType(key);
-            mt.checkValueType(defaultValue);
+            mt.checkKeyType(keyType);
+            mt.checkValueType(valueType);
             Map<?, Object> map = mt.cast();
             Object keyValue = getValue(key, mt.keyType);
             Object valueValue = getValue(defaultValue, mt.valueType);
             setValue(map.getOrDefault(keyValue, valueValue), result, mt.valueType);
         }
 
-        public void put(int id, STValue key, STValue value) {
-            put(getDict(id), key, value);
+        public void put(int id, STValue key, STValue value,
+                        PuffinBasicDataType keyType, PuffinBasicDataType valueType) {
+            put(getDict(id), key, value, keyType, valueType);
         }
 
-        void put(DictAndTypes mt, STValue key, STValue value) {
-            mt.checkKeyType(key);
-            mt.checkValueType(value);
+        void put(DictAndTypes mt, STValue key, STValue value,
+                 PuffinBasicDataType keyType, PuffinBasicDataType valueType) {
+            mt.checkKeyType(keyType);
+            mt.checkValueType(valueType);
             Map<Object, Object> map = mt.cast();
             Object keyValue = getValue(key, mt.keyType);
             Object valueValue = getValue(value, mt.valueType);
             map.put(keyValue, valueValue);
         }
 
-        public void containsKey(int id, STValue key, STValue result) {
+        public void containsKey(int id, STValue key, PuffinBasicDataType keyType, STValue result) {
             var mt = getDict(id);
-            mt.checkKeyType(key);
+            mt.checkKeyType(keyType);
             Map<Object, Object> map = mt.cast();
             Object keyValue = getValue(key, mt.keyType);
             result.setInt64(map.containsKey(keyValue) ? -1 : 0);
@@ -134,8 +139,8 @@ final class DS {
             return (Set<V>) set;
         }
 
-        void checkValueType(STValue value) {
-            assertDataType(value, valueType, "value");
+        void checkValueType(PuffinBasicDataType actualType) {
+            assertDataType(actualType, valueType, "value");
         }
     }
 
@@ -156,15 +161,14 @@ final class DS {
             return id;
         }
 
-        public void add(int id, STValue value) {
-            add(getSet(id), value);
+        public void add(int id, STValue value, PuffinBasicDataType valueType) {
+            add(getSet(id), value, valueType);
         }
 
-
-        public void add(SetAndType st, STValue value) {
-            st.checkValueType(value);
+        public void add(SetAndType st, STValue value, PuffinBasicDataType valueType) {
+            st.checkValueType(valueType);
             var set = st.cast();
-            switch (value.getDataType()) {
+            switch (valueType) {
                 case INT32:
                     set.add(value.getInt32());
                     break;
@@ -181,16 +185,16 @@ final class DS {
                     set.add(value.getString());
                     break;
                 default:
-                    throwBadDataTypeError(value);
+                    throwBadDataTypeError(valueType);
                     break;
             }
         }
 
-        public void contains(int id, STValue value, STValue result) {
+        public void contains(int id, STValue value, PuffinBasicDataType valueType, STValue result) {
             var st = getSet(id);
-            st.checkValueType(value);
+            st.checkValueType(valueType);
             var set = st.cast();
-            switch (value.getDataType()) {
+            switch (valueType) {
                 case INT32:
                     result.setInt64(set.contains(value.getInt32()) ? -1 : 0);
                     break;
@@ -207,7 +211,7 @@ final class DS {
                     result.setInt64(set.contains(value.getString()) ? -1 : 0);
                     break;
                 default:
-                    throwBadDataTypeError(value);
+                    throwBadDataTypeError(valueType);
                     break;
             }
         }
@@ -236,17 +240,17 @@ final class DS {
         }
     }
 
-    private static void throwBadDataTypeError(STValue value) {
-        throw new PuffinBasicInternalError("Bad data type: " + value.getDataType());
+    private static void throwBadDataTypeError(PuffinBasicDataType valueType) {
+        throw new PuffinBasicInternalError("Bad data type: " + valueType);
     }
 
-    private static void assertDataType(STValue v, PuffinBasicDataType dataType, String tag) {
-        if (v.getDataType() != dataType) {
+    private static void assertDataType(PuffinBasicDataType actualType, PuffinBasicDataType expectedType, String tag) {
+        if (actualType != expectedType) {
             throw new PuffinBasicRuntimeError(
                     PuffinBasicRuntimeError.ErrorCode.DATA_TYPE_MISMATCH,
                     "Type mismatch for " + tag
-                            + ", given " + v.getDataType()
-                            + ", expected " + dataType
+                            + ", given " + actualType
+                            + ", expected " + expectedType
             );
         }
     }
@@ -258,7 +262,7 @@ final class DS {
             case FLOAT: return v.getFloat32();
             case DOUBLE: return v.getFloat64();
             case STRING: return v.getString();
-            default: throwBadDataTypeError(v);
+            default: throwBadDataTypeError(dt);
         }
         return 0;
     }
@@ -281,7 +285,7 @@ final class DS {
                 result.setString((String) v);
                 break;
             default:
-                throwBadDataTypeError(result);
+                throwBadDataTypeError(dt);
         }
     }
 

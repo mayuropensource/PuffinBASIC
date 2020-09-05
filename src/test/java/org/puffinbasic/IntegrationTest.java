@@ -167,6 +167,11 @@ public class IntegrationTest {
         Files.delete(Path.of(tmpdir, filename));
     }
 
+    @Test
+    public void testComposite() {
+        runTest("composite.bas", "composite.bas.output");
+    }
+
     private void runTest(String source, String output) {
         var bos = new ByteArrayOutputStream();
         var out = new PrintStream(bos);

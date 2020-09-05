@@ -54,7 +54,8 @@ public class Variable {
     public enum Kind {
         SCALAR,
         ARRAY,
-        UDF
+        UDF,
+        COMPOSITE,
     }
 
     public static Variable of(
@@ -109,6 +110,10 @@ public class Variable {
 
     public boolean isUDF() {
         return kind == Kind.UDF;
+    }
+
+    public boolean isComposite() {
+        return kind == Kind.COMPOSITE;
     }
 
     @Override

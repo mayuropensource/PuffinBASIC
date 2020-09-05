@@ -5,6 +5,8 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.puffinbasic.domain.PuffinBasicSymbolTable;
+import org.puffinbasic.domain.STObjects;
+import org.puffinbasic.domain.STObjects.STEntry;
 import org.puffinbasic.domain.STObjects.STFloat32ArrayValue;
 import org.puffinbasic.domain.STObjects.STFloat64ArrayValue;
 import org.puffinbasic.domain.STObjects.STInt32ArrayValue;
@@ -17,6 +19,8 @@ import org.puffinbasic.parser.PuffinBasicIR.Instruction;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.INT32;
+import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.INT64;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.DATA_TYPE_MISMATCH;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.ILLEGAL_FUNCTION_PARAM;
 import static org.puffinbasic.runtime.Functions.throwUnsupportedType;
@@ -60,9 +64,10 @@ final class ArraysUtil {
 
     static void arrayfill(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
         var array = symbolTable.get(instruction.op1).getValue();
-        var fill = symbolTable.get(instruction.op2).getValue();
+        var fillEntry = symbolTable.get(instruction.op2);
+        var fill = fillEntry.getValue();
 
-        switch (fill.getDataType()) {
+        switch (fillEntry.getType().getAtomType()) {
             case INT32:
                 array.fill(fill.getInt32());
                 break;
@@ -79,18 +84,20 @@ final class ArraysUtil {
                 array.fillString(fill.getString());
                 break;
             default:
-                throwUnsupportedType(fill.getDataType());
+                throwUnsupportedType(fillEntry.getType().getAtomType());
         }
     }
 
     static void arrayCopy(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
-        var array1 = symbolTable.get(instruction.op1).getValue();
-        var array2 = symbolTable.get(instruction.op2).getValue();
-        if (array1.getDataType() != array2.getDataType()) {
+        var array1Entry = symbolTable.get(instruction.op1);
+        var array1 = array1Entry.getValue();
+        var array2Entry = symbolTable.get(instruction.op2);
+        var array2 = array2Entry.getValue();
+        if (array1Entry.getType().getAtomType() != array2Entry.getType().getAtomType()) {
             throw new PuffinBasicRuntimeError(
                     DATA_TYPE_MISMATCH,
-                    "Array data type mismatch: " + array1.getDataType()
-                            + " is not compatible with " + array2.getDataType()
+                    "Array data type mismatch: " + array1Entry.getType().getAtomType()
+                            + " is not compatible with " + array2Entry.getType().getAtomType()
             );
         }
         if (array1.getTotalLength() != array2.getTotalLength()) {
@@ -101,7 +108,7 @@ final class ArraysUtil {
             );
         }
 
-        switch (array1.getDataType()) {
+        switch (array1Entry.getType().getAtomType()) {
             case INT32: {
                 int[] value = ((STInt32ArrayValue) array1).getValue();
                 System.arraycopy(value, 0, ((STInt32ArrayValue) array2).getValue(), 0, value.length);
@@ -136,7 +143,7 @@ final class ArraysUtil {
             }
                 break;
             default:
-                throwUnsupportedType(array1.getDataType());
+                throwUnsupportedType(array1Entry.getType().getAtomType());
         }
     }
 
@@ -144,7 +151,8 @@ final class ArraysUtil {
             PuffinBasicSymbolTable symbolTable,
             Instruction instruction)
     {
-        var array = symbolTable.get(instruction.op1).getValue();
+        var arrayEntry = symbolTable.get(instruction.op1);
+        var array = arrayEntry.getValue();
         var shift = symbolTable.get(instruction.op2).getValue().getInt32();
         var dims = array.getArrayDimensions();
         // Arrays are row-major.
@@ -163,7 +171,7 @@ final class ArraysUtil {
             fillSrc0 = n - delta;
         }
 
-        switch (array.getDataType()) {
+        switch (arrayEntry.getType().getAtomType()) {
             case INT32: {
                 int[] value = ((STInt32ArrayValue) array).getValue();
                 System.arraycopy(value, src0, value, dst0, len);
@@ -195,7 +203,7 @@ final class ArraysUtil {
             }
             break;
             default:
-                throwUnsupportedType(array.getDataType());
+                throwUnsupportedType(arrayEntry.getType().getAtomType());
         }
     }
 
@@ -203,7 +211,8 @@ final class ArraysUtil {
             PuffinBasicSymbolTable symbolTable,
             Instruction instruction)
     {
-        var array = symbolTable.get(instruction.op1).getValue();
+        var arrayEntry = symbolTable.get(instruction.op1);
+        var array = arrayEntry.getValue();
         var shift = symbolTable.get(instruction.op2).getValue().getInt32();
         var dims = array.getArrayDimensions();
         // Arrays are row-major.
@@ -222,7 +231,7 @@ final class ArraysUtil {
             fillSrc0 = dim2 - delta;
         }
 
-        switch (array.getDataType()) {
+        switch (arrayEntry.getType().getAtomType()) {
             case INT32: {
                 int[] value = ((STInt32ArrayValue) array).getValue();
                 if (shift >= 0) {
@@ -344,7 +353,7 @@ final class ArraysUtil {
             }
             break;
             default:
-                throwUnsupportedType(array.getDataType());
+                throwUnsupportedType(arrayEntry.getType().getAtomType());
         }
     }
 
@@ -354,16 +363,18 @@ final class ArraysUtil {
             Instruction i1,
             Instruction instruction)
     {
-        var src = symbolTable.get(i0.op1).getValue();
+        var srcEntry = symbolTable.get(i0.op1);
+        var src = srcEntry.getValue();
         var src0 = symbolTable.get(i0.op2).getValue().getInt32();
-        var dst = symbolTable.get(i1.op1).getValue();
+        var dstEntry = symbolTable.get(i1.op1);
+        var dst = dstEntry.getValue();
         var dst0 = symbolTable.get(i1.op2).getValue().getInt32();
         var len = symbolTable.get(instruction.op1).getValue().getInt32();
-        if (src.getDataType() != dst.getDataType()) {
+        if (srcEntry.getType().getAtomType() != dstEntry.getType().getAtomType()) {
             throw new PuffinBasicRuntimeError(
                     DATA_TYPE_MISMATCH,
-                    "Array data type mismatch: " + src.getDataType()
-                            + " is not compatible with " + dst.getDataType()
+                    "Array data type mismatch: " + srcEntry.getType().getAtomType()
+                            + " is not compatible with " + dstEntry.getType().getAtomType()
             );
         }
         if (src.getNumArrayDimensions() != 1 && dst.getNumArrayDimensions() != 1) {
@@ -384,7 +395,7 @@ final class ArraysUtil {
             );
         }
 
-        switch (src.getDataType()) {
+        switch (srcEntry.getType().getAtomType()) {
             case INT32: {
                 int[] value = ((STInt32ArrayValue) src).getValue();
                 System.arraycopy(value, src0, ((STInt32ArrayValue) dst).getValue(), dst0, len);
@@ -419,14 +430,15 @@ final class ArraysUtil {
             }
             break;
             default:
-                throwUnsupportedType(src.getDataType());
+                throwUnsupportedType(srcEntry.getType().getAtomType());
         }
     }
 
     static void array1dSort(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
-        var array = symbolTable.get(instruction.op1).getValue();
+        var entry = symbolTable.get(instruction.op1);
+        var array = entry.getValue();
 
-        switch (array.getDataType()) {
+        switch (entry.getType().getAtomType()) {
             case INT32:
                 Arrays.sort(((STInt32ArrayValue) array).getValue());
                 break;
@@ -443,16 +455,17 @@ final class ArraysUtil {
                 Arrays.sort(((STStringArrayValue) array).getValue());
                 break;
             default:
-                throwUnsupportedType(array.getDataType());
+                throwUnsupportedType(entry.getType().getAtomType());
         }
     }
 
     static void array1dBinSearch(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
-        var array = symbolTable.get(instruction.op1).getValue();
+        var arrayEntry = symbolTable.get(instruction.op1);
+        var array = arrayEntry.getValue();
         var search = symbolTable.get(instruction.op2).getValue();
         var result = symbolTable.get(instruction.result).getValue();
         var index = -1;
-        switch (array.getDataType()) {
+        switch (arrayEntry.getType().getAtomType()) {
             case INT32:
                 index = Arrays.binarySearch(((STInt32ArrayValue) array).getValue(), search.getInt32());
                 break;
@@ -469,15 +482,16 @@ final class ArraysUtil {
                 index = Arrays.binarySearch(((STStringArrayValue) array).getValue(), search.getString());
                 break;
             default:
-                throwUnsupportedType(array.getDataType());
+                throwUnsupportedType(arrayEntry.getType().getAtomType());
         }
         result.setInt32(index);
     }
 
     static void array1dMin(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
-        var array = symbolTable.get(instruction.op1).getValue();
+        var arrayEntry = symbolTable.get(instruction.op1);
+        var array = arrayEntry.getValue();
         var result = symbolTable.get(instruction.result).getValue();
-        switch (array.getDataType()) {
+        switch (arrayEntry.getType().getAtomType()) {
             case INT32: {
                 int[] value = ((STInt32ArrayValue) array).getValue();
                 var min = Integer.MAX_VALUE;
@@ -523,14 +537,15 @@ final class ArraysUtil {
             }
                 break;
             default:
-                throwUnsupportedType(array.getDataType());
+                throwUnsupportedType(arrayEntry.getType().getAtomType());
         }
     }
 
     static void array1dMax(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
-        var array = symbolTable.get(instruction.op1).getValue();
+        var arrayEntry = symbolTable.get(instruction.op1);
+        var array = arrayEntry.getValue();
         var result = symbolTable.get(instruction.result).getValue();
-        switch (array.getDataType()) {
+        switch (arrayEntry.getType().getAtomType()) {
             case INT32: {
                 int[] value = ((STInt32ArrayValue) array).getValue();
                 var max = Integer.MIN_VALUE;
@@ -576,40 +591,41 @@ final class ArraysUtil {
             }
             break;
             default:
-                throwUnsupportedType(array.getDataType());
+                throwUnsupportedType(arrayEntry.getType().getAtomType());
         }
     }
 
     static void array1dMean(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
-        var array = symbolTable.get(instruction.op1).getValue();
+        var arrayEntry = symbolTable.get(instruction.op1);
         var result = symbolTable.get(instruction.result).getValue();
-        var stats = array1dSummaryStats(array);
+        var stats = array1dSummaryStats(arrayEntry);
         result.setFloat64(stats.getMean());
     }
 
     static void array1dStddev(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
-        var array = symbolTable.get(instruction.op1).getValue();
+        var arrayEntry = symbolTable.get(instruction.op1);
+        var array = arrayEntry.getValue();
         var result = symbolTable.get(instruction.result).getValue();
-        var stats = array1dSummaryStats(array);
+        var stats = array1dSummaryStats(arrayEntry);
         result.setFloat64(Math.sqrt(stats.getVariance()));
     }
 
     static void array1dSum(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
-        var array = symbolTable.get(instruction.op1).getValue();
+        var arrayEntry = symbolTable.get(instruction.op1);
         var result = symbolTable.get(instruction.result).getValue();
-        var stats = array1dSummaryStats(array);
+        var stats = array1dSummaryStats(arrayEntry);
         result.setFloat64(stats.getSum());
     }
 
     static void array1dMedian(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
-        var array = symbolTable.get(instruction.op1).getValue();
+        var arrayEntry = symbolTable.get(instruction.op1);
         var result = symbolTable.get(instruction.result).getValue();
-        var stats = array1dDescriptiveStats(array);
+        var stats = array1dDescriptiveStats(arrayEntry);
         result.setFloat64(stats.getPercentile(50));
     }
 
     static void array1dPercentile(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
-        var array = symbolTable.get(instruction.op1).getValue();
+        var arrayEntry = symbolTable.get(instruction.op1);
         var pct = symbolTable.get(instruction.op2).getValue().getFloat64();
         if (pct < 0 || pct > 100) {
             throw new PuffinBasicRuntimeError(
@@ -618,81 +634,80 @@ final class ArraysUtil {
             );
         }
         var result = symbolTable.get(instruction.result).getValue();
-        var stats = array1dDescriptiveStats(array);
+        var stats = array1dDescriptiveStats(arrayEntry);
         result.setFloat64(stats.getPercentile(pct));
     }
 
-    private static SummaryStatistics array1dSummaryStats(STValue array) {
+    private static SummaryStatistics array1dSummaryStats(STEntry array) {
         var stats = new SummaryStatistics();
-        switch (array.getDataType()) {
+        switch (array.getType().getAtomType()) {
             case INT32: {
-                int[] value = ((STInt32ArrayValue) array).getValue();
+                int[] value = ((STInt32ArrayValue) array.getValue()).getValue();
                 for (int v : value) {
                     stats.addValue(v);
                 }
             }
             break;
             case INT64: {
-                long[] value = ((STInt64ArrayValue) array).getValue();
+                long[] value = ((STInt64ArrayValue) array.getValue()).getValue();
                 for (long v : value) {
                     stats.addValue(v);
                 }
             }
             break;
             case FLOAT: {
-                float[] value = ((STFloat32ArrayValue) array).getValue();
+                float[] value = ((STFloat32ArrayValue) array.getValue()).getValue();
                 for (float v : value) {
                     stats.addValue(v);
                 }
             }
             break;
             case DOUBLE: {
-                double[] value = ((STFloat64ArrayValue) array).getValue();
+                double[] value = ((STFloat64ArrayValue) array.getValue()).getValue();
                 for (double v : value) {
                     stats.addValue(v);
                 }
             }
             break;
             default:
-                throwUnsupportedType(array.getDataType());
+                throwUnsupportedType(array.getType().getAtomType());
         }
         return stats;
     }
 
-    private static DescriptiveStatistics array1dDescriptiveStats(STValue array) {
+    private static DescriptiveStatistics array1dDescriptiveStats(STEntry array) {
         var stats = new DescriptiveStatistics();
-        switch (array.getDataType()) {
-
+        switch (array.getType().getAtomType()) {
             case INT32: {
-                int[] value = ((STInt32ArrayValue) array).getValue();
+                int[] value = ((STInt32ArrayValue) array.getValue()).getValue();
                 for (int v : value) {
                     stats.addValue(v);
                 }
             }
             break;
             case INT64: {
-                long[] value = ((STInt64ArrayValue) array).getValue();
+                long[] value = ((STInt64ArrayValue) array.getValue()).getValue();
                 for (long v : value) {
                     stats.addValue(v);
                 }
             }
             break;
             case FLOAT: {
-                float[] value = ((STFloat32ArrayValue) array).getValue();
+                float[] value = ((STFloat32ArrayValue) array.getValue()).getValue();
                 for (float v : value) {
                     stats.addValue(v);
                 }
             }
             break;
             case DOUBLE: {
-                double[] value = ((STFloat64ArrayValue) array).getValue();
+                double[] value = ((STFloat64ArrayValue) array.getValue()).getValue();
                 for (double v : value) {
                     stats.addValue(v);
                 }
             }
             break;
             default:
-                throwUnsupportedType(array.getDataType());
+                throwUnsupportedType(array.getType().getAtomType());
         }
         return stats;
 

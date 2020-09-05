@@ -142,10 +142,29 @@ public class PuffinBasicRuntime {
                 Types.varref(ir.getSymbolTable(), instruction.op1, instruction.op2);
                 break;
             case DIM: {
-                if (params.size() == 0) {
+                if (params.isEmpty()) {
                     throw new PuffinBasicInternalError("Expected >0 params, but found none!");
                 }
                 ArraysUtil.dim(ir.getSymbolTable(), params, instruction);
+                params.clear();
+            }
+            break;
+            case CREATE_INSTANCE:
+                Statements.createInstance(ir.getSymbolTable(), instruction);
+                break;
+            case STRUCT_MEMBER_REF: {
+                if (params.isEmpty()) {
+                    throw new PuffinBasicInternalError("Expected >0 params, but found none!");
+                }
+                Statements.structMemberRef(ir.getSymbolTable(), params, instruction);
+                params.clear();
+            }
+                break;
+            case STRUCT_ASSIGN: {
+                if (params.isEmpty()) {
+                    throw new PuffinBasicInternalError("Expected >0 params, but found none!");
+                }
+                Statements.structAssign(ir.getSymbolTable(), params, instruction);
                 params.clear();
             }
             break;

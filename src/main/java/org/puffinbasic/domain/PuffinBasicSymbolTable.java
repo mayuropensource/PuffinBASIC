@@ -4,10 +4,16 @@ import it.unimi.dsi.fastutil.chars.Char2ObjectMap;
 import it.unimi.dsi.fastutil.chars.Char2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.puffinbasic.domain.STObjects.ArrayReferenceValue;
+import org.puffinbasic.domain.STObjects.PuffinBasicCompositeType;
+import org.puffinbasic.domain.STObjects.PuffinBasicCompositeTypeBase;
 import org.puffinbasic.domain.STObjects.PuffinBasicDataType;
 import org.puffinbasic.domain.STObjects.STArrayReference;
+import org.puffinbasic.domain.STObjects.STCompositeVariable;
 import org.puffinbasic.domain.STObjects.STEntry;
+import org.puffinbasic.domain.STObjects.STKind;
 import org.puffinbasic.domain.STObjects.STVariable;
 import org.puffinbasic.domain.Scope.GlobalScope;
 import org.puffinbasic.domain.Variable.VariableName;
@@ -21,9 +27,11 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.COMPOSITE;
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.DOUBLE;
 import static org.puffinbasic.domain.STObjects.STKind.TMP;
 import static org.puffinbasic.domain.STObjects.STKind.VARIABLE;
+import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.BAD_FIELD;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.ILLEGAL_FUNCTION_PARAM;
 
 public class PuffinBasicSymbolTable {
@@ -31,6 +39,7 @@ public class PuffinBasicSymbolTable {
     public static final int NULL_ID = -1;
 
     private final Char2ObjectMap<PuffinBasicDataType> defaultDataTypes;
+    private final Object2ObjectMap<String, STObjects.StructType> userDefinedTypes;
     private final Object2IntMap<String> labelNameToId;
     private final AtomicInteger idmaker;
     private Scope currentScope;
@@ -41,6 +50,7 @@ public class PuffinBasicSymbolTable {
 
     public PuffinBasicSymbolTable() {
         this.defaultDataTypes = new Char2ObjectOpenHashMap<>();
+        this.userDefinedTypes = new Object2ObjectOpenHashMap<>();
         this.labelNameToId = new Object2IntOpenHashMap<>();
         this.idmaker = new AtomicInteger();
         this.currentScope = new GlobalScope();
@@ -100,6 +110,15 @@ public class PuffinBasicSymbolTable {
         return lastEntry;
     }
 
+    public int getCompositeVariableIdForVariable(VariableName variableName) {
+        var scope = findScope(s -> s.containsVariable(variableName)).orElse(getCurrentScope());
+        int id = scope.getIdForVariable(variableName);
+        if (id == -1) {
+            throw new PuffinBasicInternalError("Failed to find variable: " + variableName);
+        }
+        return id;
+    }
+
     public STVariable getVariable(int id) {
         var entry = get(id);
         if (entry.getKind() != VARIABLE) {
@@ -132,6 +151,17 @@ public class PuffinBasicSymbolTable {
         return id;
     }
 
+    public int addCompositeVariable(
+            VariableName variableName,
+            STCompositeVariable variable)
+    {
+        var scope = findScope(s -> s.containsVariable(variableName)).orElse(getCurrentScope());
+        int id = generateNextId();
+        scope.putVariable(variableName, id);
+        scope.putEntry(id, variable);
+        return id;
+    }
+
     public int addLabel(String label) {
         var id = labelNameToId.getOrDefault(label, -1);
         if (id == -1) {
@@ -160,9 +190,23 @@ public class PuffinBasicSymbolTable {
     public int addArrayReference(STVariable variable) {
         var ref = new ArrayReferenceValue(variable);
         int id = generateNextId();
-        var entry = new STArrayReference(TMP, ref);
+        var entry = new STArrayReference(TMP, ref, variable.getType().getAtomType());
         getCurrentScope().putEntry(id, entry);
         return id;
+    }
+
+    public int addTmp(PuffinBasicCompositeTypeBase type, PuffinBasicDataType dataType, Consumer<STEntry> consumer) {
+        if (dataType == COMPOSITE) {
+            var scope = getCurrentScope();
+            int id = generateNextId();
+            var entry = new STObjects.STCompositeTmp(type);
+            entry.createAndSetInstance(this);
+            scope.putEntry(id, entry);
+            consumer.accept(entry);
+            return id;
+        } else {
+            return addTmp(dataType, consumer);
+        }
     }
 
     public int addTmp(PuffinBasicDataType dataType, Consumer<STEntry> consumer) {
@@ -176,13 +220,17 @@ public class PuffinBasicSymbolTable {
 
     public int addTmpCompatibleWith(int srcId) {
         var scope = getCurrentScope();
-        var dataType = scope.getEntry(srcId).getValue().getDataType();
+        var dataType = scope.getEntry(srcId).getType().getAtomType();
         int id = generateNextId();
         scope.putEntry(id, dataType.createTmpEntry());
         return id;
     }
 
     public PuffinBasicDataType getDataTypeFor(String varname, String suffix) {
+        var scope = getCurrentScope();
+        if (scope.containsVariable(new VariableName(varname, COMPOSITE))) {
+            return COMPOSITE;
+        }
         if (varname.length() == 0) {
             throw new PuffinBasicInternalError("Empty variable name: " + varname);
         }
@@ -196,6 +244,21 @@ public class PuffinBasicSymbolTable {
 
     public void setDefaultDataType(char c, PuffinBasicDataType dataType) {
         defaultDataTypes.put(c, dataType);
+    }
+
+    public void addStructType(String name, STObjects.StructType type) {
+        userDefinedTypes.put(name, type);
+    }
+
+    public STObjects.StructType getStructType(String name) {
+        var type = userDefinedTypes.get(name);
+        if (type == null) {
+            throw new PuffinBasicRuntimeError(
+                    BAD_FIELD,
+                    "Missing struct: " + name
+            );
+        }
+        return type;
     }
 
     public void pushDeclarationScope(int funcId) {

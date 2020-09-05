@@ -28,6 +28,7 @@ stmt
     | writestmt
     | writehashstmt
     | letstmt
+    | let2stmt
     | ifstmt
     | ifthenbeginstmt
     | elsebeginstmt
@@ -98,6 +99,11 @@ stmt
     | loopwavstmt
     | labelstmt
     | refstmt
+    | liststmt
+    | dictstmt
+    | setstmt
+    | structstmt
+    | structinstancestmt
     | func
     ;
 
@@ -143,7 +149,11 @@ expr
     ;
 
 func
-    : ABS  LPAREN expr RPAREN                               # FuncAbs
+    : variable (DOT variable)+                              # FuncMember
+    | variable
+        (DOT fn=varname LPAREN
+        (param=expr (COMMA param=expr)*)? RPAREN)           # FuncMemberCall
+    | ABS  LPAREN expr RPAREN                               # FuncAbs
     | ASC  LPAREN expr RPAREN                               # FuncAsc
     | SIN  LPAREN expr RPAREN                               # FuncSin
     | COS  LPAREN expr RPAREN                               # FuncCos
@@ -274,6 +284,10 @@ writehashstmt
 
 letstmt
     : LET? variable RELEQ expr
+    ;
+
+let2stmt
+    : LET? variable (DOT variable)+ RELEQ expr
     ;
 
 ifstmt
@@ -579,6 +593,38 @@ refstmt
     : REF src=variable EQGT dst=variable
     ;
 
+liststmt
+    : LIST RELLT (typename=varname|typesuffix=varsuffix) RELGT listname=varname
+    ;
+
+dictstmt
+    : DICT RELLT (dictk1=varsuffix) COMMA (dictv2=varname? dictv1=varsuffix) RELGT dictname=varname
+    ;
+
+setstmt
+    : SET RELLT (typename=varname|typesuffix=varsuffix) RELGT setname=varname
+    ;
+
+structstmt
+    : STRUCT structname=varname LBRACE compositetype (COMMA compositetype)* RBRACE
+    ;
+
+compositetype
+    : (var1=varname var2=varsuffix
+        | DIM elem=varname elemsuffix=varsuffix LPAREN dim=expr (COMMA dim=expr)* RPAREN
+        | struct1=varname elem=varname
+        | LIST RELLT (list1=varname|list2=varsuffix) RELGT elem=varname
+        | SET RELLT (set1=varname|set2=varsuffix) RELGT elem=varname
+        | DICT RELLT (dictk1=varsuffix) COMMA (dictv1=varname? dictv2=varsuffix) RELGT elem=varname)
+    ;
+
+structinstancestmt
+    : varname varname LBRACE RBRACE
+    ;
+
+LIST
+    : L I S T
+    ;
 DICT
     : D I C T
     ;
@@ -1272,6 +1318,10 @@ BUFFERCOPYHOR
     : B U F F E R C O P Y H O R
     ;
 
+STRUCT
+    : S T R U C T
+    ;
+
 string
     : STRING
     ;
@@ -1338,6 +1388,14 @@ LPAREN
 
 RPAREN
     : ')'
+    ;
+
+LBRACE
+    : '{'
+    ;
+
+RBRACE
+    : '}'
     ;
 
 MOD
@@ -1442,6 +1500,10 @@ FLOAT
 
 DOUBLE
     : ((DIGIT* '.' DIGIT+) (('d' | 'D') DIGIT+)? '#'?) | (DECIMAL '#')
+    ;
+
+DOT
+    : '.'
     ;
 
 fragment DIGIT : [0-9] ;

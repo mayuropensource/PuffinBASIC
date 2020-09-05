@@ -5,6 +5,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.puffinbasic.domain.PuffinBasicSymbolTable;
+import org.puffinbasic.domain.STObjects;
 import org.puffinbasic.domain.STObjects.STEntry;
 import org.puffinbasic.error.PuffinBasicInternalError;
 import org.puffinbasic.error.PuffinBasicRuntimeError;
@@ -100,9 +101,10 @@ public class Statements {
     {
         var format = symbolTable.get(instruction.op1).getValue().getString();
         var formatter = cache.get(format);
-        var value = symbolTable.get(instruction.op2).getValue();
+        var entry = symbolTable.get(instruction.op2);
+        var value = entry.getValue();
         final String result;
-        switch (value.getDataType()) {
+        switch (entry.getType().getAtomType()) {
             case INT32:
             case INT64:
                 if (!formatter.supportsNumeric()) {
@@ -134,7 +136,7 @@ public class Statements {
                 break;
             default:
                 throw new PuffinBasicInternalError(
-                        "Unsupported data type: " + value.getDataType()
+                        "Unsupported data type: " + entry.getType().getAtomType()
                 );
         }
         printBuffer.appendAtCursor(result);
@@ -155,10 +157,12 @@ public class Statements {
     }
 
     public static void swap(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
-        var op1 = symbolTable.get(instruction.op1).getValue();
-        var op2 = symbolTable.get(instruction.op2).getValue();
-        var dt1 = op1.getDataType();
-        var dt2 = op2.getDataType();
+        var op1Entry = symbolTable.get(instruction.op1);
+        var op1 = op1Entry.getValue();
+        var op2Entry = symbolTable.get(instruction.op2);
+        var op2 = op2Entry.getValue();
+        var dt1 = op1Entry.getType().getAtomType();
+        var dt2 = op2Entry.getType().getAtomType();
 
         if (dt1 == STRING && dt2 == STRING) {
             var tmp = op1.getString();
@@ -387,8 +391,9 @@ public class Statements {
 
         int i = 0;
         for (var instr0 : instructions) {
-            var value = symbolTable.get(instr0.op1).getValue();
-            switch (value.getDataType()) {
+            var entry = symbolTable.get(instr0.op1);
+            var value = entry.getValue();
+            switch (entry.getType().getAtomType()) {
                 case INT32:
                     value.setInt32(Integer.parseInt(record.get(i).trim()));
                     break;
@@ -467,13 +472,53 @@ public class Statements {
     {
         var variable = symbolTable.getVariable(instruction.op1);
         var data = readData.next();
-        Types.assertBothStringOrNumeric(variable.getValue().getDataType(),
-                data.getValue().getDataType(),
+        Types.assertBothStringOrNumeric(variable.getType().getAtomType(),
+                data.getType().getAtomType(),
                 () -> "Read Data mismatch for variable: "
                         + variable.getVariable()
                         + " and data: "
                         + data.getValue().printFormat()
         );
         variable.getValue().assign(data.getValue());
+    }
+
+    public static void createInstance(
+            PuffinBasicSymbolTable symbolTable, Instruction instruction)
+    {
+        var entry = (STObjects.STCompositeVariable) symbolTable.get(instruction.op1);
+        entry.createAndSetInstance(symbolTable);
+    }
+
+    public static void structMemberRef(
+            PuffinBasicSymbolTable symbolTable,
+            List<Instruction> params,
+            Instruction instruction)
+    {
+        var root = (STObjects.STStruct) symbolTable.get(instruction.op1).getValue();
+        for (int i = 0; i < params.size() -1; i++) {
+            var childId = symbolTable.get(params.get(i).op1).getValue().getInt32();
+            var valueId = root.getMember(childId);
+            root = (STObjects.STStruct) symbolTable.get(valueId).getValue();
+        }
+        var childId = symbolTable.get(params.get(params.size() - 1).op1).getValue().getInt32();
+        var valueId = root.getMember(childId);
+        symbolTable.get(instruction.result).getValue().assign(symbolTable.get(valueId).getValue());
+    }
+
+    public static void structAssign(
+            PuffinBasicSymbolTable symbolTable,
+            List<Instruction> params,
+            Instruction instruction)
+    {
+        var root = (STObjects.STStruct) symbolTable.get(instruction.op1).getValue();
+        for (int i = 0; i < params.size() - 1; i++) {
+            var childId = symbolTable.get(params.get(i).op1).getValue().getInt32();
+            var valueId = root.getMember(childId);
+            root = (STObjects.STStruct) symbolTable.get(valueId).getValue();
+        }
+        var childId = symbolTable.get(params.get(params.size() - 1).op1).getValue().getInt32();
+        var valueId = root.getMember(childId);
+        // a.b.c = expr
+        symbolTable.get(valueId).getValue().assign(symbolTable.get(instruction.op2).getValue());
     }
 }

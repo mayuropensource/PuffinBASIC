@@ -95,7 +95,7 @@ class GraphicsRuntime {
         var path = symbolTable.get(instruction.op1).getValue().getString();
         var entry = symbolTable.getVariable(instruction.op2);
         var variableValue = entry.getValue();
-        if (variableValue.getNumArrayDimensions() != 2 || variableValue.getDataType() != INT32) {
+        if (variableValue.getNumArrayDimensions() != 2 || entry.getType().getAtomType() != INT32) {
             throw new PuffinBasicRuntimeError(
                     GRAPHICS_ERROR,
                     "Bad Array Variable, expected Int32 2D-Array Variable: " + entry
@@ -126,7 +126,7 @@ class GraphicsRuntime {
         var path = symbolTable.get(instruction.op1).getValue().getString();
         var entry = symbolTable.getVariable(instruction.op2);
         var variableValue = entry.getValue();
-        if (variableValue.getNumArrayDimensions() != 2 || variableValue.getDataType() != INT32) {
+        if (variableValue.getNumArrayDimensions() != 2 || entry.getType().getAtomType() != INT32) {
             throw new PuffinBasicRuntimeError(
                     GRAPHICS_ERROR,
                     "Bad Array Variable, expected Int32 2D-Array Variable: " + entry
@@ -553,7 +553,7 @@ class GraphicsRuntime {
         var variable = symbolTable.getVariable(instruction.op1);
         if (!variable.getVariable().isArray()
                 || variable.getValue().getNumArrayDimensions() != 2
-                || variable.getValue().getDataType() != INT32)
+                || variable.getType().getAtomType() != INT32)
         {
             throw new PuffinBasicRuntimeError(
                     GRAPHICS_ERROR,
@@ -600,7 +600,7 @@ class GraphicsRuntime {
         var value = variable.getValue();
         if (!variable.getVariable().isArray()
                 || value.getNumArrayDimensions() != 2
-                || value.getDataType() != INT32)
+                || variable.getType().getAtomType() != INT32)
         {
             throw new PuffinBasicRuntimeError(
                     GRAPHICS_ERROR,
