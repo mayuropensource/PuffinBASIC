@@ -475,7 +475,7 @@ public class Statements {
         Types.assertBothStringOrNumeric(variable.getType().getAtomType(),
                 data.getType().getAtomType(),
                 () -> "Read Data mismatch for variable: "
-                        + variable.getVariable()
+                        + variable
                         + " and data: "
                         + data.getValue().printFormat()
         );

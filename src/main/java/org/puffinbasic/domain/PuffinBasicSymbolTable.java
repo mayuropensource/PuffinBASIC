@@ -7,13 +7,11 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.puffinbasic.domain.STObjects.ArrayReferenceValue;
-import org.puffinbasic.domain.STObjects.PuffinBasicCompositeType;
 import org.puffinbasic.domain.STObjects.PuffinBasicCompositeTypeBase;
 import org.puffinbasic.domain.STObjects.PuffinBasicDataType;
 import org.puffinbasic.domain.STObjects.STArrayReference;
 import org.puffinbasic.domain.STObjects.STCompositeVariable;
 import org.puffinbasic.domain.STObjects.STEntry;
-import org.puffinbasic.domain.STObjects.STKind;
 import org.puffinbasic.domain.STObjects.STVariable;
 import org.puffinbasic.domain.Scope.GlobalScope;
 import org.puffinbasic.domain.Variable.VariableName;
@@ -29,8 +27,6 @@ import java.util.function.Predicate;
 
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.COMPOSITE;
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.DOUBLE;
-import static org.puffinbasic.domain.STObjects.STKind.TMP;
-import static org.puffinbasic.domain.STObjects.STKind.VARIABLE;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.BAD_FIELD;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.ILLEGAL_FUNCTION_PARAM;
 
@@ -119,15 +115,15 @@ public class PuffinBasicSymbolTable {
         return id;
     }
 
-    public STVariable getVariable(int id) {
+    public STEntry getVariable(int id) {
         var entry = get(id);
-        if (entry.getKind() != VARIABLE) {
+        if (!entry.isLValue()) {
             throw new PuffinBasicRuntimeError(
                     ILLEGAL_FUNCTION_PARAM,
                     "Entry for id: " + id + " is not a variable"
             );
         }
-        return (STVariable) entry;
+        return entry;
     }
 
     public int addVariableOrUDF(
@@ -190,7 +186,7 @@ public class PuffinBasicSymbolTable {
     public int addArrayReference(STVariable variable) {
         var ref = new ArrayReferenceValue(variable);
         int id = generateNextId();
-        var entry = new STArrayReference(TMP, ref, variable.getType().getAtomType());
+        var entry = new STArrayReference(ref, variable.getType().getAtomType());
         getCurrentScope().putEntry(id, entry);
         return id;
     }

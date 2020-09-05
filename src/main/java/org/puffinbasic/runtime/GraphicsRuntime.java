@@ -2,6 +2,7 @@ package org.puffinbasic.runtime;
 
 import org.apache.commons.io.FilenameUtils;
 import org.puffinbasic.domain.PuffinBasicSymbolTable;
+import org.puffinbasic.domain.STObjects;
 import org.puffinbasic.error.PuffinBasicRuntimeError;
 import org.puffinbasic.parser.PuffinBasicIR.Instruction;
 import org.puffinbasic.runtime.GraphicsUtil.BasicFrame;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import static org.puffinbasic.domain.PuffinBasicSymbolTable.NULL_ID;
+import static org.puffinbasic.domain.STObjects.PuffinBasicCompositeType.ARRAY;
 import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.INT32;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.GRAPHICS_ERROR;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.IO_ERROR;
@@ -551,13 +553,13 @@ class GraphicsRuntime {
         var y2 = symbolTable.get(i1.op2).getValue().getInt32();
 
         var variable = symbolTable.getVariable(instruction.op1);
-        if (!variable.getVariable().isArray()
+        if (variable.getType().getCompositeType() != ARRAY
                 || variable.getValue().getNumArrayDimensions() != 2
                 || variable.getType().getAtomType() != INT32)
         {
             throw new PuffinBasicRuntimeError(
                     GRAPHICS_ERROR,
-                    "Bad variable! Expected Int32 2D-Array variable: " + variable.getVariable()
+                    "Bad variable! Expected Int32 2D-Array variable: " + variable
             );
         }
         if (x1 < 0 || y1 < 0 || x2 < 0 || y2 < 0
@@ -598,13 +600,13 @@ class GraphicsRuntime {
 
         var variable = symbolTable.getVariable(instruction.op2);
         var value = variable.getValue();
-        if (!variable.getVariable().isArray()
+        if (variable.getType().getCompositeType() != ARRAY
                 || value.getNumArrayDimensions() != 2
                 || variable.getType().getAtomType() != INT32)
         {
             throw new PuffinBasicRuntimeError(
                     GRAPHICS_ERROR,
-                    "Bad variable! Expected Int32 2D-Array variable: " + variable.getVariable()
+                    "Bad variable! Expected Int32 2D-Array variable: " + variable
             );
         }
 
