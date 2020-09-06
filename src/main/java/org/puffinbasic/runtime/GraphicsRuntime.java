@@ -2,7 +2,6 @@ package org.puffinbasic.runtime;
 
 import org.apache.commons.io.FilenameUtils;
 import org.puffinbasic.domain.PuffinBasicSymbolTable;
-import org.puffinbasic.domain.STObjects;
 import org.puffinbasic.error.PuffinBasicRuntimeError;
 import org.puffinbasic.parser.PuffinBasicIR.Instruction;
 import org.puffinbasic.runtime.GraphicsUtil.BasicFrame;
@@ -23,8 +22,8 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import static org.puffinbasic.domain.PuffinBasicSymbolTable.NULL_ID;
-import static org.puffinbasic.domain.STObjects.PuffinBasicCompositeType.ARRAY;
-import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.INT32;
+import static org.puffinbasic.domain.STObjects.PuffinBasicTypeId.ARRAY;
+import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.INT32;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.GRAPHICS_ERROR;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.IO_ERROR;
 import static org.puffinbasic.runtime.GraphicsUtil.PUT_XOR;
@@ -97,7 +96,7 @@ class GraphicsRuntime {
         var path = symbolTable.get(instruction.op1).getValue().getString();
         var entry = symbolTable.getVariable(instruction.op2);
         var variableValue = entry.getValue();
-        if (variableValue.getNumArrayDimensions() != 2 || entry.getType().getAtomType() != INT32) {
+        if (variableValue.getNumArrayDimensions() != 2 || entry.getType().getAtomTypeId() != INT32) {
             throw new PuffinBasicRuntimeError(
                     GRAPHICS_ERROR,
                     "Bad Array Variable, expected Int32 2D-Array Variable: " + entry
@@ -128,7 +127,7 @@ class GraphicsRuntime {
         var path = symbolTable.get(instruction.op1).getValue().getString();
         var entry = symbolTable.getVariable(instruction.op2);
         var variableValue = entry.getValue();
-        if (variableValue.getNumArrayDimensions() != 2 || entry.getType().getAtomType() != INT32) {
+        if (variableValue.getNumArrayDimensions() != 2 || entry.getType().getAtomTypeId() != INT32) {
             throw new PuffinBasicRuntimeError(
                     GRAPHICS_ERROR,
                     "Bad Array Variable, expected Int32 2D-Array Variable: " + entry
@@ -553,9 +552,9 @@ class GraphicsRuntime {
         var y2 = symbolTable.get(i1.op2).getValue().getInt32();
 
         var variable = symbolTable.getVariable(instruction.op1);
-        if (variable.getType().getCompositeType() != ARRAY
+        if (variable.getType().getTypeId() != ARRAY
                 || variable.getValue().getNumArrayDimensions() != 2
-                || variable.getType().getAtomType() != INT32)
+                || variable.getType().getAtomTypeId() != INT32)
         {
             throw new PuffinBasicRuntimeError(
                     GRAPHICS_ERROR,
@@ -600,9 +599,9 @@ class GraphicsRuntime {
 
         var variable = symbolTable.getVariable(instruction.op2);
         var value = variable.getValue();
-        if (variable.getType().getCompositeType() != ARRAY
+        if (variable.getType().getTypeId() != ARRAY
                 || value.getNumArrayDimensions() != 2
-                || variable.getType().getAtomType() != INT32)
+                || variable.getType().getAtomTypeId() != INT32)
         {
             throw new PuffinBasicRuntimeError(
                     GRAPHICS_ERROR,

@@ -1,13 +1,13 @@
 package org.puffinbasic.runtime;
 
 import org.puffinbasic.domain.PuffinBasicSymbolTable;
-import org.puffinbasic.domain.STObjects.PuffinBasicDataType;
+import org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId;
 import org.puffinbasic.domain.STObjects.STVariable;
 import org.puffinbasic.error.PuffinBasicSemanticError;
 
 import java.util.function.Supplier;
 
-import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.STRING;
+import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.STRING;
 import static org.puffinbasic.error.PuffinBasicSemanticError.ErrorCode.DATA_TYPE_MISMATCH;
 
 public class Types {
@@ -41,7 +41,7 @@ public class Types {
     }
 
     public static void assertString(
-            PuffinBasicDataType dt, Supplier<String> line
+            PuffinBasicAtomTypeId dt, Supplier<String> line
     ) {
         if (dt != STRING) {
             throw new PuffinBasicSemanticError(
@@ -53,7 +53,7 @@ public class Types {
     }
 
     public static void assertNumeric(
-            PuffinBasicDataType dt, Supplier<String> line
+            PuffinBasicAtomTypeId dt, Supplier<String> line
     ) {
         if (dt == STRING) {
             throw new PuffinBasicSemanticError(
@@ -65,7 +65,7 @@ public class Types {
     }
 
     public static void assertNumeric(
-            PuffinBasicDataType dt1, PuffinBasicDataType dt2, Supplier<String> line
+            PuffinBasicAtomTypeId dt1, PuffinBasicAtomTypeId dt2, Supplier<String> line
     ) {
         if (dt1 == STRING || dt2 == STRING) {
             throw new PuffinBasicSemanticError(
@@ -77,7 +77,7 @@ public class Types {
     }
 
     public static void assertBothStringOrNumeric(
-            PuffinBasicDataType dt1, PuffinBasicDataType dt2, Supplier<String> line
+            PuffinBasicAtomTypeId dt1, PuffinBasicAtomTypeId dt2, Supplier<String> line
     ) {
         if ((dt1 != STRING || dt2 != STRING)
                 && (dt1 == STRING || dt2 == STRING))
@@ -91,18 +91,18 @@ public class Types {
                 }
     }
 
-    public static PuffinBasicDataType upcast(
-            PuffinBasicDataType dt1 , PuffinBasicDataType dt2, Supplier<String> line
+    public static PuffinBasicAtomTypeId upcast(
+            PuffinBasicAtomTypeId dt1 , PuffinBasicAtomTypeId dt2, Supplier<String> line
     ) {
         assertNumeric(dt1, dt2, line);
-        if (dt1 == PuffinBasicDataType.DOUBLE || dt2 == PuffinBasicDataType.DOUBLE) {
-            return PuffinBasicDataType.DOUBLE;
-        } else if (dt1 == PuffinBasicDataType.INT64 || dt2 == PuffinBasicDataType.INT64) {
-            return PuffinBasicDataType.INT64;
-        } else if (dt1 == PuffinBasicDataType.FLOAT || dt2 == PuffinBasicDataType.FLOAT) {
-            return PuffinBasicDataType.FLOAT;
+        if (dt1 == PuffinBasicAtomTypeId.DOUBLE || dt2 == PuffinBasicAtomTypeId.DOUBLE) {
+            return PuffinBasicAtomTypeId.DOUBLE;
+        } else if (dt1 == PuffinBasicAtomTypeId.INT64 || dt2 == PuffinBasicAtomTypeId.INT64) {
+            return PuffinBasicAtomTypeId.INT64;
+        } else if (dt1 == PuffinBasicAtomTypeId.FLOAT || dt2 == PuffinBasicAtomTypeId.FLOAT) {
+            return PuffinBasicAtomTypeId.FLOAT;
         } else {
-            return PuffinBasicDataType.INT32;
+            return PuffinBasicAtomTypeId.INT32;
         }
     }
 }

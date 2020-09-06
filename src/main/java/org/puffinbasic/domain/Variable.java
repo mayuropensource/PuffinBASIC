@@ -3,8 +3,8 @@ package org.puffinbasic.domain;
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.puffinbasic.domain.STObjects.ArrayType;
-import org.puffinbasic.domain.STObjects.PuffinBasicCompositeTypeBase;
-import org.puffinbasic.domain.STObjects.PuffinBasicDataType;
+import org.puffinbasic.domain.STObjects.PuffinBasicType;
+import org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId;
 import org.puffinbasic.domain.STObjects.ScalarType;
 import org.puffinbasic.domain.STObjects.UDFType;
 import org.puffinbasic.error.PuffinBasicSemanticError;
@@ -12,19 +12,19 @@ import org.puffinbasic.error.PuffinBasicSemanticError;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-import static org.puffinbasic.domain.STObjects.PuffinBasicCompositeType.ARRAY;
-import static org.puffinbasic.domain.STObjects.PuffinBasicCompositeType.SCALAR;
-import static org.puffinbasic.domain.STObjects.PuffinBasicCompositeType.UDF;
+import static org.puffinbasic.domain.STObjects.PuffinBasicTypeId.ARRAY;
+import static org.puffinbasic.domain.STObjects.PuffinBasicTypeId.SCALAR;
+import static org.puffinbasic.domain.STObjects.PuffinBasicTypeId.UDF;
 
 public class Variable {
 
     public static final class VariableName {
         private final String varname;
-        private final PuffinBasicDataType dataType;
+        private final PuffinBasicAtomTypeId dataType;
 
         public VariableName(
                 @NotNull String varname,
-                @NotNull PuffinBasicDataType dataType)
+                @NotNull STObjects.PuffinBasicAtomTypeId dataType)
         {
             this.varname = Preconditions.checkNotNull(varname);
             this.dataType = Preconditions.checkNotNull(dataType);
@@ -34,7 +34,7 @@ public class Variable {
             return varname;
         }
 
-        public PuffinBasicDataType getDataType() {
+        public PuffinBasicAtomTypeId getDataType() {
             return dataType;
         }
 
@@ -84,11 +84,11 @@ public class Variable {
     }
 
     private final VariableName variableName;
-    private final PuffinBasicCompositeTypeBase type;
+    private final PuffinBasicType type;
 
     public Variable(
             @NotNull VariableName variableName,
-            @NotNull PuffinBasicCompositeTypeBase type)
+            @NotNull STObjects.PuffinBasicType type)
     {
         this.variableName = Preconditions.checkNotNull(variableName);
         this.type = Preconditions.checkNotNull(type);
@@ -98,25 +98,25 @@ public class Variable {
         return variableName;
     }
 
-    public PuffinBasicCompositeTypeBase getType() {
+    public PuffinBasicType getType() {
         return type;
     }
 
     public boolean isScalar() {
-        return type.getCompositeType() == SCALAR;
+        return type.getTypeId() == SCALAR;
     }
 
     public boolean isArray() {
-        return type.getCompositeType() == ARRAY;
+        return type.getTypeId() == ARRAY;
     }
 
     public boolean isUDF() {
-        return type.getCompositeType() == UDF;
+        return type.getTypeId() == UDF;
     }
 
     @Override
     public String toString() {
-        return variableName + ":" + type.getCompositeType();
+        return variableName + ":" + type.getTypeId();
     }
 
     @Override

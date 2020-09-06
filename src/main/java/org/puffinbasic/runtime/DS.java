@@ -3,7 +3,7 @@ package org.puffinbasic.runtime;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
-import org.puffinbasic.domain.STObjects.PuffinBasicDataType;
+import org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId;
 import org.puffinbasic.domain.STObjects.STValue;
 import org.puffinbasic.error.PuffinBasicInternalError;
 import org.puffinbasic.error.PuffinBasicRuntimeError;
@@ -20,10 +20,10 @@ import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.ILLEGAL_FU
 final class DS {
     static final class DictAndTypes {
         final Map<?, ?> map;
-        final PuffinBasicDataType keyType;
-        final PuffinBasicDataType valueType;
+        final PuffinBasicAtomTypeId keyType;
+        final PuffinBasicAtomTypeId valueType;
 
-        DictAndTypes(Map<?, ?> map, PuffinBasicDataType keyType, PuffinBasicDataType valueType) {
+        DictAndTypes(Map<?, ?> map, PuffinBasicAtomTypeId keyType, PuffinBasicAtomTypeId valueType) {
             this.map = map;
             this.keyType = keyType;
             this.valueType = valueType;
@@ -34,11 +34,11 @@ final class DS {
             return (Map<K, V>) map;
         }
 
-        void checkKeyType(PuffinBasicDataType actualType) {
+        void checkKeyType(PuffinBasicAtomTypeId actualType) {
             assertDataType(actualType, keyType, "key");
         }
 
-        void checkValueType(PuffinBasicDataType actualType) {
+        void checkValueType(PuffinBasicAtomTypeId actualType) {
             assertDataType(actualType, valueType, "value");
         }
     }
@@ -53,8 +53,8 @@ final class DS {
         }
 
         int create(
-                PuffinBasicDataType ketType,
-                PuffinBasicDataType valueType,
+                PuffinBasicAtomTypeId ketType,
+                PuffinBasicAtomTypeId valueType,
                 Consumer<DictAndTypes> consumer)
         {
             var id = counter.incrementAndGet();
@@ -65,8 +65,8 @@ final class DS {
         }
 
         public void get(int id, STValue key, STValue defaultValue,
-                        PuffinBasicDataType keyType,
-                        PuffinBasicDataType valueType,
+                        PuffinBasicAtomTypeId keyType,
+                        PuffinBasicAtomTypeId valueType,
                         STValue result) {
             var mt = getDict(id);
             mt.checkKeyType(keyType);
@@ -78,12 +78,12 @@ final class DS {
         }
 
         public void put(int id, STValue key, STValue value,
-                        PuffinBasicDataType keyType, PuffinBasicDataType valueType) {
+                        PuffinBasicAtomTypeId keyType, PuffinBasicAtomTypeId valueType) {
             put(getDict(id), key, value, keyType, valueType);
         }
 
         void put(DictAndTypes mt, STValue key, STValue value,
-                 PuffinBasicDataType keyType, PuffinBasicDataType valueType) {
+                 PuffinBasicAtomTypeId keyType, PuffinBasicAtomTypeId valueType) {
             mt.checkKeyType(keyType);
             mt.checkValueType(valueType);
             Map<Object, Object> map = mt.cast();
@@ -92,7 +92,7 @@ final class DS {
             map.put(keyValue, valueValue);
         }
 
-        public void containsKey(int id, STValue key, PuffinBasicDataType keyType, STValue result) {
+        public void containsKey(int id, STValue key, PuffinBasicAtomTypeId keyType, STValue result) {
             var mt = getDict(id);
             mt.checkKeyType(keyType);
             Map<Object, Object> map = mt.cast();
@@ -127,9 +127,9 @@ final class DS {
 
     static final class SetAndType {
         final Set<?> set;
-        final PuffinBasicDataType valueType;
+        final PuffinBasicAtomTypeId valueType;
 
-        SetAndType(Set<?> set, PuffinBasicDataType valueType) {
+        SetAndType(Set<?> set, PuffinBasicAtomTypeId valueType) {
             this.set = set;
             this.valueType = valueType;
         }
@@ -139,7 +139,7 @@ final class DS {
             return (Set<V>) set;
         }
 
-        void checkValueType(PuffinBasicDataType actualType) {
+        void checkValueType(PuffinBasicAtomTypeId actualType) {
             assertDataType(actualType, valueType, "value");
         }
     }
@@ -153,7 +153,7 @@ final class DS {
             this.state = new Int2ObjectOpenHashMap<>();
         }
 
-        public int create(PuffinBasicDataType valueType, Consumer<SetAndType> consumer) {
+        public int create(PuffinBasicAtomTypeId valueType, Consumer<SetAndType> consumer) {
             var id = counter.incrementAndGet();
             var st = new SetAndType(new HashSet<>(), valueType);
             state.put(id, st);
@@ -161,11 +161,11 @@ final class DS {
             return id;
         }
 
-        public void add(int id, STValue value, PuffinBasicDataType valueType) {
+        public void add(int id, STValue value, PuffinBasicAtomTypeId valueType) {
             add(getSet(id), value, valueType);
         }
 
-        public void add(SetAndType st, STValue value, PuffinBasicDataType valueType) {
+        public void add(SetAndType st, STValue value, PuffinBasicAtomTypeId valueType) {
             st.checkValueType(valueType);
             var set = st.cast();
             switch (valueType) {
@@ -190,7 +190,7 @@ final class DS {
             }
         }
 
-        public void contains(int id, STValue value, PuffinBasicDataType valueType, STValue result) {
+        public void contains(int id, STValue value, PuffinBasicAtomTypeId valueType, STValue result) {
             var st = getSet(id);
             st.checkValueType(valueType);
             var set = st.cast();
@@ -240,11 +240,11 @@ final class DS {
         }
     }
 
-    private static void throwBadDataTypeError(PuffinBasicDataType valueType) {
+    private static void throwBadDataTypeError(PuffinBasicAtomTypeId valueType) {
         throw new PuffinBasicInternalError("Bad data type: " + valueType);
     }
 
-    private static void assertDataType(PuffinBasicDataType actualType, PuffinBasicDataType expectedType, String tag) {
+    private static void assertDataType(PuffinBasicAtomTypeId actualType, PuffinBasicAtomTypeId expectedType, String tag) {
         if (actualType != expectedType) {
             throw new PuffinBasicRuntimeError(
                     PuffinBasicRuntimeError.ErrorCode.DATA_TYPE_MISMATCH,
@@ -255,7 +255,7 @@ final class DS {
         }
     }
 
-    private static Object getValue(STValue v, PuffinBasicDataType dt) {
+    private static Object getValue(STValue v, PuffinBasicAtomTypeId dt) {
         switch (dt) {
             case INT32: return v.getInt32();
             case INT64: return v.getInt64();
@@ -267,7 +267,7 @@ final class DS {
         return 0;
     }
 
-    private static void setValue(Object v, STValue result, PuffinBasicDataType dt) {
+    private static void setValue(Object v, STValue result, PuffinBasicAtomTypeId dt) {
         switch (dt) {
             case INT32:
                 result.setInt32((int) v);

@@ -26,10 +26,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 
 import static org.puffinbasic.domain.PuffinBasicSymbolTable.NULL_ID;
-import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.DOUBLE;
-import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.FLOAT;
-import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.INT64;
-import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.STRING;
+import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.DOUBLE;
+import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.FLOAT;
+import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.INT64;
+import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.STRING;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.DATA_OUT_OF_RANGE;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.DATA_TYPE_MISMATCH;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.INDEX_OUT_OF_BOUNDS;
@@ -104,7 +104,7 @@ public class Statements {
         var entry = symbolTable.get(instruction.op2);
         var value = entry.getValue();
         final String result;
-        switch (entry.getType().getAtomType()) {
+        switch (entry.getType().getAtomTypeId()) {
             case INT32:
             case INT64:
                 if (!formatter.supportsNumeric()) {
@@ -136,7 +136,7 @@ public class Statements {
                 break;
             default:
                 throw new PuffinBasicInternalError(
-                        "Unsupported data type: " + entry.getType().getAtomType()
+                        "Unsupported data type: " + entry.getType().getAtomTypeId()
                 );
         }
         printBuffer.appendAtCursor(result);
@@ -161,8 +161,8 @@ public class Statements {
         var op1 = op1Entry.getValue();
         var op2Entry = symbolTable.get(instruction.op2);
         var op2 = op2Entry.getValue();
-        var dt1 = op1Entry.getType().getAtomType();
-        var dt2 = op2Entry.getType().getAtomType();
+        var dt1 = op1Entry.getType().getAtomTypeId();
+        var dt2 = op2Entry.getType().getAtomTypeId();
 
         if (dt1 == STRING && dt2 == STRING) {
             var tmp = op1.getString();
@@ -393,7 +393,7 @@ public class Statements {
         for (var instr0 : instructions) {
             var entry = symbolTable.get(instr0.op1);
             var value = entry.getValue();
-            switch (entry.getType().getAtomType()) {
+            switch (entry.getType().getAtomTypeId()) {
                 case INT32:
                     value.setInt32(Integer.parseInt(record.get(i).trim()));
                     break;
@@ -472,8 +472,8 @@ public class Statements {
     {
         var variable = symbolTable.getVariable(instruction.op1);
         var data = readData.next();
-        Types.assertBothStringOrNumeric(variable.getType().getAtomType(),
-                data.getType().getAtomType(),
+        Types.assertBothStringOrNumeric(variable.getType().getAtomTypeId(),
+                data.getType().getAtomTypeId(),
                 () -> "Read Data mismatch for variable: "
                         + variable
                         + " and data: "

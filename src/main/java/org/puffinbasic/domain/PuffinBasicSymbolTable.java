@@ -7,8 +7,8 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.puffinbasic.domain.STObjects.ArrayReferenceValue;
-import org.puffinbasic.domain.STObjects.PuffinBasicCompositeTypeBase;
-import org.puffinbasic.domain.STObjects.PuffinBasicDataType;
+import org.puffinbasic.domain.STObjects.PuffinBasicType;
+import org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId;
 import org.puffinbasic.domain.STObjects.STArrayReference;
 import org.puffinbasic.domain.STObjects.STCompositeVariable;
 import org.puffinbasic.domain.STObjects.STEntry;
@@ -25,8 +25,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.COMPOSITE;
-import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.DOUBLE;
+import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.COMPOSITE;
+import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.DOUBLE;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.BAD_FIELD;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.ILLEGAL_FUNCTION_PARAM;
 
@@ -34,7 +34,7 @@ public class PuffinBasicSymbolTable {
 
     public static final int NULL_ID = -1;
 
-    private final Char2ObjectMap<PuffinBasicDataType> defaultDataTypes;
+    private final Char2ObjectMap<PuffinBasicAtomTypeId> defaultDataTypes;
     private final Object2ObjectMap<String, STObjects.StructType> userDefinedTypes;
     private final Object2IntMap<String> labelNameToId;
     private final AtomicInteger idmaker;
@@ -178,7 +178,7 @@ public class PuffinBasicSymbolTable {
     public int addGotoTarget() {
         var scope = getCurrentScope();
         int id = generateNextId();
-        var entry = PuffinBasicDataType.INT32.createTmpEntry();
+        var entry = PuffinBasicAtomTypeId.INT32.createTmpEntry();
         scope.putEntry(id, entry);
         return id;
     }
@@ -186,12 +186,12 @@ public class PuffinBasicSymbolTable {
     public int addArrayReference(STVariable variable) {
         var ref = new ArrayReferenceValue(variable);
         int id = generateNextId();
-        var entry = new STArrayReference(ref, variable.getType().getAtomType());
+        var entry = new STArrayReference(ref, variable.getType().getAtomTypeId());
         getCurrentScope().putEntry(id, entry);
         return id;
     }
 
-    public int addTmp(PuffinBasicCompositeTypeBase type, PuffinBasicDataType dataType, Consumer<STEntry> consumer) {
+    public int addTmp(PuffinBasicType type, PuffinBasicAtomTypeId dataType, Consumer<STEntry> consumer) {
         if (dataType == COMPOSITE) {
             var scope = getCurrentScope();
             int id = generateNextId();
@@ -205,7 +205,7 @@ public class PuffinBasicSymbolTable {
         }
     }
 
-    public int addTmp(PuffinBasicDataType dataType, Consumer<STEntry> consumer) {
+    public int addTmp(PuffinBasicAtomTypeId dataType, Consumer<STEntry> consumer) {
         var scope = getCurrentScope();
         int id = generateNextId();
         var entry = dataType.createTmpEntry();
@@ -216,13 +216,13 @@ public class PuffinBasicSymbolTable {
 
     public int addTmpCompatibleWith(int srcId) {
         var scope = getCurrentScope();
-        var dataType = scope.getEntry(srcId).getType().getAtomType();
+        var dataType = scope.getEntry(srcId).getType().getAtomTypeId();
         int id = generateNextId();
         scope.putEntry(id, dataType.createTmpEntry());
         return id;
     }
 
-    public PuffinBasicDataType getDataTypeFor(String varname, String suffix) {
+    public PuffinBasicAtomTypeId getDataTypeFor(String varname, String suffix) {
         var scope = getCurrentScope();
         if (scope.containsVariable(new VariableName(varname, COMPOSITE))) {
             return COMPOSITE;
@@ -234,11 +234,11 @@ public class PuffinBasicSymbolTable {
             var firstChar = varname.charAt(0);
             return defaultDataTypes.getOrDefault(firstChar, DOUBLE);
         } else {
-            return PuffinBasicDataType.lookup(suffix);
+            return PuffinBasicAtomTypeId.lookup(suffix);
         }
     }
 
-    public void setDefaultDataType(char c, PuffinBasicDataType dataType) {
+    public void setDefaultDataType(char c, PuffinBasicAtomTypeId dataType) {
         defaultDataTypes.put(c, dataType);
     }
 

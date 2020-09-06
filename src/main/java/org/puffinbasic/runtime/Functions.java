@@ -4,7 +4,7 @@ import com.google.common.base.Strings;
 import it.unimi.dsi.fastutil.doubles.Double2DoubleFunction;
 import org.puffinbasic.domain.PuffinBasicSymbolTable;
 import org.puffinbasic.domain.STObjects;
-import org.puffinbasic.domain.STObjects.PuffinBasicDataType;
+import org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId;
 import org.puffinbasic.error.PuffinBasicInternalError;
 import org.puffinbasic.error.PuffinBasicRuntimeError;
 import org.puffinbasic.file.PuffinBasicFiles;
@@ -21,11 +21,11 @@ import java.util.List;
 import java.util.Random;
 
 import static org.puffinbasic.domain.PuffinBasicSymbolTable.NULL_ID;
-import static org.puffinbasic.domain.STObjects.PuffinBasicCompositeType.ARRAY;
-import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.FLOAT;
-import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.INT32;
-import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.INT64;
-import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.STRING;
+import static org.puffinbasic.domain.STObjects.PuffinBasicTypeId.ARRAY;
+import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.FLOAT;
+import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.INT32;
+import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.INT64;
+import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.STRING;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.DATA_OUT_OF_RANGE;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.ILLEGAL_FUNCTION_PARAM;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.INDEX_OUT_OF_BOUNDS;
@@ -36,7 +36,7 @@ public class Functions {
         var op1Entry = symbolTable.get(instruction.op1);
         var op1 = op1Entry.getValue();
         var result = symbolTable.get(instruction.result).getValue();
-        switch (op1Entry.getType().getAtomType()) {
+        switch (op1Entry.getType().getAtomTypeId()) {
             case INT32:
                 result.setInt32(Math.abs(op1.getInt32()));
                 break;
@@ -50,7 +50,7 @@ public class Functions {
                 result.setFloat64(Math.abs(op1.getFloat64()));
                 break;
             default:
-                throwUnsupportedType(op1Entry.getType().getAtomType());
+                throwUnsupportedType(op1Entry.getType().getAtomTypeId());
         }
     }
 
@@ -162,7 +162,7 @@ public class Functions {
         var resultEntry = symbolTable.get(instruction.result);
         var result = resultEntry.getValue();
 
-        switch (resultEntry.getType().getAtomType()) {
+        switch (resultEntry.getType().getAtomTypeId()) {
             case INT32:
                 result.setInt32(Math.min(v1.getInt32(), v2.getInt32()));
                 break;
@@ -176,7 +176,7 @@ public class Functions {
                 result.setFloat64(Math.min(v1.getFloat64(), v2.getFloat64()));
                 break;
             default:
-                throwUnsupportedType(resultEntry.getType().getAtomType());
+                throwUnsupportedType(resultEntry.getType().getAtomTypeId());
         }
     }
 
@@ -186,7 +186,7 @@ public class Functions {
         var resultEntry = symbolTable.get(instruction.result);
         var result = resultEntry.getValue();
 
-        switch (resultEntry.getType().getAtomType()) {
+        switch (resultEntry.getType().getAtomTypeId()) {
             case INT32:
                 result.setInt32(Math.max(v1.getInt32(), v2.getInt32()));
                 break;
@@ -200,7 +200,7 @@ public class Functions {
                 result.setFloat64(Math.max(v1.getFloat64(), v2.getFloat64()));
                 break;
             default:
-                throwUnsupportedType(resultEntry.getType().getAtomType());
+                throwUnsupportedType(resultEntry.getType().getAtomTypeId());
         }
     }
 
@@ -354,7 +354,7 @@ public class Functions {
         var vEntry = symbolTable.get(instruction.op1);
         var v = vEntry.getValue();
         var result = symbolTable.get(instruction.result).getValue();
-        switch (vEntry.getType().getAtomType()) {
+        switch (vEntry.getType().getAtomTypeId()) {
             case INT32:
                 result.setInt32(v.getInt32());
                 break;
@@ -368,7 +368,7 @@ public class Functions {
                 result.setFloat64(Math.floor(v.getFloat64()));
                 break;
             default:
-                throwUnsupportedType(vEntry.getType().getAtomType());
+                throwUnsupportedType(vEntry.getType().getAtomTypeId());
         }
     }
 
@@ -376,7 +376,7 @@ public class Functions {
         var vEntry = symbolTable.get(instruction.op1);
         var v = vEntry.getValue();
         var result = symbolTable.get(instruction.result).getValue();
-        switch (vEntry.getType().getAtomType()) {
+        switch (vEntry.getType().getAtomTypeId()) {
             case INT32:
                 result.setInt32(v.getInt32());
                 break;
@@ -390,7 +390,7 @@ public class Functions {
                 result.setFloat64(v.getFloat64() < 0 ? Math.ceil(v.getFloat64()) : Math.floor(v.getFloat64()));
                 break;
             default:
-                throwUnsupportedType(vEntry.getType().getAtomType());
+                throwUnsupportedType(vEntry.getType().getAtomTypeId());
         }
     }
 
@@ -398,7 +398,7 @@ public class Functions {
         var stEntry = symbolTable.get(instruction.op1);
         var value = stEntry.getValue();
         final int len;
-        if (stEntry.getType().getCompositeType() == ARRAY) {
+        if (stEntry.getType().getTypeId() == ARRAY) {
             int axis = instruction.op2 != NULL_ID ? symbolTable.get(instruction.op2).getValue().getInt32() : 0;
             if (axis < 0 || axis >= value.getNumArrayDimensions()) {
                 throw new PuffinBasicRuntimeError(
@@ -407,7 +407,7 @@ public class Functions {
                 );
             }
             len = value.getArrayDimensions().getInt(axis);
-        } else if (stEntry.getType().getAtomType() == STRING) {
+        } else if (stEntry.getType().getAtomTypeId() == STRING) {
             len = value.getString().length();
         } else {
             throw new PuffinBasicRuntimeError(ILLEGAL_FUNCTION_PARAM,
@@ -419,7 +419,7 @@ public class Functions {
     public static void strdlr(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
         var numericEntry = symbolTable.get(instruction.op1);
         var numeric = numericEntry.getValue();
-        var dt = numericEntry.getType().getAtomType();
+        var dt = numericEntry.getType().getAtomTypeId();
         final String str;
         if (dt == INT32) {
             str = Integer.toString(numeric.getInt32());
@@ -436,7 +436,7 @@ public class Functions {
     public static void hexdlr(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
         var numericEntry = symbolTable.get(instruction.op1);
         var numeric = numericEntry.getValue();
-        var dt = numericEntry.getType().getAtomType();
+        var dt = numericEntry.getType().getAtomTypeId();
         final String str;
         if (dt == INT32) {
             str = Integer.toHexString(numeric.getInt32());
@@ -453,7 +453,7 @@ public class Functions {
     public static void octdlr(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
         var numericEntry = symbolTable.get(instruction.op1);
         var numeric = numericEntry.getValue();
-        var dt = numericEntry.getType().getAtomType();
+        var dt = numericEntry.getType().getAtomTypeId();
         final String str;
         if (dt == INT32 || dt == FLOAT) {
             str = Integer.toOctalString(numeric.getInt32());
@@ -556,7 +556,7 @@ public class Functions {
     public static void sgn(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
         var entry = symbolTable.get(instruction.op1);
         var numeric = entry.getValue();
-        var dt = entry.getType().getAtomType();
+        var dt = entry.getType().getAtomTypeId();
         int result;
         if (dt == INT32) {
             result = Integer.compare(numeric.getInt32(), 0);
@@ -588,7 +588,7 @@ public class Functions {
         var jOrxdlrEntry = symbolTable.get(instruction.op2);
         var jOrxdlr = jOrxdlrEntry.getValue();
         String c;
-        if (jOrxdlrEntry.getType().getAtomType() == STRING) {
+        if (jOrxdlrEntry.getType().getAtomTypeId() == STRING) {
             if (jOrxdlr.getString().isEmpty()) {
                 throw new PuffinBasicRuntimeError(
                         ILLEGAL_FUNCTION_PARAM,
@@ -683,15 +683,15 @@ public class Functions {
             List<Instruction> params,
             Instruction instruction)
     {
-        var keyType = symbolTable.get(instruction.op1).getType().getAtomType();
-        var valueType = symbolTable.get(instruction.op2).getType().getAtomType();
+        var keyType = symbolTable.get(instruction.op1).getType().getAtomTypeId();
+        var valueType = symbolTable.get(instruction.op2).getType().getAtomTypeId();
         var result = symbolTable.get(instruction.result).getValue();
         int id = dictState.create(keyType, valueType, mt -> {
             for (var ii : params) {
                 var keyEntry = symbolTable.get(ii.op1);
                 var valueEntry = symbolTable.get(ii.op2);
                 dictState.put(mt, keyEntry.getValue(), valueEntry.getValue(),
-                        keyEntry.getType().getAtomType(), valueEntry.getType().getAtomType());
+                        keyEntry.getType().getAtomTypeId(), valueEntry.getType().getAtomTypeId());
             }
         });
         result.setInt32(id);
@@ -710,7 +710,7 @@ public class Functions {
         STObjects.STEntry valueEntry = symbolTable.get(param.op2);
         var defaultValue = valueEntry.getValue();
         dictState.get(id, key, defaultValue,
-                keyEntry.getType().getAtomType(), valueEntry.getType().getAtomType(), result);
+                keyEntry.getType().getAtomTypeId(), valueEntry.getType().getAtomTypeId(), result);
     }
 
     public static void dictContains(
@@ -722,7 +722,7 @@ public class Functions {
         var keyEntry = symbolTable.get(instruction.op2);
         var key = keyEntry.getValue();
         var result = symbolTable.get(instruction.result).getValue();
-        dictState.containsKey(id, key, keyEntry.getType().getAtomType(), result);
+        dictState.containsKey(id, key, keyEntry.getType().getAtomTypeId(), result);
     }
 
     public static void dictPut(
@@ -737,8 +737,8 @@ public class Functions {
         var valueEntry = symbolTable.get(param.op2);
         var value = valueEntry.getValue();
         dictState.put(id, key, value,
-                keyEntry.getType().getAtomType(),
-                valueEntry.getType().getAtomType());
+                keyEntry.getType().getAtomTypeId(),
+                valueEntry.getType().getAtomTypeId());
     }
 
     public static void dictClear(
@@ -766,12 +766,12 @@ public class Functions {
             List<Instruction> params,
             Instruction instruction)
     {
-        var valueType = symbolTable.get(instruction.op1).getType().getAtomType();
+        var valueType = symbolTable.get(instruction.op1).getType().getAtomTypeId();
         var result = symbolTable.get(instruction.result).getValue();
         int id = setState.create(valueType, st -> {
             for (var ii : params) {
                 var entry = symbolTable.get(ii.op1);
-                setState.add(st, entry.getValue(), entry.getType().getAtomType());
+                setState.add(st, entry.getValue(), entry.getType().getAtomTypeId());
             }
         });
         result.setInt32(id);
@@ -785,7 +785,7 @@ public class Functions {
         var id = symbolTable.get(instruction.op1).getValue().getInt32();
         var valueEntry = symbolTable.get(instruction.op2);
         var value = valueEntry.getValue();
-        setState.add(id, value, valueEntry.getType().getAtomType());
+        setState.add(id, value, valueEntry.getType().getAtomTypeId());
     }
 
     public static void setContains(
@@ -797,7 +797,7 @@ public class Functions {
         var valueEntry = symbolTable.get(instruction.op2);
         var value = valueEntry.getValue();
         var result = symbolTable.get(instruction.result).getValue();
-        setState.contains(id, value, valueEntry.getType().getAtomType(), result);
+        setState.contains(id, value, valueEntry.getType().getAtomTypeId(), result);
     }
 
     public static void setClear(
@@ -819,7 +819,7 @@ public class Functions {
         setState.size(id, result);
     }
 
-    static void throwUnsupportedType(PuffinBasicDataType type) {
+    static void throwUnsupportedType(PuffinBasicAtomTypeId type) {
         throw new PuffinBasicInternalError(
                 "Data type " + type + " is not supported"
         );

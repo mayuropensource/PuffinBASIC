@@ -1,12 +1,11 @@
 package org.puffinbasic.runtime;
 
 import org.puffinbasic.domain.PuffinBasicSymbolTable;
-import org.puffinbasic.domain.STObjects;
 import org.puffinbasic.error.PuffinBasicInternalError;
 import org.puffinbasic.error.PuffinBasicRuntimeError;
 import org.puffinbasic.parser.PuffinBasicIR.Instruction;
 
-import static org.puffinbasic.domain.STObjects.PuffinBasicDataType.INT32;
+import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.INT32;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.DIVISION_BY_ZERO;
 
 final class Operators {
@@ -18,7 +17,7 @@ final class Operators {
         var op1Entry = symbolTable.get(instruction.op1);
         var op1 = op1Entry.getValue();
         var result = symbolTable.get(instruction.result).getValue();
-        switch (op1Entry.getType().getAtomType()) {
+        switch (op1Entry.getType().getAtomTypeId()) {
             case INT32:
                 result.setInt32(-op1.getInt32());
                 break;
@@ -33,7 +32,7 @@ final class Operators {
                 break;
             default:
                 throw new PuffinBasicInternalError(
-                        "Unary minus is not supported for data type: " + op1Entry.getType().getAtomType()
+                        "Unary minus is not supported for data type: " + op1Entry.getType().getAtomTypeId()
                 );
         }
     }
@@ -57,7 +56,7 @@ final class Operators {
         var v2Entry = symbolTable.get(instruction.op2);
         var v2 = v2Entry.getValue();
         var result = symbolTable.get(instruction.result).getValue();
-        if (v1Entry.getType().getAtomType() == INT32 && v2Entry.getType().getAtomType() == INT32) {
+        if (v1Entry.getType().getAtomTypeId() == INT32 && v2Entry.getType().getAtomTypeId() == INT32) {
             result.setInt32(v1.getRoundedInt32() << v2.getRoundedInt32());
         } else {
             result.setInt64(v1.getRoundedInt64() << v2.getRoundedInt64());
@@ -73,7 +72,7 @@ final class Operators {
         var v2Entry = symbolTable.get(instruction.op2);
         var v2 = v2Entry.getValue();
         var result = symbolTable.get(instruction.result).getValue();
-        if (v1Entry.getType().getAtomType() == INT32 && v2Entry.getType().getAtomType() == INT32) {
+        if (v1Entry.getType().getAtomTypeId() == INT32 && v2Entry.getType().getAtomTypeId() == INT32) {
             result.setInt32(v1.getRoundedInt32() >> v2.getRoundedInt32());
         } else {
             result.setInt64(v1.getRoundedInt64() >> v2.getRoundedInt64());
@@ -89,7 +88,7 @@ final class Operators {
         var v2Entry = symbolTable.get(instruction.op2);
         var v2 = v2Entry.getValue();
         var result = symbolTable.get(instruction.result).getValue();
-        if (v1Entry.getType().getAtomType() == INT32 && v2Entry.getType().getAtomType() == INT32) {
+        if (v1Entry.getType().getAtomTypeId() == INT32 && v2Entry.getType().getAtomTypeId() == INT32) {
             result.setInt32(v1.getRoundedInt32() % v2.getRoundedInt32());
         } else {
             result.setInt64(v1.getRoundedInt64() % v2.getRoundedInt64());
@@ -105,7 +104,7 @@ final class Operators {
         var v2Entry = symbolTable.get(instruction.op2);
         var v2 = v2Entry.getValue();
         var result = symbolTable.get(instruction.result).getValue();
-        if (v1Entry.getType().getAtomType() == INT32 && v2Entry.getType().getAtomType() == INT32) {
+        if (v1Entry.getType().getAtomTypeId() == INT32 && v2Entry.getType().getAtomTypeId() == INT32) {
             if (v2.getRoundedInt32() == 0) {
                 throw new PuffinBasicRuntimeError(
                         DIVISION_BY_ZERO,

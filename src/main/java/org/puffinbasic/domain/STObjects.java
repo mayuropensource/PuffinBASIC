@@ -28,7 +28,7 @@ import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.NOT_INITIA
 
 public class STObjects {
 
-    public enum PuffinBasicCompositeType {
+    public enum PuffinBasicTypeId {
         SCALAR,
         ARRAY,
         UDF,
@@ -38,17 +38,17 @@ public class STObjects {
         DICT,
     }
 
-    public enum PuffinBasicDataType {
+    public enum PuffinBasicAtomTypeId {
 
         INT32('%') {
             @Override
             public STVariable createVariableEntry(Variable variable) {
                 if (variable.isArray()) {
-                    return new STVariable(new STInt32ArrayValue(), variable, INT32);
+                    return new STVariable(new STInt32ArrayValue(), variable);
                 } else if (variable.isUDF()) {
-                    return new STUDF(new STInt32ScalarValue(), variable, INT32);
+                    return new STUDF(new STInt32ScalarValue(), variable);
                 } else if (variable.isScalar()) {
-                    return new STVariable(new STInt32ScalarValue(), variable, INT32);
+                    return new STVariable(new STInt32ScalarValue(), variable);
                 } else {
                     throw new PuffinBasicInternalError("Variable type not supported: " + variable);
                 }
@@ -60,7 +60,7 @@ public class STObjects {
             }
 
             @Override
-            public boolean isCompatibleWith(PuffinBasicDataType other) {
+            public boolean isCompatibleWith(PuffinBasicAtomTypeId other) {
                 return other == INT32 || other == INT64 || other == FLOAT || other == DOUBLE;
             }
         },
@@ -68,11 +68,11 @@ public class STObjects {
             @Override
             public STVariable createVariableEntry(Variable variable) {
                 if (variable.isArray()) {
-                    return new STVariable(new STInt64ArrayValue(), variable, INT64);
+                    return new STVariable(new STInt64ArrayValue(), variable);
                 } else if (variable.isUDF()) {
-                    return new STUDF(new STInt64ScalarValue(), variable, INT64);
+                    return new STUDF(new STInt64ScalarValue(), variable);
                 } else if (variable.isScalar()) {
-                    return new STVariable(new STInt64ScalarValue(), variable, INT64);
+                    return new STVariable(new STInt64ScalarValue(), variable);
                 } else {
                     throw new PuffinBasicInternalError("Variable type not supported: " + variable);
                 }
@@ -84,7 +84,7 @@ public class STObjects {
             }
 
             @Override
-            public boolean isCompatibleWith(PuffinBasicDataType other) {
+            public boolean isCompatibleWith(PuffinBasicAtomTypeId other) {
                 return other == INT32 || other == INT64 || other == FLOAT || other == DOUBLE;
             }
         },
@@ -92,11 +92,11 @@ public class STObjects {
             @Override
             public STVariable createVariableEntry(Variable variable) {
                 if (variable.isArray()) {
-                    return new STVariable(new STFloat32ArrayValue(), variable, FLOAT);
+                    return new STVariable(new STFloat32ArrayValue(), variable);
                 } else if (variable.isUDF()) {
-                    return new STUDF(new STFloat32ScalarValue(), variable, FLOAT);
+                    return new STUDF(new STFloat32ScalarValue(), variable);
                 } else if (variable.isScalar()) {
-                    return new STVariable(new STFloat32ScalarValue(), variable, FLOAT);
+                    return new STVariable(new STFloat32ScalarValue(), variable);
                 } else {
                     throw new PuffinBasicInternalError("Variable type not supported: " + variable);
                 }
@@ -108,7 +108,7 @@ public class STObjects {
             }
 
             @Override
-            public boolean isCompatibleWith(PuffinBasicDataType other) {
+            public boolean isCompatibleWith(PuffinBasicAtomTypeId other) {
                 return other == INT32 || other == INT64 || other == FLOAT || other == DOUBLE;
             }
         },
@@ -116,11 +116,11 @@ public class STObjects {
             @Override
             public STVariable createVariableEntry(Variable variable) {
                 if (variable.isArray()) {
-                    return new STVariable(new STFloat64ArrayValue(), variable, DOUBLE);
+                    return new STVariable(new STFloat64ArrayValue(), variable);
                 } else if (variable.isUDF()) {
-                    return new STUDF(new STFloat64ScalarValue(), variable, DOUBLE);
+                    return new STUDF(new STFloat64ScalarValue(), variable);
                 } else if (variable.isScalar()){
-                    return new STVariable(new STFloat64ScalarValue(), variable, DOUBLE);
+                    return new STVariable(new STFloat64ScalarValue(), variable);
                 } else {
                     throw new PuffinBasicInternalError("Variable type not supported: " + variable);
                 }
@@ -132,7 +132,7 @@ public class STObjects {
             }
 
             @Override
-            public boolean isCompatibleWith(PuffinBasicDataType other) {
+            public boolean isCompatibleWith(PuffinBasicAtomTypeId other) {
                 return other == INT32 || other == INT64 || other == FLOAT || other == DOUBLE;
             }
         },
@@ -140,17 +140,17 @@ public class STObjects {
             @Override
             public STVariable createVariableEntry(Variable variable) {
                 if (variable.isArray()) {
-                    return new STVariable(new STStringArrayValue(), variable, STRING);
+                    return new STVariable(new STStringArrayValue(), variable);
                 } else if (variable.isUDF()) {
-                    return new STUDF(new STStringScalarValue(), variable, STRING);
+                    return new STUDF(new STStringScalarValue(), variable);
                 } else if (variable.isScalar()) {
                     String varname = variable.getVariableName().getVarname();
                     if (varname.equalsIgnoreCase("date")) {
-                        return new STVariable(new STStringScalarDateValue(), variable, STRING);
+                        return new STVariable(new STStringScalarDateValue(), variable);
                     } else if (varname.equalsIgnoreCase("time")) {
-                        return new STVariable(new STStringScalarTimeValue(), variable, STRING);
+                        return new STVariable(new STStringScalarTimeValue(), variable);
                     } else {
-                        return new STVariable(new STStringScalarValue(), variable, STRING);
+                        return new STVariable(new STStringScalarValue(), variable);
                     }
                 } else {
                     throw new PuffinBasicInternalError("Variable type not supported: " + variable);
@@ -163,7 +163,7 @@ public class STObjects {
             }
 
             @Override
-            public boolean isCompatibleWith(PuffinBasicDataType other) {
+            public boolean isCompatibleWith(PuffinBasicAtomTypeId other) {
                 return other == STRING;
             }
         },
@@ -179,24 +179,24 @@ public class STObjects {
             }
 
             @Override
-            public boolean isCompatibleWith(PuffinBasicDataType other) {
+            public boolean isCompatibleWith(PuffinBasicAtomTypeId other) {
                 return other == COMPOSITE;
             }
         }
         ;
 
-        private static final Int2ObjectMap<PuffinBasicDataType> mapping;
+        private static final Int2ObjectMap<PuffinBasicAtomTypeId> mapping;
 
         static {
             mapping = new Int2ObjectOpenHashMap<>();
-            for (PuffinBasicDataType value : PuffinBasicDataType.values()) {
+            for (PuffinBasicAtomTypeId value : PuffinBasicAtomTypeId.values()) {
                 mapping.put(value.repr, value);
             }
         }
 
         public final char repr;
 
-        PuffinBasicDataType(char repr) {
+        PuffinBasicAtomTypeId(char repr) {
             this.repr = repr;
         }
 
@@ -204,9 +204,9 @@ public class STObjects {
 
         public abstract STTmp createTmpEntry();
 
-        public abstract boolean isCompatibleWith(PuffinBasicDataType other);
+        public abstract boolean isCompatibleWith(PuffinBasicAtomTypeId other);
 
-        public static PuffinBasicDataType lookup(String repr) {
+        public static PuffinBasicAtomTypeId lookup(String repr) {
             if (repr == null || repr.length() != 1) {
                 throw new PuffinBasicInternalError(
                         "Variable suffix: '" + repr + "' is null or length != 1"
@@ -222,15 +222,15 @@ public class STObjects {
         }
     }
 
-    public interface PuffinBasicCompositeTypeBase {
-        PuffinBasicCompositeType getCompositeType();
-        PuffinBasicDataType getAtomType();
+    public interface PuffinBasicType {
+        PuffinBasicTypeId getTypeId();
+        PuffinBasicAtomTypeId getAtomTypeId();
         STValue newInstance(PuffinBasicSymbolTable symbolTable);
-        default boolean isCompatibleWith(PuffinBasicCompositeTypeBase other) {
+        default boolean isCompatibleWith(PuffinBasicType other) {
             return this.equals(other);
         }
         default StructType asStruct() {
-            if (getCompositeType() != PuffinBasicCompositeType.STRUCT) {
+            if (getTypeId() != PuffinBasicTypeId.STRUCT) {
                 throw new PuffinBasicRuntimeError(
                         BAD_FIELD,
                         "Type is not struct!"
@@ -240,20 +240,20 @@ public class STObjects {
         }
     }
 
-    public static class ScalarType implements PuffinBasicCompositeTypeBase {
-        private final PuffinBasicDataType atomType;
+    public static class ScalarType implements PuffinBasicType {
+        private final PuffinBasicAtomTypeId atomType;
 
-        public ScalarType(PuffinBasicDataType atomType) {
+        public ScalarType(PuffinBasicAtomTypeId atomType) {
             this.atomType = atomType;
         }
 
         @Override
-        public PuffinBasicCompositeType getCompositeType() {
-            return PuffinBasicCompositeType.SCALAR;
+        public PuffinBasicTypeId getTypeId() {
+            return PuffinBasicTypeId.SCALAR;
         }
 
         @Override
-        public PuffinBasicDataType getAtomType() {
+        public PuffinBasicAtomTypeId getAtomTypeId() {
             return atomType;
         }
 
@@ -268,36 +268,36 @@ public class STObjects {
                 return false;
             }
             ScalarType o = (ScalarType) obj;
-            return getCompositeType() == o.getCompositeType()
-                    && getAtomType() == o.getAtomType();
+            return getTypeId() == o.getTypeId()
+                    && getAtomTypeId() == o.getAtomTypeId();
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(getCompositeType(), getAtomType());
+            return Objects.hash(getTypeId(), getAtomTypeId());
         }
 
         @Override
-        public boolean isCompatibleWith(PuffinBasicCompositeTypeBase other) {
-            return getCompositeType() == other.getCompositeType()
-                    && getAtomType().isCompatibleWith(other.getAtomType());
+        public boolean isCompatibleWith(PuffinBasicType other) {
+            return getTypeId() == other.getTypeId()
+                    && getAtomTypeId().isCompatibleWith(other.getAtomTypeId());
         }
     }
 
-    public static class ArrayType implements PuffinBasicCompositeTypeBase {
-        private final PuffinBasicDataType atomType;
+    public static class ArrayType implements PuffinBasicType {
+        private final PuffinBasicAtomTypeId atomType;
 
-        public ArrayType(PuffinBasicDataType atomType) {
+        public ArrayType(PuffinBasicAtomTypeId atomType) {
             this.atomType = atomType;
         }
 
         @Override
-        public PuffinBasicCompositeType getCompositeType() {
-            return PuffinBasicCompositeType.ARRAY;
+        public PuffinBasicTypeId getTypeId() {
+            return PuffinBasicTypeId.ARRAY;
         }
 
         @Override
-        public PuffinBasicDataType getAtomType() {
+        public PuffinBasicAtomTypeId getAtomTypeId() {
             return atomType;
         }
 
@@ -312,35 +312,35 @@ public class STObjects {
                 return false;
             }
             ArrayType o = (ArrayType) obj;
-            return getCompositeType() == o.getCompositeType()
-                    && getAtomType() == o.getAtomType();
+            return getTypeId() == o.getTypeId()
+                    && getAtomTypeId() == o.getAtomTypeId();
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(getCompositeType(), getAtomType());
+            return Objects.hash(getTypeId(), getAtomTypeId());
         }
 
         @Override
-        public boolean isCompatibleWith(PuffinBasicCompositeTypeBase other) {
-            return getAtomType().isCompatibleWith(other.getAtomType());
+        public boolean isCompatibleWith(PuffinBasicType other) {
+            return getAtomTypeId().isCompatibleWith(other.getAtomTypeId());
         }
     }
 
-    public static class UDFType implements PuffinBasicCompositeTypeBase {
-        private final PuffinBasicDataType atomType;
+    public static class UDFType implements PuffinBasicType {
+        private final PuffinBasicAtomTypeId atomType;
 
-        public UDFType(PuffinBasicDataType atomType) {
+        public UDFType(PuffinBasicAtomTypeId atomType) {
             this.atomType = atomType;
         }
 
         @Override
-        public PuffinBasicCompositeType getCompositeType() {
-            return PuffinBasicCompositeType.UDF;
+        public PuffinBasicTypeId getTypeId() {
+            return PuffinBasicTypeId.UDF;
         }
 
         @Override
-        public PuffinBasicDataType getAtomType() {
+        public PuffinBasicAtomTypeId getAtomTypeId() {
             return atomType;
         }
 
@@ -355,25 +355,25 @@ public class STObjects {
                 return false;
             }
             ArrayType o = (ArrayType) obj;
-            return getCompositeType() == o.getCompositeType()
-                    && getAtomType() == o.getAtomType();
+            return getTypeId() == o.getTypeId()
+                    && getAtomTypeId() == o.getAtomTypeId();
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(getCompositeType(), getAtomType());
+            return Objects.hash(getTypeId(), getAtomTypeId());
         }
 
         @Override
-        public boolean isCompatibleWith(PuffinBasicCompositeTypeBase other) {
-            return getCompositeType() == other.getCompositeType()
-                    && getAtomType().isCompatibleWith(other.getAtomType());
+        public boolean isCompatibleWith(PuffinBasicType other) {
+            return getTypeId() == other.getTypeId()
+                    && getAtomTypeId().isCompatibleWith(other.getAtomTypeId());
         }
     }
 
-    public static final class StructType implements PuffinBasicCompositeTypeBase {
+    public static final class StructType implements PuffinBasicType {
         private final String typeName;
-        private final Int2ObjectMap<PuffinBasicCompositeTypeBase> memberRefIdToTypeMap;
+        private final Int2ObjectMap<PuffinBasicType> memberRefIdToTypeMap;
         private final Object2IntMap<VariableName> memberNameToMemberRefIdMap;
         private int counter;
 
@@ -387,7 +387,7 @@ public class STObjects {
             return typeName;
         }
 
-        public PuffinBasicCompositeTypeBase getMemberType(VariableName memberName) {
+        public PuffinBasicType getMemberType(VariableName memberName) {
             return memberRefIdToTypeMap.get(getMemberRefId(memberName));
         }
 
@@ -402,21 +402,20 @@ public class STObjects {
             return memberRefId;
         }
 
-        public int declareField(VariableName memberName, PuffinBasicCompositeTypeBase type) {
+        public void declareField(VariableName memberName, PuffinBasicType type) {
             final int refId = counter++;
             memberRefIdToTypeMap.put(refId, type);
             memberNameToMemberRefIdMap.put(memberName, refId);
-            return refId;
         }
 
         @Override
-        public PuffinBasicCompositeType getCompositeType() {
-            return PuffinBasicCompositeType.STRUCT;
+        public PuffinBasicTypeId getTypeId() {
+            return PuffinBasicTypeId.STRUCT;
         }
 
         @Override
-        public PuffinBasicDataType getAtomType() {
-            return PuffinBasicDataType.COMPOSITE;
+        public PuffinBasicAtomTypeId getAtomTypeId() {
+            return PuffinBasicAtomTypeId.COMPOSITE;
         }
 
         @Override
@@ -430,43 +429,43 @@ public class STObjects {
                 return false;
             }
             StructType o = (StructType) obj;
-            return getCompositeType() == o.getCompositeType()
-                    && getAtomType() == o.getAtomType()
+            return getTypeId() == o.getTypeId()
+                    && getAtomTypeId() == o.getAtomTypeId()
                     && getTypeName().equals(o.getTypeName());
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(getCompositeType(), getAtomType());
+            return Objects.hash(getTypeId(), getAtomTypeId());
         }
     }
 
-    static final class ListType implements PuffinBasicCompositeTypeBase {
+    static final class ListType implements PuffinBasicType {
 
-        private final PuffinBasicCompositeTypeBase type;
-        private final PuffinBasicDataType atomType;
+        private final PuffinBasicType type;
+        private final PuffinBasicAtomTypeId atomType;
 
         public ListType(
-                PuffinBasicCompositeTypeBase type,
-                PuffinBasicDataType atomType)
+                PuffinBasicType type,
+                PuffinBasicAtomTypeId atomType)
         {
             this.type = type;
             this.atomType = atomType;
         }
 
         @Override
-        public PuffinBasicCompositeType getCompositeType() {
-            return PuffinBasicCompositeType.LIST;
+        public PuffinBasicTypeId getTypeId() {
+            return PuffinBasicTypeId.LIST;
         }
 
         @Override
-        public PuffinBasicDataType getAtomType() {
+        public PuffinBasicAtomTypeId getAtomTypeId() {
             return atomType;
         }
 
         @Override
         public STValue newInstance(PuffinBasicSymbolTable symbolTable) {
-            return new STList(getAtomType());
+            return new STList(getAtomTypeId());
         }
 
         @Override
@@ -475,13 +474,13 @@ public class STObjects {
                 return false;
             }
             ListType o = (ListType) obj;
-            return getCompositeType() == o.getCompositeType()
-                    && getAtomType() == o.getAtomType();
+            return getTypeId() == o.getTypeId()
+                    && getAtomTypeId() == o.getAtomTypeId();
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(getCompositeType(), getAtomType());
+            return Objects.hash(getTypeId(), getAtomTypeId());
         }
     }
 
@@ -490,14 +489,21 @@ public class STObjects {
             return false;
         }
         STValue getValue();
-        PuffinBasicCompositeTypeBase getType();
+        PuffinBasicType getType();
     }
 
     public static abstract class AbstractSTEntry implements STEntry {
         private STValue value;
+        private final PuffinBasicType type;
 
-        AbstractSTEntry(STValue value) {
+        AbstractSTEntry(STValue value, PuffinBasicType type) {
             this.value = value;
+            this.type = type;
+        }
+
+        @Override
+        public PuffinBasicType getType() {
+            return type;
         }
 
         protected void setValue(STValue value) {
@@ -512,28 +518,20 @@ public class STObjects {
 
     public static class STVariable extends AbstractSTEntry {
         private final Variable variable;
-        private final PuffinBasicCompositeTypeBase type;
 
-        STVariable(STValue value, Variable variable, PuffinBasicDataType atomType) {
-            super(value);
+        STVariable(STValue value, Variable variable) {
+            super(value, variable.getType());
             this.variable = variable;
-            this.type = variable.isArray() ? new ArrayType(atomType) : new ScalarType(atomType);
         }
 
-        STVariable(Variable variable, PuffinBasicCompositeTypeBase type) {
-            super(null);
+        STVariable(Variable variable) {
+            super(null, variable.getType());
             this.variable = variable;
-            this.type = type;
         }
 
         @Override
         public boolean isLValue() {
             return true;
-        }
-
-        @Override
-        public PuffinBasicCompositeTypeBase getType() {
-            return type;
         }
 
         public Variable getVariable() {
@@ -547,10 +545,10 @@ public class STObjects {
 
     public static class STCompositeVariable extends STVariable {
         public STCompositeVariable(
-                PuffinBasicCompositeTypeBase type,
+                PuffinBasicType type,
                 VariableName variableName)
         {
-            super(new Variable(variableName, type), type);
+            super(new Variable(variableName, type));
         }
 
         public void createAndSetInstance(PuffinBasicSymbolTable symbolTable) {
@@ -568,16 +566,8 @@ public class STObjects {
     }
 
     public static class STCompositeTmp extends AbstractSTEntry {
-        private final PuffinBasicCompositeTypeBase type;
-
-        public STCompositeTmp(PuffinBasicCompositeTypeBase type) {
-            super(null);
-            this.type = type;
-        }
-
-        @Override
-        public PuffinBasicCompositeTypeBase getType() {
-            return type;
+        public STCompositeTmp(PuffinBasicType type) {
+            super(null, type);
         }
 
         public void createAndSetInstance(PuffinBasicSymbolTable symbolTable) {
@@ -598,8 +588,8 @@ public class STObjects {
 
         private final IntList paramIds;
 
-        STUDF(STValue value, Variable variable, PuffinBasicDataType atomType) {
-            super(value, variable, atomType);
+        STUDF(STValue value, Variable variable) {
+            super(value, variable);
             this.paramIds = new IntArrayList();
         }
 
@@ -617,46 +607,29 @@ public class STObjects {
     }
 
     static final class STTmp extends AbstractSTEntry {
-
-        private final PuffinBasicCompositeTypeBase type;
-
-        STTmp(STValue value, PuffinBasicDataType atomType) {
-            super(value);
-            this.type = new ScalarType(atomType);
-        }
-
-        @Override
-        public PuffinBasicCompositeTypeBase getType() {
-            return type;
+        STTmp(STValue value, PuffinBasicAtomTypeId atomType) {
+            super(value, new ScalarType(atomType));
         }
     }
 
     static final class STArrayReference extends AbstractSTEntry {
-        private final PuffinBasicCompositeTypeBase type;
-
-        STArrayReference(STValue value, PuffinBasicDataType atomType) {
-            super(value);
-            this.type = new ScalarType(atomType);
+        STArrayReference(STValue value, PuffinBasicAtomTypeId atomType) {
+            super(value, new ScalarType(atomType));
         }
 
         @Override
         public boolean isLValue() {
             return true;
         }
-
-        @Override
-        public PuffinBasicCompositeTypeBase getType() {
-            return type;
-        }
     }
 
     static final class STLabel extends AbstractSTEntry {
         STLabel() {
-            super(new STInt32ScalarValue());
+            super(new STInt32ScalarValue(), null);
         }
 
         @Override
-        public PuffinBasicCompositeTypeBase getType() {
+        public PuffinBasicType getType() {
             throw new PuffinBasicInternalError("Labels don't have a type!");
         }
     }
@@ -2113,12 +2086,12 @@ public class STObjects {
     }
 
     static abstract class STCompositeValue implements STValue {
-        private final PuffinBasicCompositeType type;
-        private final PuffinBasicDataType atomType;
+        private final PuffinBasicTypeId type;
+        private final PuffinBasicAtomTypeId atomType;
 
         STCompositeValue(
-                PuffinBasicCompositeType type,
-                PuffinBasicDataType atomType)
+                PuffinBasicTypeId type,
+                PuffinBasicAtomTypeId atomType)
         {
             this.type = type;
             this.atomType = atomType;
@@ -2203,8 +2176,8 @@ public class STObjects {
     static final class STList extends STCompositeValue {
         private final List<Object> list;
 
-        public STList(PuffinBasicDataType atomType) {
-            super(PuffinBasicCompositeType.LIST, atomType);
+        public STList(PuffinBasicAtomTypeId atomType) {
+            super(PuffinBasicTypeId.LIST, atomType);
             this.list = new ArrayList<>();
         }
     }
@@ -2214,13 +2187,13 @@ public class STObjects {
         private final Int2IntMap memberRefIdToValueId;
 
         public STStruct(PuffinBasicSymbolTable symbolTable, StructType type) {
-            super(PuffinBasicCompositeType.STRUCT, PuffinBasicDataType.COMPOSITE);
+            super(PuffinBasicTypeId.STRUCT, PuffinBasicAtomTypeId.COMPOSITE);
             this.structType = type;
             this.memberRefIdToValueId = new Int2IntOpenHashMap();
             for (var entry : structType.memberNameToMemberRefIdMap.object2IntEntrySet()) {
                 var memberRefId = entry.getIntValue();
                 var valueType = structType.memberRefIdToTypeMap.get(memberRefId);
-                var valueId = symbolTable.addTmp(valueType, valueType.getAtomType(), e -> e.getValue().setInitialized());
+                var valueId = symbolTable.addTmp(valueType, valueType.getAtomTypeId(), e -> e.getValue().setInitialized());
                 this.memberRefIdToValueId.put(memberRefId, valueId);
             }
         }
