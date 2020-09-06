@@ -482,14 +482,14 @@ public class Statements {
         variable.getValue().assign(data.getValue());
     }
 
-    public static void createInstance(
+    static void createInstance(
             PuffinBasicSymbolTable symbolTable, Instruction instruction)
     {
-        var entry = (STObjects.STCompositeVariable) symbolTable.get(instruction.op1);
+        var entry = (STObjects.STVariable) symbolTable.get(instruction.op1);
         entry.createAndSetInstance(symbolTable);
     }
 
-    public static void structMemberRef(
+    static void structMemberRef(
             PuffinBasicSymbolTable symbolTable,
             List<Instruction> params,
             Instruction instruction)

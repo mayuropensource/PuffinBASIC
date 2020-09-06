@@ -1851,10 +1851,9 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         var typeName = ctx.varname(0).VARNAME().getText();
         var instanceName = ctx.varname(1).VARNAME().getText();
         var variableName = new VariableName(instanceName, PuffinBasicAtomTypeId.COMPOSITE);
+        var type = ir.getSymbolTable().getStructType(typeName);
         var id = ir.getSymbolTable().addCompositeVariable(
-                variableName, new STObjects.STCompositeVariable(
-                        ir.getSymbolTable().getStructType(typeName),
-                        variableName));
+                variableName, new STVariable(null, new Variable(variableName, type)));
         ir.addInstruction(
                 currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
                 OpCode.CREATE_INSTANCE, id, NULL_ID, id

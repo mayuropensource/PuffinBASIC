@@ -56,7 +56,7 @@ public class STObjects {
 
             @Override
             public STTmp createTmpEntry() {
-                return new STTmp(new STInt32ScalarValue(), INT32);
+                return new STTmp(new STInt32ScalarValue(), new ScalarType(INT32));
             }
 
             @Override
@@ -80,7 +80,7 @@ public class STObjects {
 
             @Override
             public STTmp createTmpEntry() {
-                return new STTmp(new STInt64ScalarValue(), INT64);
+                return new STTmp(new STInt64ScalarValue(), new ScalarType(INT64));
             }
 
             @Override
@@ -104,7 +104,7 @@ public class STObjects {
 
             @Override
             public STTmp createTmpEntry() {
-                return new STTmp(new STFloat32ScalarValue(), FLOAT);
+                return new STTmp(new STFloat32ScalarValue(), new ScalarType(FLOAT));
             }
 
             @Override
@@ -128,7 +128,7 @@ public class STObjects {
 
             @Override
             public STTmp createTmpEntry() {
-                return new STTmp(new STFloat64ScalarValue(), DOUBLE);
+                return new STTmp(new STFloat64ScalarValue(), new ScalarType(DOUBLE));
             }
 
             @Override
@@ -159,7 +159,7 @@ public class STObjects {
 
             @Override
             public STTmp createTmpEntry() {
-                return new STTmp(new STStringScalarValue(), STRING);
+                return new STTmp(new STStringScalarValue(), new ScalarType(STRING));
             }
 
             @Override
@@ -279,8 +279,7 @@ public class STObjects {
 
         @Override
         public boolean isCompatibleWith(PuffinBasicType other) {
-            return getTypeId() == other.getTypeId()
-                    && getAtomTypeId().isCompatibleWith(other.getAtomTypeId());
+            return getAtomTypeId().isCompatibleWith(other.getAtomTypeId());
         }
     }
 
@@ -493,8 +492,8 @@ public class STObjects {
     }
 
     public static abstract class AbstractSTEntry implements STEntry {
-        private STValue value;
         private final PuffinBasicType type;
+        private STValue value;
 
         AbstractSTEntry(STValue value, PuffinBasicType type) {
             this.value = value;
@@ -506,81 +505,51 @@ public class STObjects {
             return type;
         }
 
-        protected void setValue(STValue value) {
+        public void setValue(STValue value) {
             this.value = value;
         }
 
         @Override
         public STValue getValue() {
+            if (value == null) {
+                throw new PuffinBasicInternalError("Value is not set for type: " + getType());
+            }
             return value;
+        }
+
+        public void createAndSetInstance(PuffinBasicSymbolTable symbolTable) {
+            setValue(getType().newInstance(symbolTable));
         }
     }
 
-    public static class STVariable extends AbstractSTEntry {
-        private final Variable variable;
-
-        STVariable(STValue value, Variable variable) {
-            super(value, variable.getType());
-            this.variable = variable;
-        }
-
-        STVariable(Variable variable) {
-            super(null, variable.getType());
-            this.variable = variable;
+    static class STLValue extends AbstractSTEntry {
+        STLValue(STValue value, PuffinBasicType type) {
+            super(value, type);
         }
 
         @Override
         public boolean isLValue() {
             return true;
         }
+    }
+
+    public static class STVariable extends STLValue {
+        private final Variable variable;
+
+        public STVariable(STValue value, Variable variable) {
+            super(value, variable.getType());
+            this.variable = variable;
+        }
 
         public Variable getVariable() {
             return variable;
         }
 
-        public void setValue(STVariable src) {
-            setValue(src.getValue());
-        }
     }
 
-    public static class STCompositeVariable extends STVariable {
-        public STCompositeVariable(
-                PuffinBasicType type,
-                VariableName variableName)
-        {
-            super(new Variable(variableName, type));
-        }
-
-        public void createAndSetInstance(PuffinBasicSymbolTable symbolTable) {
-            setValue(getType().newInstance(symbolTable));
-        }
-
-        @Override
-        public STValue getValue() {
-            var value = super.getValue();
-            if (value == null) {
-                throw new PuffinBasicInternalError("Value is not set in " + getVariable());
-            }
-            return value;
-        }
-    }
-
-    public static class STCompositeTmp extends AbstractSTEntry {
-        public STCompositeTmp(PuffinBasicType type) {
-            super(null, type);
-        }
-
-        public void createAndSetInstance(PuffinBasicSymbolTable symbolTable) {
-            setValue(getType().newInstance(symbolTable));
-        }
-
-        @Override
-        public STValue getValue() {
-            var value = super.getValue();
-            if (value == null) {
-                throw new PuffinBasicInternalError("Value is not set!");
-            }
-            return value;
+    static final class STTmp extends AbstractSTEntry {
+        STTmp(STValue value, PuffinBasicType type) {
+            super(value, type);
         }
     }
 
@@ -603,23 +572,6 @@ public class STObjects {
 
         public int getDeclaredParam(int i) {
             return paramIds.getInt(i);
-        }
-    }
-
-    static final class STTmp extends AbstractSTEntry {
-        STTmp(STValue value, PuffinBasicAtomTypeId atomType) {
-            super(value, new ScalarType(atomType));
-        }
-    }
-
-    static final class STArrayReference extends AbstractSTEntry {
-        STArrayReference(STValue value, PuffinBasicAtomTypeId atomType) {
-            super(value, new ScalarType(atomType));
-        }
-
-        @Override
-        public boolean isLValue() {
-            return true;
         }
     }
 

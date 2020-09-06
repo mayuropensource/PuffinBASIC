@@ -7,11 +7,11 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.puffinbasic.domain.STObjects.ArrayReferenceValue;
-import org.puffinbasic.domain.STObjects.PuffinBasicType;
 import org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId;
-import org.puffinbasic.domain.STObjects.STArrayReference;
-import org.puffinbasic.domain.STObjects.STCompositeVariable;
+import org.puffinbasic.domain.STObjects.PuffinBasicType;
+import org.puffinbasic.domain.STObjects.STLValue;
 import org.puffinbasic.domain.STObjects.STEntry;
+import org.puffinbasic.domain.STObjects.STTmp;
 import org.puffinbasic.domain.STObjects.STVariable;
 import org.puffinbasic.domain.Scope.GlobalScope;
 import org.puffinbasic.domain.Variable.VariableName;
@@ -149,7 +149,7 @@ public class PuffinBasicSymbolTable {
 
     public int addCompositeVariable(
             VariableName variableName,
-            STCompositeVariable variable)
+            STVariable variable)
     {
         var scope = findScope(s -> s.containsVariable(variableName)).orElse(getCurrentScope());
         int id = generateNextId();
@@ -186,7 +186,7 @@ public class PuffinBasicSymbolTable {
     public int addArrayReference(STVariable variable) {
         var ref = new ArrayReferenceValue(variable);
         int id = generateNextId();
-        var entry = new STArrayReference(ref, variable.getType().getAtomTypeId());
+        var entry = new STLValue(ref, variable.getType());
         getCurrentScope().putEntry(id, entry);
         return id;
     }
@@ -195,7 +195,7 @@ public class PuffinBasicSymbolTable {
         if (dataType == COMPOSITE) {
             var scope = getCurrentScope();
             int id = generateNextId();
-            var entry = new STObjects.STCompositeTmp(type);
+            var entry = new STTmp(null, type);
             entry.createAndSetInstance(this);
             scope.putEntry(id, entry);
             consumer.accept(entry);

@@ -25,7 +25,7 @@ public class Types {
     public static void varref(PuffinBasicSymbolTable symbolTable, int op1, int op2) {
         var src = (STVariable) symbolTable.get(op1);
         var dst = (STVariable) symbolTable.get(op2);
-        dst.setValue(src);
+        dst.setValue(src.getValue());
     }
 
     public static String unquote(String txt) {
