@@ -108,7 +108,15 @@ stmt
     ;
 
 variable
+    : leafvariable | structvariable
+    ;
+
+leafvariable
     : varname varsuffix? (LPAREN expr (COMMA expr)* RPAREN)?
+    ;
+
+structvariable
+    : varname (DOT varname)* DOT leafvariable (LPAREN expr (COMMA expr)* RPAREN)?
     ;
 
 varname
@@ -149,11 +157,7 @@ expr
     ;
 
 func
-    : variable (DOT variable)+                              # FuncMember
-    | variable
-        (DOT fn=varname LPAREN
-        (param=expr (COMMA param=expr)*)? RPAREN)           # FuncMemberCall
-    | ABS  LPAREN expr RPAREN                               # FuncAbs
+    : ABS  LPAREN expr RPAREN                               # FuncAbs
     | ASC  LPAREN expr RPAREN                               # FuncAsc
     | SIN  LPAREN expr RPAREN                               # FuncSin
     | COS  LPAREN expr RPAREN                               # FuncCos

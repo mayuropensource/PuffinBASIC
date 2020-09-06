@@ -5,6 +5,7 @@ import org.puffinbasic.parser.PuffinBasicIR.Instruction;
 public class PuffinBasicRuntimeError extends RuntimeException {
 
     public enum ErrorCode {
+        UNKNOWN,
         ARRAY_INDEX_OUT_OF_BOUNDS,
         INDEX_OUT_OF_BOUNDS,
         DIVISION_BY_ZERO,
@@ -37,5 +38,16 @@ public class PuffinBasicRuntimeError extends RuntimeException {
                 + "Line: " + instruction.inputRef + System.lineSeparator()
                 + line, cause);
         this.errorCode = cause.errorCode;
+    }
+
+    public PuffinBasicRuntimeError(
+            Exception cause,
+            Instruction instruction,
+            String line)
+    {
+        super(cause.getMessage() + System.lineSeparator()
+                + "Line: " + instruction.inputRef + System.lineSeparator()
+                + line, cause);
+        this.errorCode = ErrorCode.UNKNOWN;
     }
 }

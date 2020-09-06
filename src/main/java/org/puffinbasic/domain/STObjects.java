@@ -23,6 +23,7 @@ import java.util.Objects;
 
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.ARRAY_INDEX_OUT_OF_BOUNDS;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.BAD_FIELD;
+import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.DATA_TYPE_MISMATCH;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.ILLEGAL_FUNCTION_PARAM;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.NOT_INITIALIZED;
 
@@ -372,14 +373,14 @@ public class STObjects {
 
     public static final class StructType implements PuffinBasicType {
         private final String typeName;
-        private final Int2ObjectMap<PuffinBasicType> memberRefIdToTypeMap;
-        private final Object2IntMap<VariableName> memberNameToMemberRefIdMap;
+        private final Int2ObjectMap<PuffinBasicType> refIdToTypeMap;
+        private final Object2IntMap<VariableName> nameToRefIdMap;
         private int counter;
 
         public StructType(String typeName) {
             this.typeName = typeName;
-            this.memberRefIdToTypeMap = new Int2ObjectOpenHashMap<>();
-            this.memberNameToMemberRefIdMap = new Object2IntOpenHashMap<>();
+            this.refIdToTypeMap = new Int2ObjectOpenHashMap<>();
+            this.nameToRefIdMap = new Object2IntOpenHashMap<>();
         }
 
         public String getTypeName() {
@@ -387,11 +388,11 @@ public class STObjects {
         }
 
         public PuffinBasicType getMemberType(VariableName memberName) {
-            return memberRefIdToTypeMap.get(getMemberRefId(memberName));
+            return refIdToTypeMap.get(getMemberRefId(memberName));
         }
 
         public int getMemberRefId(VariableName memberName) {
-            var memberRefId = memberNameToMemberRefIdMap.getOrDefault(memberName, -1);
+            var memberRefId = nameToRefIdMap.getOrDefault(memberName, -1);
             if (memberRefId == -1) {
                 throw new PuffinBasicRuntimeError(
                         BAD_FIELD,
@@ -403,8 +404,8 @@ public class STObjects {
 
         public void declareField(VariableName memberName, PuffinBasicType type) {
             final int refId = counter++;
-            memberRefIdToTypeMap.put(refId, type);
-            memberNameToMemberRefIdMap.put(memberName, refId);
+            refIdToTypeMap.put(refId, type);
+            nameToRefIdMap.put(memberName, refId);
         }
 
         @Override
@@ -491,6 +492,47 @@ public class STObjects {
         PuffinBasicType getType();
     }
 
+    public static class STRef implements STEntry {
+        private final PuffinBasicType type;
+        private STEntry ref;
+
+        public STRef(PuffinBasicType type) {
+            this.type = type;
+        }
+
+        public void setRef(STEntry ref) {
+            if (!ref.getType().equals(type)) {
+                throw new PuffinBasicRuntimeError(
+                        DATA_TYPE_MISMATCH,
+                        "Expected " + type + " got " + ref.getType()
+                );
+            }
+            this.ref = ref;
+        }
+
+        private STEntry getRef() {
+            if (ref == null) {
+                throw new PuffinBasicInternalError("Ref is null");
+            }
+            return ref;
+        }
+
+        @Override
+        public STValue getValue() {
+            return getRef().getValue();
+        }
+
+        @Override
+        public PuffinBasicType getType() {
+            return type;
+        }
+
+        @Override
+        public boolean isLValue() {
+            return getRef().isLValue();
+        }
+    }
+
     public static abstract class AbstractSTEntry implements STEntry {
         private final PuffinBasicType type;
         private STValue value;
@@ -522,7 +564,7 @@ public class STObjects {
         }
     }
 
-    static class STLValue extends AbstractSTEntry {
+    public static class STLValue extends AbstractSTEntry {
         STLValue(STValue value, PuffinBasicType type) {
             super(value, type);
         }
@@ -2142,9 +2184,9 @@ public class STObjects {
             super(PuffinBasicTypeId.STRUCT, PuffinBasicAtomTypeId.COMPOSITE);
             this.structType = type;
             this.memberRefIdToValueId = new Int2IntOpenHashMap();
-            for (var entry : structType.memberNameToMemberRefIdMap.object2IntEntrySet()) {
+            for (var entry : structType.nameToRefIdMap.object2IntEntrySet()) {
                 var memberRefId = entry.getIntValue();
-                var valueType = structType.memberRefIdToTypeMap.get(memberRefId);
+                var valueType = structType.refIdToTypeMap.get(memberRefId);
                 var valueId = symbolTable.addTmp(valueType, valueType.getAtomTypeId(), e -> e.getValue().setInitialized());
                 this.memberRefIdToValueId.put(memberRefId, valueId);
             }

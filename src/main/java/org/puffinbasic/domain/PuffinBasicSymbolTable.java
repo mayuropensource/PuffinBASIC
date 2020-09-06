@@ -9,8 +9,9 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.puffinbasic.domain.STObjects.ArrayReferenceValue;
 import org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId;
 import org.puffinbasic.domain.STObjects.PuffinBasicType;
-import org.puffinbasic.domain.STObjects.STLValue;
 import org.puffinbasic.domain.STObjects.STEntry;
+import org.puffinbasic.domain.STObjects.STLValue;
+import org.puffinbasic.domain.STObjects.STRef;
 import org.puffinbasic.domain.STObjects.STTmp;
 import org.puffinbasic.domain.STObjects.STVariable;
 import org.puffinbasic.domain.Scope.GlobalScope;
@@ -20,7 +21,6 @@ import org.puffinbasic.error.PuffinBasicRuntimeError;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -31,6 +31,10 @@ import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.BAD_FIELD;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.ILLEGAL_FUNCTION_PARAM;
 
 public class PuffinBasicSymbolTable {
+
+    public interface VariableConsumer {
+        void consume(int id, STVariable entry, Variable variable);
+    }
 
     public static final int NULL_ID = -1;
 
@@ -129,7 +133,7 @@ public class PuffinBasicSymbolTable {
     public int addVariableOrUDF(
             VariableName variableName,
             Function<VariableName, Variable> variableCreator,
-            BiConsumer<Integer, STVariable> consumer)
+            VariableConsumer consumer)
     {
         var scope = findScope(s -> s.containsVariable(variableName)).orElse(getCurrentScope());
         int id = scope.getIdForVariable(variableName);
@@ -143,7 +147,7 @@ public class PuffinBasicSymbolTable {
         } else {
             entry = (STVariable) get(id);
         }
-        consumer.accept(id, entry);
+        consumer.consume(id, entry, entry.getVariable());
         return id;
     }
 
@@ -211,6 +215,14 @@ public class PuffinBasicSymbolTable {
         var entry = dataType.createTmpEntry();
         scope.putEntry(id, entry);
         consumer.accept(entry);
+        return id;
+    }
+
+    public int addRef(PuffinBasicType type) {
+        var scope = getCurrentScope();
+        int id = generateNextId();
+        var entry = new STRef(type);
+        scope.putEntry(id, entry);
         return id;
     }
 

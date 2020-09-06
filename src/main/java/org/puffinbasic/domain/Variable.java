@@ -3,8 +3,8 @@ package org.puffinbasic.domain;
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.puffinbasic.domain.STObjects.ArrayType;
-import org.puffinbasic.domain.STObjects.PuffinBasicType;
 import org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId;
+import org.puffinbasic.domain.STObjects.PuffinBasicType;
 import org.puffinbasic.domain.STObjects.ScalarType;
 import org.puffinbasic.domain.STObjects.UDFType;
 import org.puffinbasic.error.PuffinBasicSemanticError;
@@ -58,7 +58,7 @@ public class Variable {
         }
     }
 
-    public static final String UDF_PREFIX ="FN";
+    private static final String UDF_PREFIX ="FN";
 
     public static Variable of(
             @NotNull VariableName variableName,

@@ -120,6 +120,8 @@ public class PuffinBasicRuntime {
                     end = runInstruction(instruction);
                 } catch (PuffinBasicRuntimeError e) {
                     throw new PuffinBasicRuntimeError(e, instruction, ir.getCodeStreamFor(instruction));
+                } catch (Exception e) {
+                    throw new PuffinBasicRuntimeError(e, instruction, ir.getCodeStreamFor(instruction));
                 }
             }
         } finally {
@@ -151,6 +153,14 @@ public class PuffinBasicRuntime {
             break;
             case CREATE_INSTANCE:
                 Statements.createInstance(ir.getSymbolTable(), instruction);
+                break;
+            case STRUCT_LVALUE: {
+                if (params.isEmpty()) {
+                    throw new PuffinBasicInternalError("Expected >0 params, but found none!");
+                }
+                Statements.structLValue(ir.getSymbolTable(), params, instruction);
+                params.clear();
+            }
                 break;
             case STRUCT_MEMBER_REF: {
                 if (params.isEmpty()) {

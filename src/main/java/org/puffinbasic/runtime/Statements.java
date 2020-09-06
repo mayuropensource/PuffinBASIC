@@ -7,6 +7,7 @@ import org.apache.commons.csv.CSVRecord;
 import org.puffinbasic.domain.PuffinBasicSymbolTable;
 import org.puffinbasic.domain.STObjects;
 import org.puffinbasic.domain.STObjects.STEntry;
+import org.puffinbasic.domain.STObjects.STRef;
 import org.puffinbasic.error.PuffinBasicInternalError;
 import org.puffinbasic.error.PuffinBasicRuntimeError;
 import org.puffinbasic.file.PuffinBasicFile;
@@ -487,6 +488,22 @@ public class Statements {
     {
         var entry = (STObjects.STVariable) symbolTable.get(instruction.op1);
         entry.createAndSetInstance(symbolTable);
+    }
+
+    static void structLValue(
+            PuffinBasicSymbolTable symbolTable,
+            List<Instruction> params,
+            Instruction instruction)
+    {
+        var root = (STObjects.STStruct) symbolTable.get(instruction.op1).getValue();
+        for (int i = 0; i < params.size() - 1; i++) {
+            var childId = symbolTable.get(params.get(i).op1).getValue().getInt32();
+            var valueId = root.getMember(childId);
+            root = (STObjects.STStruct) symbolTable.get(valueId).getValue();
+        }
+        var childId = symbolTable.get(params.get(params.size() - 1).op1).getValue().getInt32();
+        var valueId = root.getMember(childId);
+        ((STRef) symbolTable.get(instruction.result)).setRef(symbolTable.get(valueId));
     }
 
     static void structMemberRef(
