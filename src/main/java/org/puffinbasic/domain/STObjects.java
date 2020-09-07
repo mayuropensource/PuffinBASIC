@@ -66,7 +66,7 @@ public class STObjects {
 
             @Override
             public STTmp createTmpEntry() {
-                return new STTmp(new STInt32ScalarValue(), new ScalarType(INT32));
+                return new STTmp(new STInt32ScalarValue(), ScalarType.INT32);
             }
 
             @Override
@@ -90,7 +90,7 @@ public class STObjects {
 
             @Override
             public STTmp createTmpEntry() {
-                return new STTmp(new STInt64ScalarValue(), new ScalarType(INT64));
+                return new STTmp(new STInt64ScalarValue(), ScalarType.INT64);
             }
 
             @Override
@@ -114,7 +114,7 @@ public class STObjects {
 
             @Override
             public STTmp createTmpEntry() {
-                return new STTmp(new STFloat32ScalarValue(), new ScalarType(FLOAT));
+                return new STTmp(new STFloat32ScalarValue(), ScalarType.FLOAT32);
             }
 
             @Override
@@ -138,7 +138,7 @@ public class STObjects {
 
             @Override
             public STTmp createTmpEntry() {
-                return new STTmp(new STFloat64ScalarValue(), new ScalarType(DOUBLE));
+                return new STTmp(new STFloat64ScalarValue(), ScalarType.FLOAT64);
             }
 
             @Override
@@ -169,7 +169,7 @@ public class STObjects {
 
             @Override
             public STTmp createTmpEntry() {
-                return new STTmp(new STStringScalarValue(), new ScalarType(STRING));
+                return new STTmp(new STStringScalarValue(), ScalarType.STRING);
             }
 
             @Override
@@ -264,6 +264,12 @@ public class STObjects {
     }
 
     public static class ScalarType implements PuffinBasicType {
+        static final ScalarType INT32 = new ScalarType(PuffinBasicAtomTypeId.INT32);
+        static final ScalarType INT64 = new ScalarType(PuffinBasicAtomTypeId.INT64);
+        static final ScalarType FLOAT32 = new ScalarType(FLOAT);
+        static final ScalarType FLOAT64 = new ScalarType(DOUBLE);
+        static final ScalarType STRING = new ScalarType(PuffinBasicAtomTypeId.STRING);
+
         private final PuffinBasicAtomTypeId atomType;
 
         public ScalarType(PuffinBasicAtomTypeId atomType) {
@@ -515,7 +521,7 @@ public class STObjects {
             this.memberFunctions = new MemberFunctions(
                     ImmutableList.<MemberFunction>builder()
                             .add(new MemberFunction(
-                                    "add", new PuffinBasicType[] {type}, new ScalarType(INT32),
+                                    "add", new PuffinBasicType[] {type}, ScalarType.INT32,
                                     (obj, params, result) -> {
                                         @SuppressWarnings("unchecked")
                                         var list = (List<Object>) obj;
@@ -523,12 +529,30 @@ public class STObjects {
                                         result.setInt32(0);
                                     }))
                             .add(new MemberFunction(
-                                    "get", new PuffinBasicType[] {new ScalarType(INT32)}, type,
+                                    "insert", new PuffinBasicType[] {ScalarType.INT32, type}, ScalarType.INT32,
+                                    (obj, params, result) -> {
+                                        @SuppressWarnings("unchecked")
+                                        var list = (List<Object>) obj;
+                                        int index = params[0].getInt32();
+                                        var value = params[1].getObject();
+                                        list.add(index, value);
+                                        result.setInt32(0);
+                                    }))
+                            .add(new MemberFunction(
+                                    "get", new PuffinBasicType[] {ScalarType.INT32}, type,
                                     (obj, params, result) -> {
                                         @SuppressWarnings("unchecked")
                                         var list = (List<Object>) obj;
                                         int index = params[0].getInt32();
                                         result.setObject(list.get(index));
+                                    }))
+                            .add(new MemberFunction(
+                                    "clear", new PuffinBasicType[] {}, ScalarType.INT32,
+                                    (obj, params, result) -> {
+                                        @SuppressWarnings("unchecked")
+                                        var list = (List<Object>) obj;
+                                        list.clear();
+                                        result.setInt32(0);
                                     }))
                             .build()
             );

@@ -163,9 +163,6 @@ public class PuffinBasicRuntime {
             }
                 break;
             case MEMBER_FUNC_CALL: {
-                if (params.isEmpty()) {
-                    throw new PuffinBasicInternalError("Expected >0 params, but found none!");
-                }
                 Statements.memberFuncCall(ir.getSymbolTable(), params, instruction);
                 params.clear();
             }
