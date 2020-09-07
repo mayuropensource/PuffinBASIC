@@ -157,7 +157,8 @@ expr
     ;
 
 func
-    : ABS  LPAREN expr RPAREN                               # FuncAbs
+    : variable DOT (varname|GET) LPAREN (expr (COMMA expr)*)? RPAREN  # FuncMemberMethodCall
+    | ABS  LPAREN expr RPAREN                               # FuncAbs
     | ASC  LPAREN expr RPAREN                               # FuncAsc
     | SIN  LPAREN expr RPAREN                               # FuncSin
     | COS  LPAREN expr RPAREN                               # FuncCos

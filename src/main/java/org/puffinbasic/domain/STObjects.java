@@ -1,5 +1,6 @@
 package org.puffinbasic.domain;
 
+import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -18,11 +19,19 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
+import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.DOUBLE;
+import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.FLOAT;
+import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.INT32;
+import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.INT64;
+import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.STRING;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.ARRAY_INDEX_OUT_OF_BOUNDS;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.BAD_FIELD;
+import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.BAD_FUNCTION_CALL;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.DATA_TYPE_MISMATCH;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.ILLEGAL_FUNCTION_PARAM;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.NOT_INITIALIZED;
@@ -225,11 +234,24 @@ public class STObjects {
 
     public interface PuffinBasicType {
         PuffinBasicTypeId getTypeId();
+
         PuffinBasicAtomTypeId getAtomTypeId();
+
         STValue newInstance(PuffinBasicSymbolTable symbolTable);
+
+        default PuffinBasicType getFuncCallReturnType(String funcName) {
+            throw new PuffinBasicRuntimeError(
+                    BAD_FIELD,
+                    "Unsupported function: " + funcName + " in type: " + this
+            );
+        }
+
+        default void checkFuncCallArguments(String funcName, List<PuffinBasicType> paramTypes) {}
+
         default boolean isCompatibleWith(PuffinBasicType other) {
             return this.equals(other);
         }
+
         default StructType asStruct() {
             if (getTypeId() != PuffinBasicTypeId.STRUCT) {
                 throw new PuffinBasicRuntimeError(
@@ -440,17 +462,76 @@ public class STObjects {
         }
     }
 
-    static final class ListType implements PuffinBasicType {
+    private interface MemberCallHandler {
+        void call(Object o, STValue[] params, STValue result);
+    }
+
+    private static final class MemberFunction {
+        private final String functionName;
+        private final PuffinBasicType[] paramTypes;
+        private final PuffinBasicType returnType;
+        private final MemberCallHandler callHandler;
+
+        public MemberFunction(
+                String functionName,
+                PuffinBasicType[] paramTypes,
+                PuffinBasicType returnType,
+                MemberCallHandler callHandler)
+        {
+            this.functionName = functionName;
+            this.paramTypes = paramTypes;
+            this.returnType = returnType;
+            this.callHandler = callHandler;
+        }
+    }
+
+    private static final class MemberFunctions {
+        private final Map<String, MemberFunction> memberFunctions;
+
+        public MemberFunctions(List<MemberFunction> memberFunctions) {
+            this.memberFunctions = new HashMap<>();
+            memberFunctions.forEach(mf -> this.memberFunctions.put(mf.functionName, mf));
+        }
+
+        public MemberFunction get(String funcName) {
+            var mf = memberFunctions.get(funcName);
+            if (mf == null) {
+                throw new PuffinBasicRuntimeError(
+                        BAD_FIELD,
+                        "Unknown member function: " + funcName
+                );
+            }
+            return mf;
+        }
+    }
+
+    public static final class ListType implements PuffinBasicType {
 
         private final PuffinBasicType type;
-        private final PuffinBasicAtomTypeId atomType;
+        private final MemberFunctions memberFunctions;
 
-        public ListType(
-                PuffinBasicType type,
-                PuffinBasicAtomTypeId atomType)
-        {
+        public ListType(PuffinBasicType type) {
             this.type = type;
-            this.atomType = atomType;
+            this.memberFunctions = new MemberFunctions(
+                    ImmutableList.<MemberFunction>builder()
+                            .add(new MemberFunction(
+                                    "add", new PuffinBasicType[] {type}, new ScalarType(INT32),
+                                    (obj, params, result) -> {
+                                        @SuppressWarnings("unchecked")
+                                        var list = (List<Object>) obj;
+                                        list.add(params[0].getObject());
+                                        result.setInt32(0);
+                                    }))
+                            .add(new MemberFunction(
+                                    "get", new PuffinBasicType[] {new ScalarType(INT32)}, type,
+                                    (obj, params, result) -> {
+                                        @SuppressWarnings("unchecked")
+                                        var list = (List<Object>) obj;
+                                        int index = params[0].getInt32();
+                                        result.setObject(list.get(index));
+                                    }))
+                            .build()
+            );
         }
 
         @Override
@@ -460,12 +541,38 @@ public class STObjects {
 
         @Override
         public PuffinBasicAtomTypeId getAtomTypeId() {
-            return atomType;
+            return type.getAtomTypeId();
         }
 
         @Override
         public STValue newInstance(PuffinBasicSymbolTable symbolTable) {
-            return new STList(getAtomTypeId());
+            return new STList(type, memberFunctions);
+        }
+
+        @Override
+        public PuffinBasicType getFuncCallReturnType(String funcName) {
+            return memberFunctions.get(funcName).returnType;
+        }
+
+        @Override
+        public void checkFuncCallArguments(String funcName, List<PuffinBasicType> paramTypes) {
+            PuffinBasicType[] expectedParamTypes = memberFunctions.get(funcName).paramTypes;
+            if (expectedParamTypes.length != paramTypes.size()) {
+                throw new PuffinBasicRuntimeError(
+                        BAD_FUNCTION_CALL,
+                        "Function " + funcName + " expects " + expectedParamTypes.length
+                                + " params, but called with " + paramTypes.size() + " params"
+                );
+            }
+            for (int i = 0; i < expectedParamTypes.length; i++) {
+                if (!expectedParamTypes[i].isCompatibleWith(paramTypes.get(i))) {
+                    throw new PuffinBasicRuntimeError(
+                            BAD_FUNCTION_CALL,
+                            "Function " + funcName + " called with wrong param type for param#" + (i + 1)
+                                + ", expected type " + expectedParamTypes[i] + ", actual " + paramTypes.get(i)
+                    );
+                }
+            }
         }
 
         @Override
@@ -639,6 +746,8 @@ public class STObjects {
         int getRoundedInt32();
         long getRoundedInt64();
         String getString();
+        Object getObject();
+        void setObject(Object o);
         void setInt32(int value);
         void setInt64(long value);
         void setFloat32(float value);
@@ -687,6 +796,12 @@ public class STObjects {
             }
         }
         default void setInitialized() {}
+        default void call(String funcName, STValue[] params, STValue result) {
+            throw new PuffinBasicRuntimeError(
+                    BAD_FIELD,
+                    "Function call is not supported: " + funcName
+            );
+        }
     }
 
     private static final class STInt32ScalarValue implements STValue {
@@ -720,6 +835,23 @@ public class STObjects {
         public void assign(STValue entry) {
             setInitialized();
             this.value = entry.getInt32();
+        }
+
+        @Override
+        public Object getObject() {
+            return getInt32();
+        }
+
+        @Override
+        public void setObject(Object o) {
+            if (o instanceof Integer) {
+                setInt32((int) o);
+            } else {
+                throw new PuffinBasicRuntimeError(
+                        DATA_TYPE_MISMATCH,
+                        "Bad type: " + o.getClass() + ", expecting: " + INT32
+                );
+            }
         }
 
         @Override
@@ -827,6 +959,23 @@ public class STObjects {
         }
 
         @Override
+        public Object getObject() {
+            return getInt64();
+        }
+
+        @Override
+        public void setObject(Object o) {
+            if (o instanceof Long) {
+                setInt64((long) o);
+            } else {
+                throw new PuffinBasicRuntimeError(
+                        DATA_TYPE_MISMATCH,
+                        "Bad type: " + o.getClass() + ", expecting: " + INT64
+                );
+            }
+        }
+
+        @Override
         public int getInt32() {
             checkInitialized();
             return (int) value;
@@ -931,6 +1080,23 @@ public class STObjects {
         }
 
         @Override
+        public Object getObject() {
+            return getFloat32();
+        }
+
+        @Override
+        public void setObject(Object o) {
+            if (o instanceof Float) {
+                setFloat32((float) o);
+            } else {
+                throw new PuffinBasicRuntimeError(
+                        DATA_TYPE_MISMATCH,
+                        "Bad type: " + o.getClass() + ", expecting: " + FLOAT
+                );
+            }
+        }
+
+        @Override
         public int getInt32() {
             checkInitialized();
             return (int) value;
@@ -1032,6 +1198,23 @@ public class STObjects {
         public void assign(STValue entry) {
             this.isSet = true;
             this.value = entry.getFloat64();
+        }
+
+        @Override
+        public Object getObject() {
+            return getFloat64();
+        }
+
+        @Override
+        public void setObject(Object o) {
+            if (o instanceof Double) {
+                setFloat64((double) o);
+            } else {
+                throw new PuffinBasicRuntimeError(
+                        DATA_TYPE_MISMATCH,
+                        "Bad type: " + o.getClass() + ", expecting: " + DOUBLE
+                );
+            }
         }
 
         @Override
@@ -1140,6 +1323,23 @@ public class STObjects {
         }
 
         @Override
+        public Object getObject() {
+            return getString();
+        }
+
+        @Override
+        public void setObject(Object o) {
+            if (o instanceof String) {
+                setString((String) o);
+            } else {
+                throw new PuffinBasicRuntimeError(
+                        DATA_TYPE_MISMATCH,
+                        "Bad type: " + o.getClass() + ", expecting: " + STRING
+                );
+            }
+        }
+
+        @Override
         public int getInt32() {
             throw new PuffinBasicInternalError("Can't cast String to int32");
         }
@@ -1230,6 +1430,23 @@ public class STObjects {
         @Override
         public void assign(STValue entry) {
             setString(entry.getString());
+        }
+
+        @Override
+        public Object getObject() {
+            return getString();
+        }
+
+        @Override
+        public void setObject(Object o) {
+            if (o instanceof String) {
+                setString((String) o);
+            } else {
+                throw new PuffinBasicRuntimeError(
+                        DATA_TYPE_MISMATCH,
+                        "Bad type: " + o.getClass() + ", expecting: " + STRING
+                );
+            }
         }
 
         @Override
@@ -1328,6 +1545,23 @@ public class STObjects {
         @Override
         public void assign(STValue entry) {
             setString(entry.getString());
+        }
+
+        @Override
+        public Object getObject() {
+            return getString();
+        }
+
+        @Override
+        public void setObject(Object o) {
+            if (o instanceof String) {
+                setString((String) o);
+            } else {
+                throw new PuffinBasicRuntimeError(
+                        DATA_TYPE_MISMATCH,
+                        "Bad type: " + o.getClass() + ", expecting: " + STRING
+                );
+            }
         }
 
         @Override
@@ -1445,6 +1679,16 @@ public class STObjects {
             var array = getValue();
             array.setArrayIndexID(index1d);
             array.assign(entry);
+        }
+
+        @Override
+        public Object getObject() {
+            throw new PuffinBasicInternalError("Illegal method call!");
+        }
+
+        @Override
+        public void setObject(Object o) {
+            throw new PuffinBasicInternalError("Illegal method call!");
         }
 
         @Override
@@ -1638,6 +1882,23 @@ public class STObjects {
         }
 
         @Override
+        public Object getObject() {
+            return getInt32();
+        }
+
+        @Override
+        public void setObject(Object o) {
+            if (o instanceof Integer) {
+                setInt32((int) o);
+            } else {
+                throw new PuffinBasicRuntimeError(
+                        DATA_TYPE_MISMATCH,
+                        "Bad type: " + o.getClass() + ", expecting: " + INT32
+                );
+            }
+        }
+
+        @Override
         public int getInt32() {
             return value[getArrayIndex1D()];
         }
@@ -1730,6 +1991,23 @@ public class STObjects {
         @Override
         public void assign(STValue entry) {
             value[getArrayIndex1D()] = entry.getInt64();
+        }
+
+        @Override
+        public Object getObject() {
+            return getInt64();
+        }
+
+        @Override
+        public void setObject(Object o) {
+            if (o instanceof Long) {
+                setInt64((long) o);
+            } else {
+                throw new PuffinBasicRuntimeError(
+                        DATA_TYPE_MISMATCH,
+                        "Bad type: " + o.getClass() + ", expecting: " + INT64
+                );
+            }
         }
 
         @Override
@@ -1828,6 +2106,23 @@ public class STObjects {
         }
 
         @Override
+        public Object getObject() {
+            return getFloat32();
+        }
+
+        @Override
+        public void setObject(Object o) {
+            if (o instanceof Float) {
+                setFloat32((float) o);
+            } else {
+                throw new PuffinBasicRuntimeError(
+                        DATA_TYPE_MISMATCH,
+                        "Bad type: " + o.getClass() + ", expecting: " + FLOAT
+                );
+            }
+        }
+
+        @Override
         public int getInt32() {
             return (int) value[getArrayIndex1D()];
         }
@@ -1920,6 +2215,23 @@ public class STObjects {
         @Override
         public void assign(STValue entry) {
             value[getArrayIndex1D()] = entry.getFloat64();
+        }
+
+        @Override
+        public Object getObject() {
+            return getFloat64();
+        }
+
+        @Override
+        public void setObject(Object o) {
+            if (o instanceof Double) {
+                setFloat64((double) o);
+            } else {
+                throw new PuffinBasicRuntimeError(
+                        DATA_TYPE_MISMATCH,
+                        "Bad type: " + o.getClass() + ", expecting: " + DOUBLE
+                );
+            }
         }
 
         @Override
@@ -2016,6 +2328,23 @@ public class STObjects {
         @Override
         public void assign(STValue entry) {
             value[getArrayIndex1D()] = entry.getString();
+        }
+
+        @Override
+        public Object getObject() {
+            return getString();
+        }
+
+        @Override
+        public void setObject(Object o) {
+            if (o instanceof String) {
+                setString((String) o);
+            } else {
+                throw new PuffinBasicRuntimeError(
+                        DATA_TYPE_MISMATCH,
+                        "Bad type: " + o.getClass() + ", expecting: " + STRING
+                );
+            }
         }
 
         @Override
@@ -2169,10 +2498,32 @@ public class STObjects {
 
     static final class STList extends STCompositeValue {
         private final List<Object> list;
+        private final MemberFunctions memberFunctions;
 
-        public STList(PuffinBasicAtomTypeId atomType) {
-            super(PuffinBasicTypeId.LIST, atomType);
+        public STList(PuffinBasicType type, MemberFunctions memberFunctions) {
+            super(PuffinBasicTypeId.LIST, type.getAtomTypeId());
+            this.memberFunctions = memberFunctions;
             this.list = new ArrayList<>();
+        }
+
+        @Override
+        public Object getObject() {
+            throw new PuffinBasicRuntimeError(
+                    BAD_FUNCTION_CALL,
+                    "Bad function call!"
+            );
+        }
+
+        @Override
+        public void setObject(Object o) {
+            throw new PuffinBasicRuntimeError(
+                    BAD_FUNCTION_CALL,
+                    "Bad function call!"
+            );
+        }
+
+        public void call(String funcName, STValue[] params, STValue result) {
+            memberFunctions.get(funcName).callHandler.call(list, params, result);
         }
     }
 
@@ -2192,12 +2543,42 @@ public class STObjects {
             }
         }
 
+        @Override
+        public Object getObject() {
+            return this;
+        }
+
+        @Override
+        public void setObject(Object o) {
+            if (o instanceof STStruct) {
+                assign((STStruct) o);
+            } else {
+                throw new PuffinBasicRuntimeError(
+                        DATA_TYPE_MISMATCH,
+                        "Bad type: " + o.getClass() + ", expecting: " + StructType.class
+                );
+            }
+        }
+
         public int getMember(int memberRefId) {
             return memberRefIdToValueId.getOrDefault(memberRefId, -1);
         }
 
         @Override
         public void assign(STValue entry) {
+            if (!(entry instanceof STStruct)) {
+                throw new PuffinBasicRuntimeError(
+                        DATA_TYPE_MISMATCH,
+                        "Expected STStruct but found: " + entry.getClass()
+                );
+            }
+            STStruct other = (STStruct) entry;
+            if (!structType.equals(other.structType)) {
+                throw new PuffinBasicRuntimeError(
+                        DATA_TYPE_MISMATCH,
+                        "Expected struct " + structType + ", but found " + other.structType
+                );
+            }
             this.memberRefIdToValueId.clear();
             this.memberRefIdToValueId.putAll(((STStruct) entry).memberRefIdToValueId);
         }

@@ -8,6 +8,8 @@ import org.puffinbasic.domain.PuffinBasicSymbolTable;
 import org.puffinbasic.domain.STObjects;
 import org.puffinbasic.domain.STObjects.STEntry;
 import org.puffinbasic.domain.STObjects.STRef;
+import org.puffinbasic.domain.STObjects.STValue;
+import org.puffinbasic.domain.STObjects.STVariable;
 import org.puffinbasic.error.PuffinBasicInternalError;
 import org.puffinbasic.error.PuffinBasicRuntimeError;
 import org.puffinbasic.file.PuffinBasicFile;
@@ -486,7 +488,7 @@ public class Statements {
     static void createInstance(
             PuffinBasicSymbolTable symbolTable, Instruction instruction)
     {
-        var entry = (STObjects.STVariable) symbolTable.get(instruction.op1);
+        var entry = (STVariable) symbolTable.get(instruction.op1);
         entry.createAndSetInstance(symbolTable);
     }
 
@@ -504,6 +506,23 @@ public class Statements {
         var childId = symbolTable.get(params.get(params.size() - 1).op1).getValue().getInt32();
         var valueId = root.getMember(childId);
         ((STRef) symbolTable.get(instruction.result)).setRef(symbolTable.get(valueId));
+    }
+
+    static void memberFuncCall(
+            PuffinBasicSymbolTable symbolTable,
+            List<Instruction> params,
+            Instruction instruction)
+    {
+        STValue[] funcParams = new STValue[params.size()];
+        var object = symbolTable.get(instruction.op1).getValue();
+        var funcName = symbolTable.get(instruction.op2).getValue().getString();
+        STValue result = symbolTable.get(instruction.result).getValue();
+
+        for (int i = 0; i < params.size(); i++) {
+            funcParams[i] = symbolTable.get(params.get(i).op1).getValue();
+        }
+
+        object.call(funcName, funcParams, result);
     }
 
     static void structMemberRef(

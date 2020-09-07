@@ -14,6 +14,7 @@ import org.puffinbasic.domain.STObjects.STLValue;
 import org.puffinbasic.domain.STObjects.STRef;
 import org.puffinbasic.domain.STObjects.STTmp;
 import org.puffinbasic.domain.STObjects.STVariable;
+import org.puffinbasic.domain.STObjects.StructType;
 import org.puffinbasic.domain.Scope.GlobalScope;
 import org.puffinbasic.domain.Variable.VariableName;
 import org.puffinbasic.error.PuffinBasicInternalError;
@@ -39,7 +40,7 @@ public class PuffinBasicSymbolTable {
     public static final int NULL_ID = -1;
 
     private final Char2ObjectMap<PuffinBasicAtomTypeId> defaultDataTypes;
-    private final Object2ObjectMap<String, STObjects.StructType> userDefinedTypes;
+    private final Object2ObjectMap<String, StructType> userDefinedTypes;
     private final Object2IntMap<String> labelNameToId;
     private final AtomicInteger idmaker;
     private Scope currentScope;
@@ -254,11 +255,20 @@ public class PuffinBasicSymbolTable {
         defaultDataTypes.put(c, dataType);
     }
 
-    public void addStructType(String name, STObjects.StructType type) {
+    public void addStructType(String name, StructType type) {
         userDefinedTypes.put(name, type);
     }
 
-    public STObjects.StructType getStructType(String name) {
+    public void checkUnused(String name) {
+        if (userDefinedTypes.containsKey(name)) {
+            throw new PuffinBasicRuntimeError(
+                    BAD_FIELD,
+                    "Name: " + name + " is already used!"
+            );
+        }
+    }
+
+    public StructType getStructType(String name) {
         var type = userDefinedTypes.get(name);
         if (type == null) {
             throw new PuffinBasicRuntimeError(
