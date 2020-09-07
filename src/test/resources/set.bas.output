@@ -1,5 +1,25 @@
-SET of STRINGs
+SET of STRING
  1 
 -1 
  0 
+ 0 
+SET of INT32
+ 2 
+-1 
+ 1 
+ 0 
+SET of INT64
+ 2 
+-1 
+ 1 
+ 0 
+SET of FLOAT32
+ 2 
+-1 
+ 1 
+ 0 
+SET of FLOAT64
+ 2 
+-1 
+ 1 
  0 

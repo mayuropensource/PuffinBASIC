@@ -87,6 +87,16 @@ public class STObjects {
             }
 
             @Override
+            public Object getValueFrom(STValue src) {
+                return src.getInt32();
+            }
+
+            @Override
+            public void setValueIn(Object value, STValue dst) {
+                dst.setInt32((int) value);
+            }
+
+            @Override
             public boolean isCompatibleWith(PuffinBasicAtomTypeId other) {
                 return other == INT32 || other == INT64 || other == FLOAT || other == DOUBLE;
             }
@@ -118,6 +128,16 @@ public class STObjects {
             @Override
             public STValue createValue() {
                 return new STInt64ScalarValue();
+            }
+
+            @Override
+            public Object getValueFrom(STValue src) {
+                return src.getInt64();
+            }
+
+            @Override
+            public void setValueIn(Object value, STValue dst) {
+                dst.setInt64((long) value);
             }
 
             @Override
@@ -155,6 +175,16 @@ public class STObjects {
             }
 
             @Override
+            public Object getValueFrom(STValue src) {
+                return src.getFloat32();
+            }
+
+            @Override
+            public void setValueIn(Object value, STValue dst) {
+                dst.setFloat32((float) value);
+            }
+
+            @Override
             public boolean isCompatibleWith(PuffinBasicAtomTypeId other) {
                 return other == INT32 || other == INT64 || other == FLOAT || other == DOUBLE;
             }
@@ -186,6 +216,16 @@ public class STObjects {
             @Override
             public STValue createValue() {
                 return new STFloat64ScalarValue();
+            }
+
+            @Override
+            public Object getValueFrom(STValue src) {
+                return src.getFloat64();
+            }
+
+            @Override
+            public void setValueIn(Object value, STValue dst) {
+                dst.setFloat64((double) value);
             }
 
             @Override
@@ -230,6 +270,16 @@ public class STObjects {
             }
 
             @Override
+            public Object getValueFrom(STValue src) {
+                return src.getString();
+            }
+
+            @Override
+            public void setValueIn(Object value, STValue dst) {
+                dst.setString((String) value);
+            }
+
+            @Override
             public boolean isCompatibleWith(PuffinBasicAtomTypeId other) {
                 return other == STRING;
             }
@@ -252,6 +302,16 @@ public class STObjects {
 
             @Override
             public STValue createValue() {
+                throw new PuffinBasicInternalError("Not implemented");
+            }
+
+            @Override
+            public Object getValueFrom(STValue src) {
+                throw new PuffinBasicInternalError("Not implemented");
+            }
+
+            @Override
+            public void setValueIn(Object value, STValue dst) {
                 throw new PuffinBasicInternalError("Not implemented");
             }
 
@@ -286,6 +346,10 @@ public class STObjects {
         public abstract STValue createValue();
 
         public abstract boolean isCompatibleWith(PuffinBasicAtomTypeId other);
+
+        public abstract Object getValueFrom(STValue src);
+
+        public abstract void setValueIn(Object value, STValue dst);
 
         public static PuffinBasicAtomTypeId lookup(String repr) {
             if (repr == null || repr.length() != 1) {
@@ -652,7 +716,7 @@ public class STObjects {
                                     (obj, params, result) -> {
                                         @SuppressWarnings("unchecked")
                                         var list = (List<Object>) obj;
-                                        list.add(params[0].getObject());
+                                        list.add(type.getAtomTypeId().getValueFrom(params[0]));
                                         result.setInt32(0);
                                     }))
                             .add(new MemberFunction(
@@ -661,7 +725,7 @@ public class STObjects {
                                         @SuppressWarnings("unchecked")
                                         var list = (List<Object>) obj;
                                         int index = params[0].getInt32();
-                                        var value = params[1].getObject();
+                                        var value = type.getAtomTypeId().getValueFrom(params[1]);
                                         list.add(index, value);
                                         result.setInt32(0);
                                     }))
@@ -678,7 +742,7 @@ public class STObjects {
                                                             + " is out of bounds, list size: " + list.size()
                                             );
                                         }
-                                        result.setObject(list.get(index));
+                                        type.getAtomTypeId().setValueIn(list.get(index), result);
                                     }))
                             .add(new MemberFunction(
                                     "clear", new PuffinBasicType[] {}, ScalarType.INT32,
@@ -750,7 +814,8 @@ public class STObjects {
                                     (obj, params, result) -> {
                                         @SuppressWarnings("unchecked")
                                         var set = (Set<Object>) obj;
-                                        set.add(params[0].getObject());
+                                        var value = type.getAtomTypeId().getValueFrom(params[0]);
+                                        set.add(value);
                                         result.setInt32(0);
                                     }))
                             .add(new MemberFunction(
@@ -758,7 +823,8 @@ public class STObjects {
                                     (obj, params, result) -> {
                                         @SuppressWarnings("unchecked")
                                         var set = (Set<Object>) obj;
-                                        var removeRes = set.remove(params[0].getObject());
+                                        var value = type.getAtomTypeId().getValueFrom(params[0]);
+                                        var removeRes = set.remove(value);
                                         result.setInt32(removeRes ? -1 : 0);
                                     }))
                             .add(new MemberFunction(
@@ -766,7 +832,8 @@ public class STObjects {
                                     (obj, params, result) -> {
                                         @SuppressWarnings("unchecked")
                                         var set = (Set<Object>) obj;
-                                        result.setInt32(set.contains(params[0].getObject()) ? -1 : 0);
+                                        var value = type.getAtomTypeId().getValueFrom(params[0]);
+                                        result.setInt32(set.contains(value) ? -1 : 0);
                                     }))
                             .add(new MemberFunction(
                                     "clear", new PuffinBasicType[] {}, ScalarType.INT32,
@@ -840,7 +907,9 @@ public class STObjects {
                                     (obj, params, result) -> {
                                         @SuppressWarnings("unchecked")
                                         var dict = (Map<Object, Object>) obj;
-                                        dict.put(params[0].getObject(), params[1].getObject());
+                                        var key = keyType.getAtomTypeId().getValueFrom(params[0]);
+                                        var value = valueType.getAtomTypeId().getValueFrom(params[1]);
+                                        dict.put(key, value);
                                         result.setInt32(0);
                                     }))
                             .add(new MemberFunction(
@@ -848,23 +917,27 @@ public class STObjects {
                                     (obj, params, result) -> {
                                         @SuppressWarnings("unchecked")
                                         var dict = (Map<Object, Object>) obj;
-                                        var removeRes = dict.remove(params[0].getObject());
+                                        var key = keyType.getAtomTypeId().getValueFrom(params[0]);
+                                        var removeRes = dict.remove(key);
                                         result.setInt32(removeRes != null ? -1 : 0);
                                     }))
                             .add(new MemberFunction(
-                                    "getOrDefault", new PuffinBasicType[] {keyType, valueType}, ScalarType.INT32,
+                                    "getOrDefault", new PuffinBasicType[] {keyType, valueType}, valueType,
                                     (obj, params, result) -> {
                                         @SuppressWarnings("unchecked")
                                         var dict = (Map<Object, Object>) obj;
-                                        var getRes = dict.getOrDefault(params[0].getObject(), params[1].getObject());
-                                        result.setObject(getRes);
+                                        var key = keyType.getAtomTypeId().getValueFrom(params[0]);
+                                        var value = valueType.getAtomTypeId().getValueFrom(params[1]);
+                                        var getRes = dict.getOrDefault(key, value);
+                                        valueType.getAtomTypeId().setValueIn(getRes, result);
                                     }))
                             .add(new MemberFunction(
-                                    "contains", new PuffinBasicType[] {keyType}, ScalarType.INT32,
+                                    "containsKey", new PuffinBasicType[] {keyType}, ScalarType.INT32,
                                     (obj, params, result) -> {
                                         @SuppressWarnings("unchecked")
                                         var dict = (Map<Object, Object>) obj;
-                                        result.setInt32(dict.containsKey(params[0].getObject()) ? -1 : 0);
+                                        var key = keyType.getAtomTypeId().getValueFrom(params[0]);
+                                        result.setInt32(dict.containsKey(key) ? -1 : 0);
                                     }))
                             .add(new MemberFunction(
                                     "clear", new PuffinBasicType[] {}, ScalarType.INT32,
