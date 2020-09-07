@@ -407,8 +407,8 @@ public class Functions {
                 );
             }
             len = value.getArrayDimensions().getInt(axis);
-        } else if (stEntry.getType().getAtomTypeId() == STRING) {
-            len = value.getString().length();
+        } else if (stEntry.getValue().hasLen()) {
+            len = value.len();
         } else {
             throw new PuffinBasicRuntimeError(ILLEGAL_FUNCTION_PARAM,
                     "Bad LEN() call!");

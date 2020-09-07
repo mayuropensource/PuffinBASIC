@@ -27,5 +27,7 @@ s3.C% = 50
 PRINT s3.child.A%, s3.C%
 
 LIST<$> list1
+PRINT len(list1)
 list1.add("aa")
 PRINT list1.get(0)
+PRINT len(list1)

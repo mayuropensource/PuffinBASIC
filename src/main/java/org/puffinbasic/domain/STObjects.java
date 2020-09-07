@@ -802,6 +802,12 @@ public class STObjects {
                     "Function call is not supported: " + funcName
             );
         }
+        default boolean hasLen() {
+            return false;
+        }
+        default int len() {
+            throw new PuffinBasicInternalError("Not implemented");
+        }
     }
 
     private static final class STInt32ScalarValue implements STValue {
@@ -1409,6 +1415,16 @@ public class STObjects {
         @Override
         public void setFieldLength(int fieldLength) {
             this.fieldLength = fieldLength;
+        }
+
+        @Override
+        public boolean hasLen() {
+            return true;
+        }
+
+        @Override
+        public int len() {
+            return getString().length();
         }
     }
 
@@ -2524,6 +2540,16 @@ public class STObjects {
 
         public void call(String funcName, STValue[] params, STValue result) {
             memberFunctions.get(funcName).callHandler.call(list, params, result);
+        }
+
+        @Override
+        public boolean hasLen() {
+            return true;
+        }
+
+        @Override
+        public int len() {
+            return list.size();
         }
     }
 
