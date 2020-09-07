@@ -188,26 +188,22 @@ public class PuffinBasicSymbolTable {
         return id;
     }
 
-    public int addArrayReference(STVariable variable) {
-        var ref = new ArrayReferenceValue(variable);
+    public int addArrayReference(STLValue lvalue) {
+        var ref = new ArrayReferenceValue(lvalue);
         int id = generateNextId();
-        var entry = new STLValue(ref, variable.getType());
+        var entry = new STLValue(ref, lvalue.getType());
         getCurrentScope().putEntry(id, entry);
         return id;
     }
 
-    public int addTmp(PuffinBasicType type, PuffinBasicAtomTypeId dataType, Consumer<STEntry> consumer) {
-        if (dataType == COMPOSITE) {
-            var scope = getCurrentScope();
-            int id = generateNextId();
-            var entry = new STTmp(null, type);
-            entry.createAndSetInstance(this);
-            scope.putEntry(id, entry);
-            consumer.accept(entry);
-            return id;
-        } else {
-            return addTmp(dataType, consumer);
-        }
+    public int addTmp(PuffinBasicType type, Consumer<STEntry> consumer) {
+        var scope = getCurrentScope();
+        int id = generateNextId();
+        var entry = type.canBeLValue() ? new STLValue(null, type) : new STTmp(null, type);
+        entry.createAndSetInstance(this);
+        scope.putEntry(id, entry);
+        consumer.accept(entry);
+        return id;
     }
 
     public int addTmp(PuffinBasicAtomTypeId dataType, Consumer<STEntry> consumer) {

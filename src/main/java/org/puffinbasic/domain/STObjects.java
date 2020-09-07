@@ -29,6 +29,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import static org.puffinbasic.domain.PuffinBasicSymbolTable.NULL_ID;
+import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.COMPOSITE;
 import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.DOUBLE;
 import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.FLOAT;
 import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.INT32;
@@ -75,6 +77,16 @@ public class STObjects {
             }
 
             @Override
+            public STTmp createArrayEntry() {
+                return new STTmp(new STInt32ArrayValue(), ScalarType.INT32);
+            }
+
+            @Override
+            public STValue createValue() {
+                return new STInt32ScalarValue();
+            }
+
+            @Override
             public boolean isCompatibleWith(PuffinBasicAtomTypeId other) {
                 return other == INT32 || other == INT64 || other == FLOAT || other == DOUBLE;
             }
@@ -96,6 +108,16 @@ public class STObjects {
             @Override
             public STTmp createTmpEntry() {
                 return new STTmp(new STInt64ScalarValue(), ScalarType.INT64);
+            }
+
+            @Override
+            public STTmp createArrayEntry() {
+                return new STTmp(new STInt64ArrayValue(), ScalarType.INT64);
+            }
+
+            @Override
+            public STValue createValue() {
+                return new STInt64ScalarValue();
             }
 
             @Override
@@ -123,6 +145,16 @@ public class STObjects {
             }
 
             @Override
+            public STTmp createArrayEntry() {
+                return new STTmp(new STFloat32ArrayValue(), ScalarType.FLOAT32);
+            }
+
+            @Override
+            public STValue createValue() {
+                return new STFloat32ScalarValue();
+            }
+
+            @Override
             public boolean isCompatibleWith(PuffinBasicAtomTypeId other) {
                 return other == INT32 || other == INT64 || other == FLOAT || other == DOUBLE;
             }
@@ -144,6 +176,16 @@ public class STObjects {
             @Override
             public STTmp createTmpEntry() {
                 return new STTmp(new STFloat64ScalarValue(), ScalarType.FLOAT64);
+            }
+
+            @Override
+            public STTmp createArrayEntry() {
+                return new STTmp(new STInt64ArrayValue(), ScalarType.FLOAT64);
+            }
+
+            @Override
+            public STValue createValue() {
+                return new STFloat64ScalarValue();
             }
 
             @Override
@@ -178,6 +220,16 @@ public class STObjects {
             }
 
             @Override
+            public STTmp createArrayEntry() {
+                return new STTmp(new STStringArrayValue(), ScalarType.STRING);
+            }
+
+            @Override
+            public STValue createValue() {
+                return new STStringScalarValue();
+            }
+
+            @Override
             public boolean isCompatibleWith(PuffinBasicAtomTypeId other) {
                 return other == STRING;
             }
@@ -185,12 +237,22 @@ public class STObjects {
         COMPOSITE('?') {
             @Override
             public STVariable createVariableEntry(Variable variable) {
-                return null;
+                throw new PuffinBasicInternalError("Not implemented");
             }
 
             @Override
             public STTmp createTmpEntry() {
-                return null;
+                throw new PuffinBasicInternalError("Not implemented");
+            }
+
+            @Override
+            public STTmp createArrayEntry() {
+                throw new PuffinBasicInternalError("Not implemented");
+            }
+
+            @Override
+            public STValue createValue() {
+                throw new PuffinBasicInternalError("Not implemented");
             }
 
             @Override
@@ -219,6 +281,10 @@ public class STObjects {
 
         public abstract STTmp createTmpEntry();
 
+        public abstract STTmp createArrayEntry();
+
+        public abstract STValue createValue();
+
         public abstract boolean isCompatibleWith(PuffinBasicAtomTypeId other);
 
         public static PuffinBasicAtomTypeId lookup(String repr) {
@@ -243,6 +309,10 @@ public class STObjects {
         PuffinBasicAtomTypeId getAtomTypeId();
 
         STValue newInstance(PuffinBasicSymbolTable symbolTable);
+
+        default boolean canBeLValue() {
+            return false;
+        }
 
         default PuffinBasicType getFuncCallReturnType(String funcName) {
             throw new PuffinBasicRuntimeError(
@@ -293,7 +363,7 @@ public class STObjects {
 
         @Override
         public STValue newInstance(PuffinBasicSymbolTable symbolTable) {
-            throw new PuffinBasicInternalError("Not implemented!");
+            return atomType.createValue();
         }
 
         @Override
@@ -322,9 +392,24 @@ public class STObjects {
 
     public static class ArrayType implements PuffinBasicType {
         private final PuffinBasicAtomTypeId atomType;
+        private final IntList dims;
+        private final boolean canBeLValue;
 
         ArrayType(PuffinBasicAtomTypeId atomType) {
             this.atomType = atomType;
+            this.dims = null;
+            this.canBeLValue = false;
+        }
+
+        public ArrayType(PuffinBasicAtomTypeId atomType, IntList dims, boolean canBeLValue) {
+            this.atomType = atomType;
+            this.dims = dims;
+            this.canBeLValue = canBeLValue;
+        }
+
+        @Override
+        public boolean canBeLValue() {
+            return canBeLValue;
         }
 
         @Override
@@ -339,7 +424,12 @@ public class STObjects {
 
         @Override
         public STValue newInstance(PuffinBasicSymbolTable symbolTable) {
-            throw new PuffinBasicInternalError("Not implemented!");
+            var entry = atomType.createArrayEntry();
+            var value = entry.getValue();
+            if (dims != null) {
+                value.setArrayDimensions(dims);
+            }
+            return value;
         }
 
         @Override
@@ -362,7 +452,7 @@ public class STObjects {
 
         @Override
         public boolean isCompatibleWith(PuffinBasicType other) {
-            return getAtomTypeId().isCompatibleWith(other.getAtomTypeId());
+            return atomType.isCompatibleWith(other.getAtomTypeId());
         }
     }
 
@@ -609,7 +699,7 @@ public class STObjects {
 
         @Override
         public PuffinBasicAtomTypeId getAtomTypeId() {
-            return type.getAtomTypeId();
+            return COMPOSITE;
         }
 
         @Override
@@ -697,7 +787,7 @@ public class STObjects {
 
         @Override
         public PuffinBasicAtomTypeId getAtomTypeId() {
-            return type.getAtomTypeId();
+            return COMPOSITE;
         }
 
         @Override
@@ -795,7 +885,7 @@ public class STObjects {
 
         @Override
         public PuffinBasicAtomTypeId getAtomTypeId() {
-            return valueType.getAtomTypeId();
+            return COMPOSITE;
         }
 
         @Override
@@ -839,47 +929,6 @@ public class STObjects {
         }
         STValue getValue();
         PuffinBasicType getType();
-    }
-
-    public static class STRef implements STEntry {
-        private final PuffinBasicType type;
-        private STEntry ref;
-
-        STRef(PuffinBasicType type) {
-            this.type = type;
-        }
-
-        public void setRef(STEntry ref) {
-            if (!ref.getType().equals(type)) {
-                throw new PuffinBasicRuntimeError(
-                        DATA_TYPE_MISMATCH,
-                        "Expected " + type + " got " + ref.getType()
-                );
-            }
-            this.ref = ref;
-        }
-
-        private STEntry getRef() {
-            if (ref == null) {
-                throw new PuffinBasicInternalError("Ref is null");
-            }
-            return ref;
-        }
-
-        @Override
-        public STValue getValue() {
-            return getRef().getValue();
-        }
-
-        @Override
-        public PuffinBasicType getType() {
-            return type;
-        }
-
-        @Override
-        public boolean isLValue() {
-            return getRef().isLValue();
-        }
     }
 
     public static abstract class AbstractSTEntry implements STEntry {
@@ -935,7 +984,36 @@ public class STObjects {
         public Variable getVariable() {
             return variable;
         }
+    }
 
+    public static class STRef extends STLValue {
+        private STEntry ref;
+
+        STRef(PuffinBasicType type) {
+            super(null, type);
+        }
+
+        public void setRef(STEntry ref) {
+            if (!ref.getType().equals(getType())) {
+                throw new PuffinBasicRuntimeError(
+                        DATA_TYPE_MISMATCH,
+                        "Expected " + getType() + " got " + ref.getType()
+                );
+            }
+            this.ref = ref;
+        }
+
+        private STEntry getRef() {
+            if (ref == null) {
+                throw new PuffinBasicInternalError("Ref is null");
+            }
+            return ref;
+        }
+
+        @Override
+        public STValue getValue() {
+            return getRef().getValue();
+        }
     }
 
     static final class STTmp extends AbstractSTEntry {
@@ -1902,10 +1980,10 @@ public class STObjects {
 
     static class ArrayReferenceValue implements STValue {
 
-        private final STVariable variable;
+        private final STLValue variable;
         private int index1d;
 
-        ArrayReferenceValue(STVariable variable) {
+        ArrayReferenceValue(STLValue variable) {
             this.variable = variable;
         }
 
@@ -2888,7 +2966,7 @@ public class STObjects {
             for (var entry : structType.nameToRefIdMap.object2IntEntrySet()) {
                 var memberRefId = entry.getIntValue();
                 var valueType = structType.refIdToTypeMap.get(memberRefId);
-                var valueId = symbolTable.addTmp(valueType, valueType.getAtomTypeId(), e -> e.getValue().setInitialized());
+                var valueId = symbolTable.addTmp(valueType, e -> e.getValue().setInitialized());
                 this.memberRefIdToValueId.put(memberRefId, valueId);
             }
         }
@@ -2911,7 +2989,7 @@ public class STObjects {
         }
 
         public int getMember(int memberRefId) {
-            return memberRefIdToValueId.getOrDefault(memberRefId, -1);
+            return memberRefIdToValueId.getOrDefault(memberRefId, NULL_ID);
         }
 
         @Override

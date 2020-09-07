@@ -540,21 +540,4 @@ public class Statements {
         var valueId = root.getMember(childId);
         symbolTable.get(instruction.result).getValue().assign(symbolTable.get(valueId).getValue());
     }
-
-    public static void structAssign(
-            PuffinBasicSymbolTable symbolTable,
-            List<Instruction> params,
-            Instruction instruction)
-    {
-        var root = (STObjects.STStruct) symbolTable.get(instruction.op1).getValue();
-        for (int i = 0; i < params.size() - 1; i++) {
-            var childId = symbolTable.get(params.get(i).op1).getValue().getInt32();
-            var valueId = root.getMember(childId);
-            root = (STObjects.STStruct) symbolTable.get(valueId).getValue();
-        }
-        var childId = symbolTable.get(params.get(params.size() - 1).op1).getValue().getInt32();
-        var valueId = root.getMember(childId);
-        // a.b.c = expr
-        symbolTable.get(valueId).getValue().assign(symbolTable.get(instruction.op2).getValue());
-    }
 }

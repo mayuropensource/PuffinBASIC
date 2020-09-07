@@ -2,12 +2,14 @@ package org.puffinbasic.runtime;
 
 import org.puffinbasic.domain.PuffinBasicSymbolTable;
 import org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId;
-import org.puffinbasic.domain.STObjects.STVariable;
+import org.puffinbasic.domain.STObjects.STLValue;
+import org.puffinbasic.error.PuffinBasicRuntimeError;
 import org.puffinbasic.error.PuffinBasicSemanticError;
 
 import java.util.function.Supplier;
 
 import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.STRING;
+import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.BAD_FIELD;
 import static org.puffinbasic.error.PuffinBasicSemanticError.ErrorCode.DATA_TYPE_MISMATCH;
 
 public class Types {
@@ -23,9 +25,16 @@ public class Types {
     }
 
     public static void varref(PuffinBasicSymbolTable symbolTable, int op1, int op2) {
-        var src = (STVariable) symbolTable.get(op1);
-        var dst = (STVariable) symbolTable.get(op2);
-        dst.setValue(src.getValue());
+        var src = symbolTable.get(op1);
+        var dst = symbolTable.get(op2);
+        if (dst.isLValue()) {
+            ((STLValue) dst).setValue(src.getValue());
+        } else {
+            throw new PuffinBasicRuntimeError(
+                    BAD_FIELD,
+                    "Expected LValue, but found: " + dst.getType()
+            );
+        }
     }
 
     public static String unquote(String txt) {

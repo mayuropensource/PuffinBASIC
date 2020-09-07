@@ -25,3 +25,8 @@ struct2 s4 {}
 s3.child.A% = 100
 s3.C% = 50
 PRINT s3.child.A%, s3.C%
+
+STRUCT struct3 { A% , DIM B%(2,5) }
+struct3 s31 {}
+s31.B%(1, 4) = 10
+PRINT s31.B%(1, 4)

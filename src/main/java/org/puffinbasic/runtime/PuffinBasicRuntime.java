@@ -175,14 +175,6 @@ public class PuffinBasicRuntime {
                 params.clear();
             }
                 break;
-            case STRUCT_ASSIGN: {
-                if (params.isEmpty()) {
-                    throw new PuffinBasicInternalError("Expected >0 params, but found none!");
-                }
-                Statements.structAssign(ir.getSymbolTable(), params, instruction);
-                params.clear();
-            }
-            break;
             case ASSIGN:
             case COPY:
                 Types.copy(ir.getSymbolTable(), instruction.op1, instruction.op2);

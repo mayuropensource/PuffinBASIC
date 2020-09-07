@@ -21,7 +21,6 @@ public class PuffinBasicIR {
         DIM("dim"),
         CREATE_INSTANCE("createAndSetInstance"),
         STRUCT_MEMBER_REF("structMemberRef"),
-        STRUCT_ASSIGN("s="),
         ASSIGN(":="),
         COPY("<-"),
         UNARY_MINUS("u-"),

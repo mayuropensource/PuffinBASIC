@@ -168,8 +168,8 @@ public class IntegrationTest {
     }
 
     @Test
-    public void testComposite() {
-        runTest("composite.bas", "composite.bas.output");
+    public void testStruct() {
+        runTest("struct.bas", "struct.bas.output");
     }
 
     @Test
