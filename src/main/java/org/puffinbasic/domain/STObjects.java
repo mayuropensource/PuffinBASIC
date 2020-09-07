@@ -9,6 +9,10 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ObjectSet;
 import org.puffinbasic.domain.Variable.VariableName;
 import org.puffinbasic.error.PuffinBasicInternalError;
 import org.puffinbasic.error.PuffinBasicRuntimeError;
@@ -23,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.DOUBLE;
 import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.FLOAT;
@@ -293,6 +298,9 @@ public class STObjects {
 
         @Override
         public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
             if (obj == null || obj.getClass() != ScalarType.class) {
                 return false;
             }
@@ -315,7 +323,7 @@ public class STObjects {
     public static class ArrayType implements PuffinBasicType {
         private final PuffinBasicAtomTypeId atomType;
 
-        public ArrayType(PuffinBasicAtomTypeId atomType) {
+        ArrayType(PuffinBasicAtomTypeId atomType) {
             this.atomType = atomType;
         }
 
@@ -336,6 +344,9 @@ public class STObjects {
 
         @Override
         public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
             if (obj == null || obj.getClass() != ArrayType.class) {
                 return false;
             }
@@ -358,7 +369,7 @@ public class STObjects {
     public static class UDFType implements PuffinBasicType {
         private final PuffinBasicAtomTypeId atomType;
 
-        public UDFType(PuffinBasicAtomTypeId atomType) {
+        UDFType(PuffinBasicAtomTypeId atomType) {
             this.atomType = atomType;
         }
 
@@ -379,6 +390,9 @@ public class STObjects {
 
         @Override
         public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
             if (obj == null || obj.getClass() != ArrayType.class) {
                 return false;
             }
@@ -453,6 +467,9 @@ public class STObjects {
 
         @Override
         public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
             if (obj == null || obj.getClass() != StructType.class) {
                 return false;
             }
@@ -478,7 +495,7 @@ public class STObjects {
         private final PuffinBasicType returnType;
         private final MemberCallHandler callHandler;
 
-        public MemberFunction(
+        MemberFunction(
                 String functionName,
                 PuffinBasicType[] paramTypes,
                 PuffinBasicType returnType,
@@ -494,7 +511,7 @@ public class STObjects {
     private static final class MemberFunctions {
         private final Map<String, MemberFunction> memberFunctions;
 
-        public MemberFunctions(List<MemberFunction> memberFunctions) {
+        MemberFunctions(List<MemberFunction> memberFunctions) {
             this.memberFunctions = new HashMap<>();
             memberFunctions.forEach(mf -> this.memberFunctions.put(mf.functionName, mf));
         }
@@ -509,6 +526,26 @@ public class STObjects {
             }
             return mf;
         }
+
+        void checkFuncCallArguments(String funcName, List<PuffinBasicType> paramTypes) {
+            PuffinBasicType[] expectedParamTypes = get(funcName).paramTypes;
+            if (expectedParamTypes.length != paramTypes.size()) {
+                throw new PuffinBasicRuntimeError(
+                        BAD_FUNCTION_CALL,
+                        "Function " + funcName + " expects " + expectedParamTypes.length
+                                + " params, but called with " + paramTypes.size() + " params"
+                );
+            }
+            for (int i = 0; i < expectedParamTypes.length; i++) {
+                if (!expectedParamTypes[i].isCompatibleWith(paramTypes.get(i))) {
+                    throw new PuffinBasicRuntimeError(
+                            BAD_FUNCTION_CALL,
+                            "Function " + funcName + " called with wrong param type for param#" + (i + 1)
+                                    + ", expected type " + expectedParamTypes[i] + ", actual " + paramTypes.get(i)
+                    );
+                }
+            }
+        }
     }
 
     public static final class ListType implements PuffinBasicType {
@@ -521,7 +558,7 @@ public class STObjects {
             this.memberFunctions = new MemberFunctions(
                     ImmutableList.<MemberFunction>builder()
                             .add(new MemberFunction(
-                                    "add", new PuffinBasicType[] {type}, ScalarType.INT32,
+                                    "append", new PuffinBasicType[] {type}, ScalarType.INT32,
                                     (obj, params, result) -> {
                                         @SuppressWarnings("unchecked")
                                         var list = (List<Object>) obj;
@@ -544,6 +581,13 @@ public class STObjects {
                                         @SuppressWarnings("unchecked")
                                         var list = (List<Object>) obj;
                                         int index = params[0].getInt32();
+                                        if (index < 0 || index >= list.size()) {
+                                            throw new PuffinBasicRuntimeError(
+                                                    ARRAY_INDEX_OUT_OF_BOUNDS,
+                                                    "List index: " + index
+                                                            + " is out of bounds, list size: " + list.size()
+                                            );
+                                        }
                                         result.setObject(list.get(index));
                                     }))
                             .add(new MemberFunction(
@@ -580,27 +624,14 @@ public class STObjects {
 
         @Override
         public void checkFuncCallArguments(String funcName, List<PuffinBasicType> paramTypes) {
-            PuffinBasicType[] expectedParamTypes = memberFunctions.get(funcName).paramTypes;
-            if (expectedParamTypes.length != paramTypes.size()) {
-                throw new PuffinBasicRuntimeError(
-                        BAD_FUNCTION_CALL,
-                        "Function " + funcName + " expects " + expectedParamTypes.length
-                                + " params, but called with " + paramTypes.size() + " params"
-                );
-            }
-            for (int i = 0; i < expectedParamTypes.length; i++) {
-                if (!expectedParamTypes[i].isCompatibleWith(paramTypes.get(i))) {
-                    throw new PuffinBasicRuntimeError(
-                            BAD_FUNCTION_CALL,
-                            "Function " + funcName + " called with wrong param type for param#" + (i + 1)
-                                + ", expected type " + expectedParamTypes[i] + ", actual " + paramTypes.get(i)
-                    );
-                }
-            }
+            memberFunctions.checkFuncCallArguments(funcName, paramTypes);
         }
 
         @Override
         public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
             if (obj == null || obj.getClass() != ListType.class) {
                 return false;
             }
@@ -612,6 +643,193 @@ public class STObjects {
         @Override
         public int hashCode() {
             return Objects.hash(getTypeId(), getAtomTypeId());
+        }
+    }
+
+    public static final class SetType implements PuffinBasicType {
+
+        private final PuffinBasicType type;
+        private final MemberFunctions memberFunctions;
+
+        public SetType(PuffinBasicType type) {
+            this.type = type;
+            this.memberFunctions = new MemberFunctions(
+                    ImmutableList.<MemberFunction>builder()
+                            .add(new MemberFunction(
+                                    "add", new PuffinBasicType[] {type}, ScalarType.INT32,
+                                    (obj, params, result) -> {
+                                        @SuppressWarnings("unchecked")
+                                        var set = (Set<Object>) obj;
+                                        set.add(params[0].getObject());
+                                        result.setInt32(0);
+                                    }))
+                            .add(new MemberFunction(
+                                    "remove", new PuffinBasicType[] {type}, ScalarType.INT32,
+                                    (obj, params, result) -> {
+                                        @SuppressWarnings("unchecked")
+                                        var set = (Set<Object>) obj;
+                                        var removeRes = set.remove(params[0].getObject());
+                                        result.setInt32(removeRes ? -1 : 0);
+                                    }))
+                            .add(new MemberFunction(
+                                    "contains", new PuffinBasicType[] {type}, ScalarType.INT32,
+                                    (obj, params, result) -> {
+                                        @SuppressWarnings("unchecked")
+                                        var set = (Set<Object>) obj;
+                                        result.setInt32(set.contains(params[0].getObject()) ? -1 : 0);
+                                    }))
+                            .add(new MemberFunction(
+                                    "clear", new PuffinBasicType[] {}, ScalarType.INT32,
+                                    (obj, params, result) -> {
+                                        @SuppressWarnings("unchecked")
+                                        var set = (Set<Object>) obj;
+                                        set.clear();
+                                        result.setInt32(0);
+                                    }))
+                            .build()
+            );
+        }
+
+        @Override
+        public PuffinBasicTypeId getTypeId() {
+            return PuffinBasicTypeId.SET;
+        }
+
+        @Override
+        public PuffinBasicAtomTypeId getAtomTypeId() {
+            return type.getAtomTypeId();
+        }
+
+        @Override
+        public STValue newInstance(PuffinBasicSymbolTable symbolTable) {
+            return new STSet(type, memberFunctions);
+        }
+
+        @Override
+        public PuffinBasicType getFuncCallReturnType(String funcName) {
+            return memberFunctions.get(funcName).returnType;
+        }
+
+        @Override
+        public void checkFuncCallArguments(String funcName, List<PuffinBasicType> paramTypes) {
+            memberFunctions.checkFuncCallArguments(funcName, paramTypes);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null || obj.getClass() != SetType.class) {
+                return false;
+            }
+            SetType o = (SetType) obj;
+            return getTypeId() == o.getTypeId()
+                    && getAtomTypeId() == o.getAtomTypeId();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(getTypeId(), getAtomTypeId());
+        }
+    }
+
+    public static final class DictType implements PuffinBasicType {
+
+        private final PuffinBasicType keyType;
+        private final PuffinBasicType valueType;
+        private final MemberFunctions memberFunctions;
+
+        public DictType(PuffinBasicType keyType, PuffinBasicType valueType) {
+            this.keyType = keyType;
+            this.valueType = valueType;
+            this.memberFunctions = new MemberFunctions(
+                    ImmutableList.<MemberFunction>builder()
+                            .add(new MemberFunction(
+                                    "put", new PuffinBasicType[] {keyType, valueType}, ScalarType.INT32,
+                                    (obj, params, result) -> {
+                                        @SuppressWarnings("unchecked")
+                                        var dict = (Map<Object, Object>) obj;
+                                        dict.put(params[0].getObject(), params[1].getObject());
+                                        result.setInt32(0);
+                                    }))
+                            .add(new MemberFunction(
+                                    "remove", new PuffinBasicType[] {keyType}, ScalarType.INT32,
+                                    (obj, params, result) -> {
+                                        @SuppressWarnings("unchecked")
+                                        var dict = (Map<Object, Object>) obj;
+                                        var removeRes = dict.remove(params[0].getObject());
+                                        result.setInt32(removeRes != null ? -1 : 0);
+                                    }))
+                            .add(new MemberFunction(
+                                    "getOrDefault", new PuffinBasicType[] {keyType, valueType}, ScalarType.INT32,
+                                    (obj, params, result) -> {
+                                        @SuppressWarnings("unchecked")
+                                        var dict = (Map<Object, Object>) obj;
+                                        var getRes = dict.getOrDefault(params[0].getObject(), params[1].getObject());
+                                        result.setObject(getRes);
+                                    }))
+                            .add(new MemberFunction(
+                                    "contains", new PuffinBasicType[] {keyType}, ScalarType.INT32,
+                                    (obj, params, result) -> {
+                                        @SuppressWarnings("unchecked")
+                                        var dict = (Map<Object, Object>) obj;
+                                        result.setInt32(dict.containsKey(params[0].getObject()) ? -1 : 0);
+                                    }))
+                            .add(new MemberFunction(
+                                    "clear", new PuffinBasicType[] {}, ScalarType.INT32,
+                                    (obj, params, result) -> {
+                                        @SuppressWarnings("unchecked")
+                                        var dict = (Map<Object, Object>) obj;
+                                        dict.clear();
+                                        result.setInt32(0);
+                                    }))
+                            .build()
+            );
+        }
+
+        @Override
+        public PuffinBasicTypeId getTypeId() {
+            return PuffinBasicTypeId.DICT;
+        }
+
+        @Override
+        public PuffinBasicAtomTypeId getAtomTypeId() {
+            return valueType.getAtomTypeId();
+        }
+
+        @Override
+        public STValue newInstance(PuffinBasicSymbolTable symbolTable) {
+            return new STDict(valueType, memberFunctions);
+        }
+
+        @Override
+        public PuffinBasicType getFuncCallReturnType(String funcName) {
+            return memberFunctions.get(funcName).returnType;
+        }
+
+        @Override
+        public void checkFuncCallArguments(String funcName, List<PuffinBasicType> paramTypes) {
+            memberFunctions.checkFuncCallArguments(funcName, paramTypes);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null || obj.getClass() != DictType.class) {
+                return false;
+            }
+            DictType o = (DictType) obj;
+            return getTypeId() == o.getTypeId()
+                    && keyType == o.keyType
+                    && valueType == o.valueType;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(getTypeId(), keyType, valueType);
         }
     }
 
@@ -627,7 +845,7 @@ public class STObjects {
         private final PuffinBasicType type;
         private STEntry ref;
 
-        public STRef(PuffinBasicType type) {
+        STRef(PuffinBasicType type) {
             this.type = type;
         }
 
@@ -2540,7 +2758,7 @@ public class STObjects {
         private final List<Object> list;
         private final MemberFunctions memberFunctions;
 
-        public STList(PuffinBasicType type, MemberFunctions memberFunctions) {
+        STList(PuffinBasicType type, MemberFunctions memberFunctions) {
             super(PuffinBasicTypeId.LIST, type.getAtomTypeId());
             this.memberFunctions = memberFunctions;
             this.list = new ArrayList<>();
@@ -2577,11 +2795,93 @@ public class STObjects {
         }
     }
 
+    static final class STSet extends STCompositeValue {
+        private final ObjectSet<Object> set;
+        private final MemberFunctions memberFunctions;
+
+        STSet(PuffinBasicType type, MemberFunctions memberFunctions) {
+            super(PuffinBasicTypeId.SET, type.getAtomTypeId());
+            this.memberFunctions = memberFunctions;
+            this.set = new ObjectOpenHashSet<>();
+        }
+
+        @Override
+        public Object getObject() {
+            throw new PuffinBasicRuntimeError(
+                    BAD_FUNCTION_CALL,
+                    "Bad function call!"
+            );
+        }
+
+        @Override
+        public void setObject(Object o) {
+            throw new PuffinBasicRuntimeError(
+                    BAD_FUNCTION_CALL,
+                    "Bad function call!"
+            );
+        }
+
+        public void call(String funcName, STValue[] params, STValue result) {
+            memberFunctions.get(funcName).callHandler.call(set, params, result);
+        }
+
+        @Override
+        public boolean hasLen() {
+            return true;
+        }
+
+        @Override
+        public int len() {
+            return set.size();
+        }
+    }
+
+    static final class STDict extends STCompositeValue {
+        private final Object2ObjectMap<Object, Object> dict;
+        private final MemberFunctions memberFunctions;
+
+        STDict(PuffinBasicType valueType, MemberFunctions memberFunctions) {
+            super(PuffinBasicTypeId.DICT, valueType.getAtomTypeId());
+            this.memberFunctions = memberFunctions;
+            this.dict = new Object2ObjectOpenHashMap<>();
+        }
+
+        @Override
+        public Object getObject() {
+            throw new PuffinBasicRuntimeError(
+                    BAD_FUNCTION_CALL,
+                    "Bad function call!"
+            );
+        }
+
+        @Override
+        public void setObject(Object o) {
+            throw new PuffinBasicRuntimeError(
+                    BAD_FUNCTION_CALL,
+                    "Bad function call!"
+            );
+        }
+
+        public void call(String funcName, STValue[] params, STValue result) {
+            memberFunctions.get(funcName).callHandler.call(dict, params, result);
+        }
+
+        @Override
+        public boolean hasLen() {
+            return true;
+        }
+
+        @Override
+        public int len() {
+            return dict.size();
+        }
+    }
+
     public static final class STStruct extends STCompositeValue {
         private final StructType structType;
         private final Int2IntMap memberRefIdToValueId;
 
-        public STStruct(PuffinBasicSymbolTable symbolTable, StructType type) {
+        STStruct(PuffinBasicSymbolTable symbolTable, StructType type) {
             super(PuffinBasicTypeId.STRUCT, PuffinBasicAtomTypeId.COMPOSITE);
             this.structType = type;
             this.memberRefIdToValueId = new Int2IntOpenHashMap();

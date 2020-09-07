@@ -172,6 +172,21 @@ public class IntegrationTest {
         runTest("composite.bas", "composite.bas.output");
     }
 
+    @Test
+    public void testList() {
+        runTest("list.bas", "list.bas.output");
+    }
+
+    @Test
+    public void testSet() {
+        runTest("set.bas", "set.bas.output");
+    }
+
+    @Test
+    public void testDict() {
+        runTest("dict.bas", "dict.bas.output");
+    }
+
     private void runTest(String source, String output) {
         var bos = new ByteArrayOutputStream();
         var out = new PrintStream(bos);

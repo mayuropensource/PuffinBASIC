@@ -17,7 +17,7 @@ comment
     ;
 
 COMMENT
-    : (REM | APOSTROPHE) ~[\r\n]*
+    : (REM SPACE | APOSTROPHE) ~[\r\n]*
     ;
 
 stmt
@@ -157,7 +157,8 @@ expr
     ;
 
 func
-    : variable DOT (varname|GET) LPAREN (expr (COMMA expr)*)? RPAREN  # FuncMemberMethodCall
+    : variable DOT funcname
+        LPAREN (expr (COMMA expr)*)? RPAREN                 # FuncMemberMethodCall
     | ABS  LPAREN expr RPAREN                               # FuncAbs
     | ASC  LPAREN expr RPAREN                               # FuncAsc
     | SIN  LPAREN expr RPAREN                               # FuncSin
@@ -245,6 +246,10 @@ func
     | MOUSEBUTTONCLICKED LPAREN RPAREN                      # FuncMouseButtonClicked
     | MOUSEBUTTONPRESSED LPAREN RPAREN                      # FuncMouseButtonPressed
     | MOUSEBUTTONRELEASED LPAREN RPAREN                     # FuncMouseButtonReleased
+    ;
+
+funcname
+    : varname | GET | APPEND | PUT
     ;
 
 gosubstmt
@@ -603,11 +608,11 @@ liststmt
     ;
 
 dictstmt
-    : DICT RELLT (dictk1=varsuffix) COMMA (dictv2=varname? dictv1=varsuffix) RELGT dictname=varname
+    : DICT RELLT (dictk1=varsuffix) COMMA (dictv1=varname|dictv2=varsuffix) RELGT dictname=varname
     ;
 
 setstmt
-    : SET RELLT (typename=varname|typesuffix=varsuffix) RELGT setname=varname
+    : SET RELLT (typesuffix=varsuffix) RELGT setname=varname
     ;
 
 structstmt
