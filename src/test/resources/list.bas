@@ -9,6 +9,11 @@ PRINT list1.get(0)
 PRINT list1.get(1)
 PRINT len(list1)
 
+auto l1val = list1.values()
+FOR I% = 0 TO LEN(l1val) - 1
+  PRINT l1val(I%),
+NEXT : PRINT ""
+
 list1.insert(0, "c")
 PRINT list1.get(0)
 PRINT len(list1)
@@ -26,6 +31,11 @@ list2.append(2)
 PRINT list2.get(0)
 PRINT list2.get(1)
 PRINT len(list2)
+
+auto l2val = list2.values()
+FOR I% = 0 TO LEN(l2val) - 1
+  PRINT l2val(I%),
+NEXT : PRINT ""
 
 list2.insert(0, 3)
 PRINT list2.get(0)
@@ -45,6 +55,11 @@ PRINT list3.get(0)
 PRINT list3.get(1)
 PRINT len(list3)
 
+auto l3val = list3.values()
+FOR I% = 0 TO LEN(l3val) - 1
+  PRINT l3val(I%),
+NEXT : PRINT ""
+
 list3.insert(0, 30)
 PRINT list3.get(0)
 PRINT len(list3)
@@ -63,6 +78,11 @@ PRINT list4.get(0)
 PRINT list4.get(1)
 PRINT len(list4)
 
+auto l4val = list4.values()
+FOR I% = 0 TO LEN(l4val) - 1
+  PRINT l4val(I%),
+NEXT : PRINT ""
+
 list4.insert(0, 3.1)
 PRINT list4.get(0)
 PRINT len(list4)
@@ -80,6 +100,11 @@ list5.append(20.1)
 PRINT list5.get(0)
 PRINT list5.get(1)
 PRINT len(list5)
+
+auto l5val = list5.values()
+FOR I% = 0 TO LEN(l5val) - 1
+  PRINT l5val(I%),
+NEXT : PRINT ""
 
 list5.insert(0, 30.1)
 PRINT list5.get(0)

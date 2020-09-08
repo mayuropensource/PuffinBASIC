@@ -8,6 +8,11 @@ PRINT LEN(set1)
 
 PRINT set1.contains("a")
 
+auto s1val = set1.values()
+FOR I% = 0 TO LEN(s1val) - 1
+  PRINT s1val(I%),
+NEXT : PRINT ""
+
 set1.remove("a")
 PRINT LEN(set1)
 

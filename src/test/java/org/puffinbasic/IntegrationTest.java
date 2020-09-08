@@ -141,11 +141,6 @@ public class IntegrationTest {
     }
 
     @Test
-    public void testDictSet() {
-        runTest("dictset.bas", "dictset.bas.output");
-    }
-
-    @Test
     public void testRandomAccessFile() throws IOException {
         String tmpdir = System.getProperty("java.io.tmpdir");
         String filename = "puffin_basic_test_random_access_file_"

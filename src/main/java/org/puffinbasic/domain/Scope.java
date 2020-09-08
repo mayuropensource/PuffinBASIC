@@ -34,18 +34,17 @@ public interface Scope {
 
         GlobalScope() {
             this(
-                NULL_ID,
-                new Int2ObjectOpenHashMap<>(),
-                new STEntry[INITIAL_ENTRY_TABLE_SIZE],
-                new Object2IntOpenHashMap<>());
+                    NULL_ID,
+                    new Int2ObjectOpenHashMap<>(),
+                    new STEntry[INITIAL_ENTRY_TABLE_SIZE],
+                    new Object2IntOpenHashMap<>());
         }
 
         private GlobalScope(
-            int callerInstrId,
-            Int2ObjectMap<Scope> funcIdToScope,
-            STEntry[] entryMap,
-            Object2IntMap<VariableName> variableNameToEntry)
-        {
+                int callerInstrId,
+                Int2ObjectMap<Scope> funcIdToScope,
+                STEntry[] entryMap,
+                Object2IntMap<VariableName> variableNameToEntry) {
             this.callerInstrId = callerInstrId;
             this.funcIdToScope = funcIdToScope;
             this.entryMap = entryMap;
@@ -55,16 +54,16 @@ public interface Scope {
         @Override
         public Scope createRuntimeScope(int callerInstrId) {
             return new GlobalScope(
-                callerInstrId,
-                funcIdToScope,
-                entryMap,
-                variableNameToEntry);
+                    callerInstrId,
+                    funcIdToScope,
+                    entryMap,
+                    variableNameToEntry);
         }
 
         @Override
         public int getCallerInstrId() {
-      return callerInstrId;
-    }
+            return callerInstrId;
+        }
 
         @Override
         public Scope createChild(int funcId) {
@@ -78,23 +77,23 @@ public interface Scope {
 
         @Override
         public Scope getChild(int funcId) {
-      return funcIdToScope.get(funcId);
-    }
+            return funcIdToScope.get(funcId);
+        }
 
         @Override
         public Scope getParent() {
-      return null;
-    }
+            return null;
+        }
 
         @Override
         public int getIdForVariable(VariableName variableName) {
-            return variableNameToEntry.getOrDefault(variableName, -1);
+            return variableNameToEntry.getOrDefault(variableName, NULL_ID);
         }
 
         @Override
         public void putVariable(VariableName variableName, int id) {
-      variableNameToEntry.put(variableName, id);
-    }
+            variableNameToEntry.put(variableName, id);
+        }
 
         @Override
         public boolean containsVariable(VariableName variableName) {

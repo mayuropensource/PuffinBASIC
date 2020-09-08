@@ -232,7 +232,9 @@ DIM statement declares size of each dimension (rather than maximum value of the 
 
 ### Data Types
 
-PuffinBASIC supports Int32, Int4, Float32, Float64, and String.
+PuffinBASIC supports scalar, array, struct, list, set and dict types.
+Int32, Int4, Float32, Float64, and String are the scalar types.
+Each scalar type has a corresponding array type.
 
 ## Commands
 
@@ -247,6 +249,8 @@ PuffinBASIC can raise following kind of errors:
 1. PuffinBasicInternalError: if there is a problem with PuffinBASIC implementation.
 
 ## Data Types
+
+### Scalar Types
 
 1. Int32 (32-bit signed integer): Int32 constants can have an optional '%' suffix.
 Int32 constants can be decimal, octal or hexadecimal.
@@ -266,6 +270,21 @@ Float32 constants can use a decimal format or scientific notations, e.g. 1.2 or 
 A string must be enclosed within double-quotes, e.g. "A TEST, STRING".
 There is no limit on the length of a string.
 
+### Array Types
+
+1. N-dimensional Int32 Array
+1. N-dimensional Int64 Array
+1. N-dimensional Float32 Array
+1. N-dimensional Float64 Array
+1. N-dimensional String Array
+
+### Composite Types
+
+1. Struct: User defined type composed of scalar, array, struct, list, set and dict types.
+1. List: Variable length list of scalar and struct values.
+1. Set: Unordered open hash-set of scalar values.
+1. Dict: Unordered open hash-map of scalar to scalar and struct values.
+
 ### Type conversion
 
 Numeric types are converted into one another via implicit type conversion.
@@ -282,10 +301,11 @@ Int32 variable has '%' suffix, int64 variable has '@' suffix, float32 has '!' su
 float64 has '#' suffix, and String has '$' suffix. 
 If a suffix is omitted, default data type assumed, the global default is Float64. 
 
-There are two kinds of variables:
+There are three kinds of variables:
 1. Scalar variable stores a single value, e.g. A%
 1. Array variable stores a multi-dimensional array. An array variable must defined using DIM statement.
 An array can have any number of dimensions. The minimum array index is 0 and maximum is dimension length - 1.
+1. Composite variable such as struct, list, set and dict.
 
 Example:
 ```
@@ -360,63 +380,6 @@ Logical or bit-wise:
 1. 'IMP'
 1. '>>'
 1. '<<'
-
-## Dictionary
-
-PuffinBASIC supports Dictionary (or Map) data structure.
-The data type of key and value can one of the primitive data types
-and must be declared at the creation of the dictionary.
-The data type is checked in every (relevant) Dictionary function call.
-
-Syntax:
-
-```
-variable = DICT keysuffix varsuffix(key1=>value1, key2=>value2, ...)
-DICTGET(variable, key, defaultValue)
-DICTPUT(variable, key, value)
-DICTCONTAINSKEY(variable, key)
-DICTSIZE(variable)
-DICTCLEAR(variable)
-```
-
-Example:
-
-```
-d% = DICT%$(1=>"ONE", 2=>"TWO")
-PRINT DICTGET(d%, 1, "")
-PRINT DICTCONTAINSKEY(d%, 1)
-DICTPUT(d%, 3, "THREE")
-PRINT DICTSIZE(d%)
-DICTCLEAR(d%)
-```
-
-## Set
-
-PuffinBASIC supports Set data structure.
-The data type of value can one of the primitive types
-and must be declared at the creation of the set.
-The data type is checked in every (relevant) Set function call.
-
-Syntax:
-
-```
-variable = SET valuesuffix(value1, value2, ...)
-SETCONTAINS(variable, value)
-SETCONTAINS(s%, "d")
-SETADD(variable, value)
-SETSIZE(variable)
-SETCLEAR(variable)
-```
-
-Example:
-
-```
-s% = SET$("a", "b", "c")
-PRINT SETCONTAINS(s%, "a")
-SETADD(s%, "d")
-PRINT SETSIZE(s%)
-SETCLEAR(s%)
-```
 
 ## Functions
 
@@ -1062,6 +1025,24 @@ LET A% = 1
 B$ = "ABC"
 ```
 
+#### Reference Assignment
+
+AUTO can be used to reference the result of an expression
+without specifying the type of the reference variable or
+allocating the variable.
+
+Syntax:
+
+```
+AUTO refvar = expr
+```
+
+Example:
+
+```
+AUTO keys = dict1.keys()
+```
+
 #### Arrays
 
 Use DIM keyword to declare an array variable.
@@ -1083,10 +1064,172 @@ DIM A%(3, 5)
 
 The above statements declares a 3x5 Int32 variable.
 
+#### Struct
+
+User defined type composed of scalar, array, struct, list, set and dict types
+
+Syntax:
+
+```
+STRUCT typename { members } ' Define the struct type.
+typename varname {}         ' Create an instance of the type.
+```
+
+Example 1: Example of scalar types.
+
+```
+STRUCT struct1 { A% , B% }
+struct1 s1 {}
+s1.A% = 2
+s2.A% = 10
+PRINT s1.A%, s2.A%
+```
+
+Example 2: Nested struct.
+
+```
+STRUCT struct2 { C%, struct1 child }
+struct2 s3 {}
+s3.child.A% = 100
+s3.C% = 50
+PRINT s3.child.A%, s3.C%
+```
+
+Example 3: Example of all data types.
+
+```
+STRUCT struct4 { A%, B@, C!, D#, E$, DIM ARR%(2,3), LIST<$> l1, SET<%> s1, DICT<%, #> d1 }
+struct4 s41 {}
+s41.A% = 1
+s41.B@ = 2
+s41.C! = 3
+s41.D# = 4
+s41.E$ = "str"
+s41.ARR%(1, 1) = 5
+s41.l1.append("abc")
+s41.s1.add(23)
+s41.d1.put(10, 2.5)
+PRINT s41.A%, s41.B@, s41.C!, s41.D#, s41.E$, s41.ARR%(1, 1), s41.l1.get(0), s41.s1.contains(23), s41.d1.getOrDefault(10, 0)
+```
+
+#### List
+
+A variable length list of scalar and struct values.
+
+TODO: struct value is not tested yet.
+
+Syntax:
+
+```
+LIST<DATATYPE|STRUCT> varname
+
+Supported functions:
+varname.append(VALUE) ' Append the value to the list.
+varname.get(INDEX)    ' Get the value at the given index.
+varname.insert(INDEX, VALUE) ' Insert the value at the given index.
+varname.values()      ' Get the array of values.
+varname.clear()       ' Clear the list.
+LEN(varname)          ' Get the length of the list.
+```
+
+Example:
+
+```
+LIST<$> list1
+list1.append("a")
+list1.append("b")
+PRINT list1.get(0)
+
+auto l1val = list1.values()
+FOR I% = 0 TO LEN(l1val) - 1
+  PRINT l1val(I%),
+NEXT : PRINT ""
+
+list1.insert(0, "c")
+list1.clear()
+```
+
+#### Set
+
+An unordered open hash-set of scalar values.
+
+Syntax:
+
+```
+SET<DATATYPE> varname
+
+Supported functions:
+varname.add(VALUE)      ' Add the VALUE to the set.
+varname.contains(VALUE) ' Check if the VALUE exists in the set.
+varname.values()        ' Get the array of unordered values.
+varname.remove(VALUE)   ' Remove the VALUE from the set if it exists.
+varname.clear()         ' Clear the set.
+LEN(varname)            ' Get the length of the set.
+```
+
+Example:
+
+```
+SET<$> set1
+
+set1.add("a")
+PRINT set1.contains("a")
+
+auto s1val = set1.values()
+FOR I% = 0 TO LEN(s1val) - 1
+  PRINT s1val(I%),
+NEXT : PRINT ""
+
+set1.remove("a")
+set1.clear()
+PRINT LEN(set1)
+```
+
+#### Dict
+
+An unordered open hash-map of scalar key to scalar/struct values.
+
+TODO: struct values are not tested yet.
+
+Syntax:
+
+```
+DICT<KEYTYPE, VALUETYPE|STRUCT> varname
+
+Supported functions:
+varname.put(KEY, VALUE)  ' Put the KEY/VALUE pair in the dict, overwriting any previous value.
+varname.getOrDefault(KEY, DEFAULT_VALUE)  ' Get the value of the KEY if present, DEFAULT_VALUE if absent.
+varname.removeKey()      ' Remove the KEY from the dict if it exists.
+varname.containsKey()    ' Check if the KEY exists in the dict.
+varname.keys()           ' Get the array of keys in the dict.
+varname.clear()          ' Clear the dict.
+LEN(varname)             ' Get the length of the dict.
+```
+
+Example:
+
+```
+DICT<$,%> dict1
+
+dict1.put("a", 65)
+
+auto d1val = dict1.keys()
+FOR I% = 0 TO LEN(d1val) - 1
+  PRINT d1val(I%),
+NEXT : PRINT ""
+
+PRINT dict1.remove("a")
+PRINT dict1.getOrDefault("a", -1)
+PRINT dict1.containsKey("a")
+
+dict1.clear()
+PRINT LEN(dict1)
+```
+
 ### Default Variable Data Type
 
 The following keywords can be used to declare default data type of a variable,
-(used when a variable doesn't have a suffix).
+(used when a variable does not have a suffix).
 
 Syntax:
 

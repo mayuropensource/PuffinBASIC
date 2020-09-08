@@ -3,29 +3,25 @@ package org.puffinbasic.runtime;
 import com.google.common.base.Strings;
 import it.unimi.dsi.fastutil.doubles.Double2DoubleFunction;
 import org.puffinbasic.domain.PuffinBasicSymbolTable;
-import org.puffinbasic.domain.STObjects;
 import org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId;
 import org.puffinbasic.error.PuffinBasicInternalError;
 import org.puffinbasic.error.PuffinBasicRuntimeError;
 import org.puffinbasic.file.PuffinBasicFiles;
 import org.puffinbasic.parser.PuffinBasicIR.Instruction;
-import org.puffinbasic.runtime.DS.DictState;
-import org.puffinbasic.runtime.DS.SetState;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.util.List;
 import java.util.Random;
 
 import static org.puffinbasic.domain.PuffinBasicSymbolTable.NULL_ID;
-import static org.puffinbasic.domain.STObjects.PuffinBasicTypeId.ARRAY;
 import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.FLOAT;
 import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.INT32;
 import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.INT64;
 import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.STRING;
+import static org.puffinbasic.domain.STObjects.PuffinBasicTypeId.ARRAY;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.DATA_OUT_OF_RANGE;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.ILLEGAL_FUNCTION_PARAM;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.INDEX_OUT_OF_BOUNDS;
@@ -675,148 +671,6 @@ public class Functions {
         var envvar = symbolTable.get(instruction.op1).getValue().getString();
         var result = env.get(envvar);
         symbolTable.get(instruction.result).getValue().setString(result);
-    }
-
-    public static void dict(
-            DictState dictState,
-            PuffinBasicSymbolTable symbolTable,
-            List<Instruction> params,
-            Instruction instruction)
-    {
-        var keyType = symbolTable.get(instruction.op1).getType().getAtomTypeId();
-        var valueType = symbolTable.get(instruction.op2).getType().getAtomTypeId();
-        var result = symbolTable.get(instruction.result).getValue();
-        int id = dictState.create(keyType, valueType, mt -> {
-            for (var ii : params) {
-                var keyEntry = symbolTable.get(ii.op1);
-                var valueEntry = symbolTable.get(ii.op2);
-                dictState.put(mt, keyEntry.getValue(), valueEntry.getValue(),
-                        keyEntry.getType().getAtomTypeId(), valueEntry.getType().getAtomTypeId());
-            }
-        });
-        result.setInt32(id);
-    }
-
-    public static void dictGet(
-            DictState dictState,
-            PuffinBasicSymbolTable symbolTable,
-            Instruction param,
-            Instruction instruction)
-    {
-        var id = symbolTable.get(instruction.op1).getValue().getInt32();
-        var result = symbolTable.get(instruction.result).getValue();
-        var keyEntry = symbolTable.get(param.op1);
-        var key = keyEntry.getValue();
-        STObjects.STEntry valueEntry = symbolTable.get(param.op2);
-        var defaultValue = valueEntry.getValue();
-        dictState.get(id, key, defaultValue,
-                keyEntry.getType().getAtomTypeId(), valueEntry.getType().getAtomTypeId(), result);
-    }
-
-    public static void dictContains(
-            DictState dictState,
-            PuffinBasicSymbolTable symbolTable,
-            Instruction instruction)
-    {
-        var id = symbolTable.get(instruction.op1).getValue().getInt32();
-        var keyEntry = symbolTable.get(instruction.op2);
-        var key = keyEntry.getValue();
-        var result = symbolTable.get(instruction.result).getValue();
-        dictState.containsKey(id, key, keyEntry.getType().getAtomTypeId(), result);
-    }
-
-    public static void dictPut(
-            DictState dictState,
-            PuffinBasicSymbolTable symbolTable,
-            Instruction param,
-            Instruction instruction)
-    {
-        var id = symbolTable.get(instruction.op1).getValue().getInt32();
-        var keyEntry = symbolTable.get(param.op1);
-        var key = keyEntry.getValue();
-        var valueEntry = symbolTable.get(param.op2);
-        var value = valueEntry.getValue();
-        dictState.put(id, key, value,
-                keyEntry.getType().getAtomTypeId(),
-                valueEntry.getType().getAtomTypeId());
-    }
-
-    public static void dictClear(
-            DictState dictState,
-            PuffinBasicSymbolTable symbolTable,
-            Instruction instruction)
-    {
-        var id = symbolTable.get(instruction.op1).getValue().getInt32();
-        dictState.clear(id);
-    }
-
-    public static void dictSize(
-            DictState dictState,
-            PuffinBasicSymbolTable symbolTable,
-            Instruction instruction)
-    {
-        var id = symbolTable.get(instruction.op1).getValue().getInt32();
-        var result = symbolTable.get(instruction.result).getValue();
-        dictState.size(id, result);
-    }
-
-    public static void set(
-            SetState setState,
-            PuffinBasicSymbolTable symbolTable,
-            List<Instruction> params,
-            Instruction instruction)
-    {
-        var valueType = symbolTable.get(instruction.op1).getType().getAtomTypeId();
-        var result = symbolTable.get(instruction.result).getValue();
-        int id = setState.create(valueType, st -> {
-            for (var ii : params) {
-                var entry = symbolTable.get(ii.op1);
-                setState.add(st, entry.getValue(), entry.getType().getAtomTypeId());
-            }
-        });
-        result.setInt32(id);
-    }
-
-    public static void setAdd(
-            SetState setState,
-            PuffinBasicSymbolTable symbolTable,
-            Instruction instruction)
-    {
-        var id = symbolTable.get(instruction.op1).getValue().getInt32();
-        var valueEntry = symbolTable.get(instruction.op2);
-        var value = valueEntry.getValue();
-        setState.add(id, value, valueEntry.getType().getAtomTypeId());
-    }
-
-    public static void setContains(
-            SetState setState,
-            PuffinBasicSymbolTable symbolTable,
-            Instruction instruction)
-    {
-        var id = symbolTable.get(instruction.op1).getValue().getInt32();
-        var valueEntry = symbolTable.get(instruction.op2);
-        var value = valueEntry.getValue();
-        var result = symbolTable.get(instruction.result).getValue();
-        setState.contains(id, value, valueEntry.getType().getAtomTypeId(), result);
-    }
-
-    public static void setClear(
-            SetState setState,
-            PuffinBasicSymbolTable symbolTable,
-            Instruction instruction)
-    {
-        var id = symbolTable.get(instruction.op1).getValue().getInt32();
-        setState.clear(id);
-    }
-
-    public static void setSize(
-            SetState setState,
-            PuffinBasicSymbolTable symbolTable,
-            Instruction instruction)
-    {
-        var id = symbolTable.get(instruction.op1).getValue().getInt32();
-        var result = symbolTable.get(instruction.result).getValue();
-        setState.size(id, result);
     }
 
     static void throwUnsupportedType(PuffinBasicAtomTypeId type) {

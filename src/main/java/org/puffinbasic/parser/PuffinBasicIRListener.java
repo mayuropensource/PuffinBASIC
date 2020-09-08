@@ -53,6 +53,7 @@ import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.FLOAT;
 import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.INT32;
 import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.INT64;
 import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.STRING;
+import static org.puffinbasic.domain.STObjects.PuffinBasicTypeId.ARRAY;
 import static org.puffinbasic.domain.STObjects.PuffinBasicTypeId.UDF;
 import static org.puffinbasic.error.PuffinBasicSemanticError.ErrorCode.BAD_ARGUMENT;
 import static org.puffinbasic.error.PuffinBasicSemanticError.ErrorCode.BAD_ASSIGNMENT;
@@ -211,7 +212,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         ir.getSymbolTable().checkUnused(varname);
         var varsuffix = ctx.varsuffix() != null ? ctx.varsuffix().getText() : null;
         var dataType = ir.getSymbolTable().getDataTypeFor(varname, varsuffix);
-        var variableName = new VariableName(varname, dataType);
+        var variableName = new VariableName(varname, dataType.getRepr(), dataType);
         var idHolder = new AtomicInteger();
 
         ir.getSymbolTable().addVariableOrUDF(
@@ -311,14 +312,15 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
 
     private Instruction exitStructVariable(PuffinBasicParser.StructvariableContext ctx) {
         var root = ctx.varname(0).VARNAME().getText();
-        var rootId = ir.getSymbolTable().getCompositeVariableIdForVariable(new VariableName(root, COMPOSITE));
+        var rootId = ir.getSymbolTable().getCompositeVariableIdForVariable(
+                new VariableName(root, null, COMPOSITE));
         var structType = ir.getSymbolTable().get(rootId).getType().asStruct();
 
         var parentTypeName = structType.getTypeName();
         for (int i = 1; i < ctx.varname().size(); i++) {
             var struct = ir.getSymbolTable().getStructType(parentTypeName);
             var childVarname = ctx.varname(i).VARNAME().getText();
-            var childName = new VariableName(childVarname, COMPOSITE);
+            var childName = new VariableName(childVarname, null, COMPOSITE);
             var childRefId = struct.getMemberRefId(childName);
             var childTypeName = struct.getMemberType(childName).asStruct().getTypeName();
             ir.addInstruction(
@@ -332,11 +334,11 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         var struct = ir.getSymbolTable().getStructType(parentTypeName);
         var leafCtx = ctx.leafvariable();
         var leafVarname = leafCtx.varname().VARNAME().getText();
-        var leafDataType = ir.getSymbolTable().getDataTypeFor(
-                leafVarname,
-                leafCtx.varsuffix() != null ? leafCtx.varsuffix().getText() : null
-        );
-        var leafName = new VariableName(leafVarname, leafDataType);
+        var leafDataType = struct.containsMember(new VariableName(leafVarname, null, COMPOSITE))
+            ? struct.getMemberType(new VariableName(leafVarname, null, COMPOSITE)).getAtomTypeId()
+            : ir.getSymbolTable().getDataTypeFor(leafVarname,
+                leafCtx.varsuffix() != null ? leafCtx.varsuffix().getText() : null);
+        var leafName = new VariableName(leafVarname, leafDataType.getRepr(), leafDataType);
         var leafRefId = struct.getMemberRefId(leafName);
         var leafType = struct.getMemberType(leafName);
 
@@ -1578,143 +1580,6 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
     }
 
     @Override
-    public void exitFuncDictCreate(PuffinBasicParser.FuncDictCreateContext ctx) {
-        var keyType = PuffinBasicAtomTypeId.lookup(ctx.varsuffix(0).getText());
-        var valueType = PuffinBasicAtomTypeId.lookup(ctx.varsuffix(1).getText());
-
-        for (int i = 0; i < ctx.expr().size(); i += 2) {
-            var k = lookupInstruction(ctx.expr(i));
-            var v = lookupInstruction(ctx.expr(i + 1));
-            ir.addInstruction(
-                    currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                    OpCode.PARAM2, k.result, v.result, NULL_ID
-            );
-        }
-
-        nodeToInstruction.put(ctx, ir.addInstruction(
-                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.DICT,
-                ir.getSymbolTable().addTmp(keyType, e -> {}),
-                ir.getSymbolTable().addTmp(valueType, e -> {}),
-                ir.getSymbolTable().addTmp(INT32, e -> {})));
-    }
-
-    @Override
-    public void exitFuncDictPut(PuffinBasicParser.FuncDictPutContext ctx) {
-        var id = lookupInstruction(ctx.id);
-        var key = lookupInstruction(ctx.key);
-        var value = lookupInstruction(ctx.value);
-        ir.addInstruction(
-                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.PARAM2, key.result, value.result, NULL_ID
-        );
-
-        nodeToInstruction.put(ctx, ir.addInstruction(
-                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.DICTPUT, id.result, NULL_ID, ir.getSymbolTable().addTmp(INT32, e -> {})));
-    }
-
-    @Override
-    public void exitFuncDictGet(PuffinBasicParser.FuncDictGetContext ctx) {
-        var id = lookupInstruction(ctx.id);
-        var key = lookupInstruction(ctx.key);
-        var defaultValue = lookupInstruction(ctx.def);
-        ir.addInstruction(
-                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.PARAM2, key.result, defaultValue.result, NULL_ID
-        );
-
-        nodeToInstruction.put(ctx, ir.addInstruction(
-                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.DICTGET, id.result, NULL_ID,
-                ir.getSymbolTable().addTmpCompatibleWith(defaultValue.result)));
-    }
-
-    @Override
-    public void exitFuncDictContainsKey(PuffinBasicParser.FuncDictContainsKeyContext ctx) {
-        var id = lookupInstruction(ctx.id);
-        var key = lookupInstruction(ctx.key);
-        nodeToInstruction.put(ctx, ir.addInstruction(
-                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.DICTCONTAINSKEY, id.result, key.result,
-                ir.getSymbolTable().addTmp(INT64, e -> {})));
-    }
-
-    @Override
-    public void exitFuncDictClear(PuffinBasicParser.FuncDictClearContext ctx) {
-        var id = lookupInstruction(ctx.id);
-        nodeToInstruction.put(ctx, ir.addInstruction(
-                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.DICTCLEAR, id.result, NULL_ID,
-                ir.getSymbolTable().addTmp(INT64, e -> {})));
-    }
-
-    @Override
-    public void exitFuncDictSize(PuffinBasicParser.FuncDictSizeContext ctx) {
-        var id = lookupInstruction(ctx.id);
-        nodeToInstruction.put(ctx, ir.addInstruction(
-                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.DICTSIZE, id.result, NULL_ID,
-                ir.getSymbolTable().addTmp(INT32, e -> {})));
-    }
-
-    @Override
-    public void exitFuncSetCreate(PuffinBasicParser.FuncSetCreateContext ctx) {
-        var valueType = PuffinBasicAtomTypeId.lookup(ctx.varsuffix().getText());
-
-        for (var param : ctx.expr()) {
-            var v = lookupInstruction(param);
-            ir.addInstruction(
-                    currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                    OpCode.PARAM1, v.result, NULL_ID, NULL_ID
-            );
-        }
-
-        nodeToInstruction.put(ctx, ir.addInstruction(
-                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.SET,
-                ir.getSymbolTable().addTmp(valueType, e -> {}),
-                NULL_ID,
-                ir.getSymbolTable().addTmp(INT32, e -> {})));
-    }
-
-    @Override
-    public void exitFuncSetAdd(PuffinBasicParser.FuncSetAddContext ctx) {
-        var id = lookupInstruction(ctx.id);
-        var value = lookupInstruction(ctx.value);
-        nodeToInstruction.put(ctx, ir.addInstruction(
-                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.SETADD, id.result, value.result, ir.getSymbolTable().addTmp(INT32, e -> {})));
-    }
-
-    @Override
-    public void exitFuncSetContains(PuffinBasicParser.FuncSetContainsContext ctx) {
-        var id = lookupInstruction(ctx.id);
-        var value = lookupInstruction(ctx.value);
-        nodeToInstruction.put(ctx, ir.addInstruction(
-                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.SETCONTAINS, id.result, value.result, ir.getSymbolTable().addTmp(INT64, e -> {})));
-    }
-
-    @Override
-    public void exitFuncSetClear(PuffinBasicParser.FuncSetClearContext ctx) {
-        var id = lookupInstruction(ctx.id);
-        nodeToInstruction.put(ctx, ir.addInstruction(
-                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.SETCLEAR, id.result, NULL_ID,
-                ir.getSymbolTable().addTmp(INT64, e -> {})));
-    }
-
-    @Override
-    public void exitFuncSetSize(PuffinBasicParser.FuncSetSizeContext ctx) {
-        var id = lookupInstruction(ctx.id);
-        nodeToInstruction.put(ctx, ir.addInstruction(
-                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.SETSIZE, id.result, NULL_ID,
-                ir.getSymbolTable().addTmp(INT32, e -> {})));
-    }
-
-    @Override
     public void exitFuncMouseMovedX(PuffinBasicParser.FuncMouseMovedXContext ctx) {
         assertGraphics();
         nodeToInstruction.put(ctx, ir.addInstruction(
@@ -1859,7 +1724,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         }
         var instanceName = ctx.listname.VARNAME().getText();
 
-        var variableName = new VariableName(instanceName, COMPOSITE);
+        var variableName = new VariableName(instanceName, null, COMPOSITE);
         var listType = new ListType(itemType);
         var id = ir.getSymbolTable().addCompositeVariable(
                 variableName, new STVariable(null, new Variable(variableName, listType)));
@@ -1875,7 +1740,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         PuffinBasicType itemType = new ScalarType(atomType);
         var instanceName = ctx.setname.VARNAME().getText();
 
-        var variableName = new VariableName(instanceName, COMPOSITE);
+        var variableName = new VariableName(instanceName, null, COMPOSITE);
         var setType = new SetType(itemType);
         var id = ir.getSymbolTable().addCompositeVariable(
                 variableName, new STVariable(null, new Variable(variableName, setType)));
@@ -1903,7 +1768,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
 
         var instanceName = ctx.dictname.VARNAME().getText();
 
-        var variableName = new VariableName(instanceName, COMPOSITE);
+        var variableName = new VariableName(instanceName, null, COMPOSITE);
         var dictType = new DictType(keyType, valueType);
         var id = ir.getSymbolTable().addCompositeVariable(
                 variableName, new STVariable(null, new Variable(variableName, dictType)));
@@ -1917,7 +1782,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
     public void exitStructinstancestmt(PuffinBasicParser.StructinstancestmtContext ctx) {
         var typeName = ctx.varname(0).VARNAME().getText();
         var instanceName = ctx.varname(1).VARNAME().getText();
-        var variableName = new VariableName(instanceName, COMPOSITE);
+        var variableName = new VariableName(instanceName, null, COMPOSITE);
         var type = ir.getSymbolTable().getStructType(typeName);
         var id = ir.getSymbolTable().addCompositeVariable(
                 variableName, new STVariable(null, new Variable(variableName, type)));
@@ -1929,15 +1794,17 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
 
     @Override
     public void exitStructstmt(PuffinBasicParser.StructstmtContext ctx) {
-        var typeName = ctx.varname().VARNAME().getText();
-        var struct = new STObjects.StructType(typeName);
+        final var typeName = ctx.varname().VARNAME().getText();
+        final var struct = new STObjects.StructType(typeName);
         for (var compCtx : ctx.compositetype()) {
             if (compCtx.var1 != null) {
                 // scalar
+                var scalarAtomTypeId = PuffinBasicAtomTypeId.lookup(compCtx.var2.getText());
                 var name = new VariableName(compCtx.var1.VARNAME().getText(),
-                        PuffinBasicAtomTypeId.lookup(compCtx.var2.getText()));
+                        scalarAtomTypeId.getRepr(),
+                        scalarAtomTypeId);
                 struct.declareField(name, new ScalarType(name.getDataType()));
-            } else if (compCtx.dim != null) {
+            } else if (compCtx.DIM() != null) {
                 // array
                 var arrayName = compCtx.elem.VARNAME().getText();
                 var arrayAtomType = ir.getSymbolTable().getDataTypeFor(arrayName,
@@ -1946,47 +1813,41 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                 for (var dimStrNode : compCtx.DECIMAL()) {
                     dims.add(Numbers.parseInt32(dimStrNode.getText(), () -> getCtxString(ctx)));
                 }
-                struct.declareField(new VariableName(arrayName, arrayAtomType),
+                struct.declareField(new VariableName(arrayName, arrayAtomType.getRepr(), arrayAtomType),
                         new ArrayType(arrayAtomType, dims, true));
-            } else if (compCtx.list1 != null) {
+            } else if (compCtx.LIST() != null) {
                 // list
-                var name = new VariableName(compCtx.elem.VARNAME().getText(), COMPOSITE);
+                var name = new VariableName(compCtx.elem.VARNAME().getText(), null, COMPOSITE);
                 final PuffinBasicType itemType;
                 if (compCtx.list1 != null) {
                     // struct
-                    var itemName = compCtx.list1.VARNAME().getText();
-                    itemType = ir.getSymbolTable().getStructType(typeName);
+                    itemType = ir.getSymbolTable().getStructType(compCtx.list1.VARNAME().getText());
                 } else {
                     // scalar data type
-                    var atomType = PuffinBasicAtomTypeId.lookup(compCtx.list2.getText());
-                    itemType = new ScalarType(atomType);
+                    itemType = new ScalarType(PuffinBasicAtomTypeId.lookup(compCtx.list2.getText()));
                 }
                 struct.declareField(name, new ListType(itemType));
-            } else if (compCtx.set1 != null) {
+            } else if (compCtx.SET() != null) {
                 // set
-                var name = new VariableName(compCtx.elem.VARNAME().getText(), COMPOSITE);
-                var atomType = PuffinBasicAtomTypeId.lookup(compCtx.set2.getText());
-                struct.declareField(name, new SetType(new ScalarType(atomType)));
-            } else if (compCtx.dictk1 != null) {
+                var name = new VariableName(compCtx.elem.VARNAME().getText(), null, COMPOSITE);
+                struct.declareField(name, new SetType(new ScalarType(PuffinBasicAtomTypeId.lookup(compCtx.set2.getText()))));
+            } else if (compCtx.DICT() != null) {
                 // dict
-                var name = new VariableName(compCtx.elem.VARNAME().getText(), COMPOSITE);
+                var name = new VariableName(compCtx.elem.VARNAME().getText(), null, COMPOSITE);
                 var keyType = new ScalarType(PuffinBasicAtomTypeId.lookup(compCtx.dictk1.getText()));
                 final PuffinBasicType valueType;
-                if (compCtx.list1 != null) {
+                if (compCtx.dictv1 != null) {
                     // struct
-                    var itemName = compCtx.dictv1.VARNAME().getText();
-                    valueType = ir.getSymbolTable().getStructType(typeName);
+                    valueType = ir.getSymbolTable().getStructType(compCtx.dictv1.VARNAME().getText());
                 } else {
                     // scalar data type
-                    var atomType = PuffinBasicAtomTypeId.lookup(compCtx.dictv2.getText());
-                    valueType = new ScalarType(atomType);
+                    valueType = new ScalarType(PuffinBasicAtomTypeId.lookup(compCtx.dictv2.getText()));
                 }
-                struct.declareField(name, new SetType(new DictType(keyType, valueType)));
+                struct.declareField(name, new DictType(keyType, valueType));
             } else if (compCtx.struct1 != null) {
                 // struct
                 var memberType = compCtx.struct1.VARNAME().getText();
-                var name = new VariableName(compCtx.elem.VARNAME().getText(),
-                        COMPOSITE);
+                var name = new VariableName(compCtx.elem.VARNAME().getText(), null, COMPOSITE);
                 struct.declareField(name, ir.getSymbolTable().getStructType(memberType));
             } else {
                 // throw
@@ -2037,6 +1898,21 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         nodeToInstruction.put(ctx, assignInstruction);
     }
 
+    @Override
+    public void exitAutoletstmt(PuffinBasicParser.AutoletstmtContext ctx) {
+        var varname = ctx.varname().getText();
+        var exprInstruction = lookupInstruction(ctx.expr());
+        var resultType = ir.getSymbolTable().get(exprInstruction.result).getType();
+        int varId = ir.getSymbolTable().addVariableOrUDF(
+                new VariableName(varname, null, resultType.getAtomTypeId()),
+                variableName1 -> Variable.of(variableName1, resultType.getTypeId() == ARRAY,
+                        () -> getCtxString(ctx)),
+                (id, entry, v1) -> {});
+        ir.addInstruction(
+                currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.VARREF, exprInstruction.result, varId, NULL_ID
+        );
+    }
 
     @Override
     public void exitPrintstmt(PuffinBasicParser.PrintstmtContext ctx) {
@@ -2156,7 +2032,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         var varname = ctx.varname().VARNAME().getText();
         var varsuffix = ctx.varsuffix() != null ? ctx.varsuffix().getText() : null;
         var dataType = ir.getSymbolTable().getDataTypeFor(varname, varsuffix);
-        var variableName = new VariableName(varname, dataType);
+        var variableName = new VariableName(varname, dataType.getRepr(), dataType);
         var varId = ir.getSymbolTable().addVariableOrUDF(
                 variableName,
                 variableName1 -> Variable.of(variableName1, true, () -> getCtxString(ctx)),
@@ -2182,7 +2058,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         var varname = ctx.varname().getText();
         var varsuffix = ctx.varsuffix() != null ? ctx.varsuffix().getText() : null;
         var dataType = ir.getSymbolTable().getDataTypeFor(varname, varsuffix);
-        var variableName = new VariableName(varname, dataType);
+        var variableName = new VariableName(varname, dataType.getRepr(), dataType);
 
         ir.getSymbolTable().addVariableOrUDF(variableName,
                 variableName1 -> Variable.of(variableName1, false, () -> getCtxString(ctx)),
@@ -2212,7 +2088,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         var varname = ctx.varname().getText();
         var varsuffix = ctx.varsuffix() != null ? ctx.varsuffix().getText() : null;
         var dataType = ir.getSymbolTable().getDataTypeFor(varname, varsuffix);
-        var variableName = new VariableName(varname, dataType);
+        var variableName = new VariableName(varname, dataType.getRepr(), dataType);
 
         ir.getSymbolTable().addVariableOrUDF(variableName,
                 variableName1 -> Variable.of(variableName1, false, () -> getCtxString(ctx)),
@@ -2487,7 +2363,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                 var varsuffix = varCtx.leafvariable().varsuffix() != null
                         ? varCtx.leafvariable().varsuffix().getText() : null;
                 var dataType = ir.getSymbolTable().getDataTypeFor(varname, varsuffix);
-                var variableName = new VariableName(varname, dataType);
+                var variableName = new VariableName(varname, dataType.getRepr(), dataType);
 
                 int id = ir.getSymbolTable().addVariableOrUDF(
                         variableName,

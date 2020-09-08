@@ -1,5 +1,6 @@
 DICT of STRING to INT32
  2 
+ab
  65 
 -1 
  2 
@@ -11,6 +12,7 @@ DICT of STRING to INT32
  0 
 DICT of INT32 to STRING
  2 
+ 2  1 
 a
 b
  2 

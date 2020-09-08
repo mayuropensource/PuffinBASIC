@@ -233,7 +233,7 @@ public class PuffinBasicSymbolTable {
 
     public PuffinBasicAtomTypeId getDataTypeFor(String varname, String suffix) {
         var scope = getCurrentScope();
-        if (scope.containsVariable(new VariableName(varname, COMPOSITE))) {
+        if (scope.containsVariable(new VariableName(varname, null, COMPOSITE))) {
             return COMPOSITE;
         }
         if (varname.length() == 0) {

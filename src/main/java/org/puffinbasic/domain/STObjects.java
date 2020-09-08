@@ -23,6 +23,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -97,6 +98,18 @@ public class STObjects {
             }
 
             @Override
+            public void copyArray(Collection<Object> src, STValue dst) {
+                var dims = new IntArrayList(1);
+                dims.add(src.size());
+                dst.setArrayDimensions(dims);
+                int[] array = ((STInt32ArrayValue) dst).getValue();
+                int i = 0;
+                for (Object o : src) {
+                    array[i++] = (int) o;
+                }
+            }
+
+            @Override
             public boolean isCompatibleWith(PuffinBasicAtomTypeId other) {
                 return other == INT32 || other == INT64 || other == FLOAT || other == DOUBLE;
             }
@@ -138,6 +151,18 @@ public class STObjects {
             @Override
             public void setValueIn(Object value, STValue dst) {
                 dst.setInt64((long) value);
+            }
+
+            @Override
+            public void copyArray(Collection<Object> src, STValue dst) {
+                var dims = new IntArrayList(1);
+                dims.add(src.size());
+                dst.setArrayDimensions(dims);
+                long[] array = ((STInt64ArrayValue) dst).getValue();
+                int i = 0;
+                for (Object o : src) {
+                    array[i++] = (long) o;
+                }
             }
 
             @Override
@@ -185,6 +210,18 @@ public class STObjects {
             }
 
             @Override
+            public void copyArray(Collection<Object> src, STValue dst) {
+                var dims = new IntArrayList(1);
+                dims.add(src.size());
+                dst.setArrayDimensions(dims);
+                float[] array = ((STFloat32ArrayValue) dst).getValue();
+                int i = 0;
+                for (Object o : src) {
+                    array[i++] = (float) o;
+                }
+            }
+
+            @Override
             public boolean isCompatibleWith(PuffinBasicAtomTypeId other) {
                 return other == INT32 || other == INT64 || other == FLOAT || other == DOUBLE;
             }
@@ -210,7 +247,7 @@ public class STObjects {
 
             @Override
             public STTmp createArrayEntry() {
-                return new STTmp(new STInt64ArrayValue(), ScalarType.FLOAT64);
+                return new STTmp(new STFloat64ArrayValue(), ScalarType.FLOAT64);
             }
 
             @Override
@@ -226,6 +263,18 @@ public class STObjects {
             @Override
             public void setValueIn(Object value, STValue dst) {
                 dst.setFloat64((double) value);
+            }
+
+            @Override
+            public void copyArray(Collection<Object> src, STValue dst) {
+                var dims = new IntArrayList(1);
+                dims.add(src.size());
+                dst.setArrayDimensions(dims);
+                double[] array = ((STFloat64ArrayValue) dst).getValue();
+                int i = 0;
+                for (Object o : src) {
+                    array[i++] = (double) o;
+                }
             }
 
             @Override
@@ -280,11 +329,23 @@ public class STObjects {
             }
 
             @Override
+            public void copyArray(Collection<Object> src, STValue dst) {
+                var dims = new IntArrayList(1);
+                dims.add(src.size());
+                dst.setArrayDimensions(dims);
+                String[] array = ((STStringArrayValue) dst).getValue();
+                int i = 0;
+                for (Object o : src) {
+                    array[i++] = (String) o;
+                }
+            }
+
+            @Override
             public boolean isCompatibleWith(PuffinBasicAtomTypeId other) {
                 return other == STRING;
             }
         },
-        COMPOSITE('?') {
+        COMPOSITE(null) {
             @Override
             public STVariable createVariableEntry(Variable variable) {
                 throw new PuffinBasicInternalError("Not implemented");
@@ -316,6 +377,11 @@ public class STObjects {
             }
 
             @Override
+            public void copyArray(Collection<Object> src, STValue dst) {
+                throw new PuffinBasicInternalError("Not implemented");
+            }
+
+            @Override
             public boolean isCompatibleWith(PuffinBasicAtomTypeId other) {
                 return other == COMPOSITE;
             }
@@ -327,14 +393,20 @@ public class STObjects {
         static {
             mapping = new Int2ObjectOpenHashMap<>();
             for (PuffinBasicAtomTypeId value : PuffinBasicAtomTypeId.values()) {
-                mapping.put(value.repr, value);
+                if (value.repr != null) {
+                    mapping.put(value.repr, value);
+                }
             }
         }
 
-        public final char repr;
+        public final Character repr;
 
-        PuffinBasicAtomTypeId(char repr) {
+        PuffinBasicAtomTypeId(Character repr) {
             this.repr = repr;
+        }
+
+        public String getRepr() {
+            return repr != null ? String.valueOf(repr) : null;
         }
 
         public abstract STVariable createVariableEntry(Variable variable);
@@ -350,6 +422,8 @@ public class STObjects {
         public abstract Object getValueFrom(STValue src);
 
         public abstract void setValueIn(Object value, STValue dst);
+
+        public abstract void copyArray(Collection<Object> src, STValue dst);
 
         public static PuffinBasicAtomTypeId lookup(String repr) {
             if (repr == null || repr.length() != 1) {
@@ -587,6 +661,10 @@ public class STObjects {
             return refIdToTypeMap.get(getMemberRefId(memberName));
         }
 
+        public boolean containsMember(VariableName memberName) {
+            return nameToRefIdMap.containsKey(memberName);
+        }
+
         public int getMemberRefId(VariableName memberName) {
             var memberRefId = nameToRefIdMap.getOrDefault(memberName, -1);
             if (memberRefId == -1) {
@@ -709,6 +787,7 @@ public class STObjects {
 
         public ListType(PuffinBasicType type) {
             this.type = type;
+            ArrayType valuesType = new ArrayType(type.getAtomTypeId());
             this.memberFunctions = new MemberFunctions(
                     ImmutableList.<MemberFunction>builder()
                             .add(new MemberFunction(
@@ -743,6 +822,13 @@ public class STObjects {
                                             );
                                         }
                                         type.getAtomTypeId().setValueIn(list.get(index), result);
+                                    }))
+                            .add(new MemberFunction(
+                                    "values", new PuffinBasicType[] {}, valuesType,
+                                    (obj, params, result) -> {
+                                        @SuppressWarnings("unchecked")
+                                        var list = (List<Object>) obj;
+                                        type.getAtomTypeId().copyArray(list, result);
                                     }))
                             .add(new MemberFunction(
                                     "clear", new PuffinBasicType[] {}, ScalarType.INT32,
@@ -807,6 +893,7 @@ public class STObjects {
 
         public SetType(PuffinBasicType type) {
             this.type = type;
+            ArrayType valuesType = new ArrayType(type.getAtomTypeId());
             this.memberFunctions = new MemberFunctions(
                     ImmutableList.<MemberFunction>builder()
                             .add(new MemberFunction(
@@ -834,6 +921,13 @@ public class STObjects {
                                         var set = (Set<Object>) obj;
                                         var value = type.getAtomTypeId().getValueFrom(params[0]);
                                         result.setInt32(set.contains(value) ? -1 : 0);
+                                    }))
+                            .add(new MemberFunction(
+                                    "values", new PuffinBasicType[] {}, valuesType,
+                                    (obj, params, result) -> {
+                                        @SuppressWarnings("unchecked")
+                                        var set = (Set<Object>) obj;
+                                        type.getAtomTypeId().copyArray(set, result);
                                     }))
                             .add(new MemberFunction(
                                     "clear", new PuffinBasicType[] {}, ScalarType.INT32,
@@ -900,6 +994,7 @@ public class STObjects {
         public DictType(PuffinBasicType keyType, PuffinBasicType valueType) {
             this.keyType = keyType;
             this.valueType = valueType;
+            ArrayType valuesType = new ArrayType(keyType.getAtomTypeId());
             this.memberFunctions = new MemberFunctions(
                     ImmutableList.<MemberFunction>builder()
                             .add(new MemberFunction(
@@ -913,7 +1008,7 @@ public class STObjects {
                                         result.setInt32(0);
                                     }))
                             .add(new MemberFunction(
-                                    "remove", new PuffinBasicType[] {keyType}, ScalarType.INT32,
+                                    "removeKey", new PuffinBasicType[] {keyType}, ScalarType.INT32,
                                     (obj, params, result) -> {
                                         @SuppressWarnings("unchecked")
                                         var dict = (Map<Object, Object>) obj;
@@ -938,6 +1033,13 @@ public class STObjects {
                                         var dict = (Map<Object, Object>) obj;
                                         var key = keyType.getAtomTypeId().getValueFrom(params[0]);
                                         result.setInt32(dict.containsKey(key) ? -1 : 0);
+                                    }))
+                            .add(new MemberFunction(
+                                    "keys", new PuffinBasicType[] {}, valuesType,
+                                    (obj, params, result) -> {
+                                        @SuppressWarnings("unchecked")
+                                        var dict = (Map<Object, Object>) obj;
+                                        keyType.getAtomTypeId().copyArray(dict.keySet(), result);
                                     }))
                             .add(new MemberFunction(
                                     "clear", new PuffinBasicType[] {}, ScalarType.INT32,

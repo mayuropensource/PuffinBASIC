@@ -11,8 +11,6 @@ import org.puffinbasic.file.SystemInputOutputFile;
 import org.puffinbasic.parser.PuffinBasicIR;
 import org.puffinbasic.parser.PuffinBasicIR.Instruction;
 import org.puffinbasic.runtime.ArraysUtil.ArrayState;
-import org.puffinbasic.runtime.DS.DictState;
-import org.puffinbasic.runtime.DS.SetState;
 import org.puffinbasic.runtime.Formatter.FormatterCache;
 import org.puffinbasic.runtime.GraphicsRuntime.GraphicsState;
 import org.puffinbasic.runtime.Statements.ReadData;
@@ -45,8 +43,6 @@ public class PuffinBasicRuntime {
     private final Environment env;
     private GraphicsState graphicsState;
     private SoundState soundState;
-    private DictState dictState;
-    private SetState setState;
 
     public PuffinBasicRuntime(PuffinBasicIR ir, PrintStream out, Environment env) {
         this.ir = ir;
@@ -108,8 +104,6 @@ public class PuffinBasicRuntime {
         this.readData = processDataInstructions(instructions);
         this.graphicsState = new GraphicsState();
         this.soundState = new SoundState();
-        this.dictState = new DictState();
-        this.setState = new SetState();
 
         try {
             var numInstructions = instructions.size();
@@ -856,48 +850,6 @@ public class PuffinBasicRuntime {
                 break;
             case LOOPWAV:
                 GraphicsRuntime.loopwav(soundState, ir.getSymbolTable(), instruction);
-                break;
-            case DICT:
-                Functions.dict(dictState, ir.getSymbolTable(), params, instruction);
-                params.clear();
-                break;
-            case DICTPUT:
-                if (params.size() != 1) {
-                    throw new PuffinBasicInternalError("Expected 1 param, but found: " + params);
-                }
-                Functions.dictPut(dictState, ir.getSymbolTable(), params.get(0), instruction);
-                params.clear();
-                break;
-            case DICTGET:
-                if (params.size() != 1) {
-                    throw new PuffinBasicInternalError("Expected 1 param, but found: " + params);
-                }
-                Functions.dictGet(dictState, ir.getSymbolTable(), params.get(0), instruction);
-                params.clear();
-                break;
-            case DICTCONTAINSKEY:
-                Functions.dictContains(dictState, ir.getSymbolTable(), instruction);
-                break;
-            case DICTCLEAR:
-                Functions.dictClear(dictState, ir.getSymbolTable(), instruction);
-                break;
-            case DICTSIZE:
-                Functions.dictSize(dictState, ir.getSymbolTable(), instruction);
-                break;
-            case SET:
-                Functions.set(setState, ir.getSymbolTable(), params, instruction);
-                break;
-            case SETADD:
-                Functions.setAdd(setState, ir.getSymbolTable(), instruction);
-                break;
-            case SETCONTAINS:
-                Functions.setContains(setState, ir.getSymbolTable(), instruction);
-                break;
-            case SETCLEAR:
-                Functions.setClear(setState, ir.getSymbolTable(), instruction);
-                break;
-            case SETSIZE:
-                Functions.setSize(setState, ir.getSymbolTable(), instruction);
                 break;
             case MOUSEMOVEDX:
                 GraphicsRuntime.mouseMovedX(graphicsState, ir.getSymbolTable(), instruction);

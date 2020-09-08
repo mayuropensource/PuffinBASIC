@@ -28,7 +28,7 @@ stmt
     | writestmt
     | writehashstmt
     | letstmt
-    | let2stmt
+    | autoletstmt
     | ifstmt
     | ifthenbeginstmt
     | elsebeginstmt
@@ -228,17 +228,6 @@ func
     | ARRAY1DPCT LPAREN variable COMMA p=expr RPAREN        # FuncArray1DPct
     | ARRAY1DBINSEARCH LPAREN variable COMMA expr RPAREN    # FuncArray1DBinSearch
     | HSB2RGB LPAREN expr COMMA expr COMMA expr RPAREN      # FuncHsb2Rgb
-    | DICT varsuffix varsuffix LPAREN expr EQGT expr (COMMA expr EQGT expr)* RPAREN # FuncDictCreate
-    | DICTGET LPAREN id=expr COMMA key=expr COMMA def=expr RPAREN                   # FuncDictGet
-    | DICTCONTAINSKEY LPAREN id=expr COMMA key=expr RPAREN                          # FuncDictContainsKey
-    | DICTPUT LPAREN id=expr COMMA key=expr COMMA value=expr RPAREN                 # FuncDictPut
-    | DICTCLEAR LPAREN id=expr RPAREN                                               # FuncDictClear
-    | DICTSIZE LPAREN id=expr RPAREN                                                # FuncDictSize
-    | SET varsuffix LPAREN expr (COMMA expr)* RPAREN                                # FuncSetCreate
-    | SETADD LPAREN id=expr COMMA value=expr RPAREN                                 # FuncSetAdd
-    | SETCONTAINS LPAREN id=expr COMMA value=expr RPAREN                            # FuncSetContains
-    | SETCLEAR LPAREN id=expr RPAREN                                                # FuncSetClear
-    | SETSIZE LPAREN id=expr RPAREN                                                 # FuncSetSize
     | MOUSEMOVEDX LPAREN RPAREN                             # FuncMouseMovedX
     | MOUSEMOVEDY LPAREN RPAREN                             # FuncMouseMovedY
     | MOUSEDRAGGEDX LPAREN RPAREN                           # FuncMouseDraggedX
@@ -296,8 +285,8 @@ letstmt
     : LET? variable RELEQ expr
     ;
 
-let2stmt
-    : LET? variable (DOT variable)+ RELEQ expr
+autoletstmt
+    : AUTO varname RELEQ expr
     ;
 
 ifstmt
@@ -625,7 +614,7 @@ compositetype
         | struct1=varname elem=varname
         | LIST RELLT (list1=varname|list2=varsuffix) RELGT elem=varname
         | SET RELLT (set1=varname|set2=varsuffix) RELGT elem=varname
-        | DICT RELLT (dictk1=varsuffix) COMMA (dictv1=varname? dictv2=varsuffix) RELGT elem=varname)
+        | DICT RELLT (dictk1=varsuffix) COMMA (dictv1=varname|dictv2=varsuffix) RELGT elem=varname)
     ;
 
 structinstancestmt
@@ -639,44 +628,8 @@ DICT
     : D I C T
     ;
 
-DICTGET
-    : D I C T G E T
-    ;
-
-DICTCONTAINSKEY
-    : D I C T C O N T A I N S K E Y
-    ;
-
-DICTPUT
-    : D I C T P U T
-    ;
-
-DICTCLEAR
-    : D I C T C L E A R
-    ;
-
-DICTSIZE
-    : D I C T S I Z E
-    ;
-
 SET
     : S E T
-    ;
-
-SETADD
-    : S E T A D D
-    ;
-
-SETCONTAINS
-    : S E T C O N T A I N S
-    ;
-
-SETCLEAR
-    : S E T C L E A R
-    ;
-
-SETSIZE
-    : S E T S I Z E
     ;
 
 REF
@@ -697,6 +650,10 @@ LETTERRANGE
 
 LET
     : L E T
+    ;
+
+AUTO
+    : A U T O
     ;
 
 PRINT

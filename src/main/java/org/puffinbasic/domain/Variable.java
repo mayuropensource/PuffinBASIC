@@ -20,18 +20,25 @@ public class Variable {
 
     public static final class VariableName {
         private final String varname;
+        private final String suffix;
         private final PuffinBasicAtomTypeId dataType;
 
         public VariableName(
                 @NotNull String varname,
+                String suffix,
                 @NotNull STObjects.PuffinBasicAtomTypeId dataType)
         {
             this.varname = Preconditions.checkNotNull(varname);
+            this.suffix = suffix == null ? "" : suffix;
             this.dataType = Preconditions.checkNotNull(dataType);
         }
 
         public String getVarname() {
             return varname;
+        }
+
+        public String getSuffix() {
+            return suffix;
         }
 
         public PuffinBasicAtomTypeId getDataType() {
@@ -40,7 +47,7 @@ public class Variable {
 
         @Override
         public String toString() {
-            return varname + ":" + dataType;
+            return varname  + ":" + suffix + ":" + dataType;
         }
 
         @Override
@@ -49,12 +56,12 @@ public class Variable {
             if (o == null || getClass() != o.getClass()) return false;
             VariableName variable = (VariableName) o;
             return varname.equals(variable.varname) &&
-                    dataType == variable.dataType;
+                    Objects.equals(suffix, variable.suffix);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(varname, dataType);
+            return Objects.hash(varname, suffix);
         }
     }
 
