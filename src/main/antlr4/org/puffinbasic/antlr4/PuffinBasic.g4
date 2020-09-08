@@ -41,6 +41,7 @@ stmt
     | deffnstmt
     | functionbeginstmt
     | functionreturnstmt
+    | functionendstmt
     | importstmt
     | libtagstmt
     | dimstmt
@@ -109,6 +110,7 @@ stmt
     | structstmt
     | structinstancestmt
     | func
+    | variable
     ;
 
 variable
@@ -346,11 +348,15 @@ deffnstmt
     ;
 
 functionbeginstmt
-    : FUNCTION fnname=varname fnrettype=varsuffix? LPAREN (variable (COMMA variable)*)? RPAREN
+    : FUNCTION fnname=varname fnrettype=varsuffix? LPAREN (compositetype (COMMA compositetype)*)? RPAREN LBRACE
     ;
 
 functionreturnstmt
     : RETURN expr
+    ;
+
+functionendstmt
+    : RBRACE
     ;
 
 importstmt
@@ -629,7 +635,7 @@ structstmt
     ;
 
 compositetype
-    : (var1=varname var2=varsuffix
+    : (var1=varname var2=varsuffix?
         | DIM elem=varname elemsuffix=varsuffix? LPAREN dim=DECIMAL (COMMA dim=DECIMAL)* RPAREN
         | struct1=varname elem=varname
         | LIST RELLT (list1=varname|list2=varsuffix) RELGT elem=varname

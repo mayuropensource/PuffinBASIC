@@ -1,6 +1,7 @@
 package org.puffinbasic.runtime;
 
 import org.puffinbasic.domain.PuffinBasicSymbolTable;
+import org.puffinbasic.domain.STObjects;
 import org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId;
 import org.puffinbasic.domain.STObjects.STLValue;
 import org.puffinbasic.error.PuffinBasicRuntimeError;
@@ -11,15 +12,31 @@ import org.puffinbasic.parser.PuffinBasicIR.Instruction;
 import java.util.function.Supplier;
 
 import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.STRING;
+import static org.puffinbasic.domain.STObjects.PuffinBasicTypeId.SCALAR;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.BAD_FIELD;
 import static org.puffinbasic.error.PuffinBasicSemanticError.ErrorCode.DATA_TYPE_MISMATCH;
 
 public class Types {
 
     public static void copy(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
-        var toEntry = symbolTable.get(instruction.op1);
-        var fromEntry = symbolTable.get(instruction.op2);
+        var fromEntry = symbolTable.get(instruction.op1);
+        var toEntry = symbolTable.get(instruction.op2);
         toEntry.getValue().assign(fromEntry.getValue());
+    }
+
+    public static void paramCopy(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
+        var fromEntry = symbolTable.get(instruction.op1);
+        var toEntry = symbolTable.get(instruction.op2);
+        if (toEntry.getType().getTypeId() == SCALAR) {
+            toEntry.getValue().assign(fromEntry.getValue());
+        } else if (toEntry.isLValue()) {
+            ((STLValue) toEntry).setValue(fromEntry.getValue());
+        } else {
+            throw new PuffinBasicRuntimeError(
+                    BAD_FIELD,
+                    "Expected LValue, but found: " + toEntry.getType()
+            );
+        }
     }
 
     public static void varref(PuffinBasicSymbolTable symbolTable, Instruction instruction) {

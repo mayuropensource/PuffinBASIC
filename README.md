@@ -1452,18 +1452,25 @@ The above example computes the square of Int32 parameter X%.
 
 ### More general User defined functions
 
-A function is a UDF that can take any return of parameters
-and returns a single scalar value.
-On function call, the parameter references are copied.
-A function has local scope.
+A function is a UDF that can take any number of parameters and returns a single scalar value.
+
+The function parameter are passed as follows:
+1. Scalar params are passed-by-value.
+1. Array/Composite params are passed-by-reference. 
+Note that references themselves are copied.
+
+A function has local scope, i.e. it cannot access variables declared outside the function.
+
+Recursive functions are not supported.
 
 Syntax:
 
 ```
 ' Define function
-FUNCTION funcname[varsuffix] (PARAMS)
+FUNCTION funcname[varsuffix] (PARAMS) {
     ...
     RETURN expression
+}
 
 ' Call function
 result = funcname[varsuffix](VALUES)
@@ -1472,10 +1479,11 @@ result = funcname[varsuffix](VALUES)
 Example:
 
 ```
-FUNCTION fun1# (X, Y)
-  Z = X + Y
-  PRINT X, Y, Z
+FUNCTION fun1# (X, Y) {
+  IF Y = 0 THEN RETURN 0
+  Z = X / Y
   RETURN Z
+}
 
 PRINT fun1#(2, 3)
 ```

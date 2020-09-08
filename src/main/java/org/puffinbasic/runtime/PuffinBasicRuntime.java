@@ -173,6 +173,9 @@ public class PuffinBasicRuntime {
             case COPY:
                 Types.copy(ir.getSymbolTable(), instruction);
                 break;
+            case PARAM_COPY:
+                Types.paramCopy(ir.getSymbolTable(), instruction);
+                break;
             case UNARY_MINUS:
                 Operators.unaryMinus(ir.getSymbolTable(), instruction);
                 break;
