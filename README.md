@@ -1066,7 +1066,7 @@ The above statements declares a 3x5 Int32 variable.
 
 #### Struct
 
-User defined type composed of scalar, array, struct, list, set and dict types
+User defined type composed of scalar, array, struct, list, set and dict types.
 
 Syntax:
 
@@ -1199,8 +1199,8 @@ DICT<KEYTYPE, VALUETYPE|STRUCT> varname
 Supported functions:
 varname.put(KEY, VALUE)  ' Put the KEY/VALUE pair in the dict, overwriting any previous value.
 varname.getOrDefault(KEY, DEFAULT_VALUE)  ' Get the value of the KEY if present, DEFAULT_VALUE if absent.
-varname.removeKey()      ' Remove the KEY from the dict if it exists.
-varname.containsKey()    ' Check if the KEY exists in the dict.
+varname.removeKey(KEY)   ' Remove the KEY from the dict if it exists.
+varname.containsKey(KEY) ' Check if the KEY exists in the dict.
 varname.keys()           ' Get the array of keys in the dict.
 varname.clear()          ' Clear the dict.
 LEN(varname)             ' Get the length of the dict.
@@ -1218,7 +1218,7 @@ FOR I% = 0 TO LEN(d1val) - 1
   PRINT d1val(I%),
 NEXT : PRINT ""
 
-PRINT dict1.remove("a")
+PRINT dict1.removeKey("a")
 PRINT dict1.getOrDefault("a", -1)
 PRINT dict1.containsKey("a")
 
