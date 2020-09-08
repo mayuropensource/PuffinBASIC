@@ -39,6 +39,10 @@ stmt
     | gotolabelstmt
     | endstmt
     | deffnstmt
+    | functionbeginstmt
+    | functionreturnstmt
+    | importstmt
+    | libtagstmt
     | dimstmt
     | gosubstmt
     | gosublabelstmt
@@ -250,7 +254,7 @@ gosublabelstmt
     ;
 
 returnstmt
-    : RETURN linenum?
+    : RETURN
     ;
 
 printhashusingstmt
@@ -339,6 +343,22 @@ endstmt
 
 deffnstmt
     : DEF varname varsuffix? (LPAREN (variable (COMMA variable)*)? RPAREN)? RELEQ expr
+    ;
+
+functionbeginstmt
+    : FUNCTION fnname=varname fnrettype=varsuffix? LPAREN (variable (COMMA variable)*)? RPAREN
+    ;
+
+functionreturnstmt
+    : RETURN expr
+    ;
+
+importstmt
+    : IMPORT filename=string
+    ;
+
+libtagstmt
+    : LIBTAG tag=string
     ;
 
 dimstmt
@@ -702,6 +722,18 @@ STEP
 
 REM
     : R E M
+    ;
+
+FUNCTION
+    : F U N C T I O N
+    ;
+
+LIBTAG
+    : L I B T A G
+    ;
+
+IMPORT
+    : I M P O R T
     ;
 
 END

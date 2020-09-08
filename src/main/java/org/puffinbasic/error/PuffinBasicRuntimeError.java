@@ -20,6 +20,7 @@ public class PuffinBasicRuntimeError extends RuntimeException {
         NOT_INITIALIZED,
         DUPLICATE_LABEL,
         BAD_FIELD,
+        MISSING_STRUCT,
         BAD_FUNCTION_CALL,
     }
 

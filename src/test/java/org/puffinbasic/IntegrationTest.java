@@ -76,6 +76,11 @@ public class IntegrationTest {
     }
 
     @Test
+    public void testFunc2() {
+        runTest("func2.bas", "func2.bas.output");
+    }
+
+    @Test
     public void testIf() {
         runTest("if.bas", "if.bas.output");
     }

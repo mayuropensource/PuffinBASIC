@@ -1396,7 +1396,7 @@ Syntax:
 
 ```
 GOSUB linenum
-RETURN [linenum]
+RETURN
 
 GOSUB "label"
 RETURN 
@@ -1449,6 +1449,36 @@ DEF FNsquare%(X%) = X% * X%
 ```
 
 The above example computes the square of Int32 parameter X%.
+
+### More general User defined functions
+
+A function is a UDF that can take any return of parameters
+and returns a single scalar value.
+On function call, the parameter references are copied.
+A function has local scope.
+
+Syntax:
+
+```
+' Define function
+FUNCTION funcname[varsuffix] (PARAMS)
+    ...
+    RETURN expression
+
+' Call function
+result = funcname[varsuffix](VALUES)
+```
+
+Example:
+
+```
+FUNCTION fun1# (X, Y)
+  Z = X + Y
+  PRINT X, Y, Z
+  RETURN Z
+
+PRINT fun1#(2, 3)
+```
 
 ### READ-DATA-RESTORE
 

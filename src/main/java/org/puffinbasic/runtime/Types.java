@@ -5,6 +5,8 @@ import org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId;
 import org.puffinbasic.domain.STObjects.STLValue;
 import org.puffinbasic.error.PuffinBasicRuntimeError;
 import org.puffinbasic.error.PuffinBasicSemanticError;
+import org.puffinbasic.parser.PuffinBasicIR;
+import org.puffinbasic.parser.PuffinBasicIR.Instruction;
 
 import java.util.function.Supplier;
 
@@ -14,19 +16,15 @@ import static org.puffinbasic.error.PuffinBasicSemanticError.ErrorCode.DATA_TYPE
 
 public class Types {
 
-    public static void copy(
-            PuffinBasicSymbolTable symbolTable,
-            int to,
-            int from)
-    {
-        var toEntry = symbolTable.get(to);
-        var fromEntry = symbolTable.get(from);
+    public static void copy(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
+        var toEntry = symbolTable.get(instruction.op1);
+        var fromEntry = symbolTable.get(instruction.op2);
         toEntry.getValue().assign(fromEntry.getValue());
     }
 
-    public static void varref(PuffinBasicSymbolTable symbolTable, int op1, int op2) {
-        var src = symbolTable.get(op1);
-        var dst = symbolTable.get(op2);
+    public static void varref(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
+        var src = symbolTable.get(instruction.op1);
+        var dst = symbolTable.get(instruction.op2);
         if (dst.isLValue()) {
             ((STLValue) dst).setValue(src.getValue());
         } else {

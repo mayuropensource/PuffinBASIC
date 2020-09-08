@@ -135,7 +135,7 @@ public class PuffinBasicRuntime {
 
         switch (instruction.opCode) {
             case VARREF:
-                Types.varref(ir.getSymbolTable(), instruction.op1, instruction.op2);
+                Types.varref(ir.getSymbolTable(), instruction);
                 break;
             case DIM: {
                 if (params.isEmpty()) {
@@ -171,7 +171,7 @@ public class PuffinBasicRuntime {
                 break;
             case ASSIGN:
             case COPY:
-                Types.copy(ir.getSymbolTable(), instruction.op1, instruction.op2);
+                Types.copy(ir.getSymbolTable(), instruction);
                 break;
             case UNARY_MINUS:
                 Operators.unaryMinus(ir.getSymbolTable(), instruction);

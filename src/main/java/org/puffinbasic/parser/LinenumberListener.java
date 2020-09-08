@@ -96,13 +96,6 @@ public class LinenumberListener extends PuffinBasicBaseListener {
     }
 
     @Override
-    public void exitReturnstmt(PuffinBasicParser.ReturnstmtContext ctx) {
-        if (ctx.linenum() != null) {
-            numStmtWithLinenum++;
-        }
-    }
-
-    @Override
     public void exitThen(PuffinBasicParser.ThenContext ctx) {
         if (ctx.linenum() != null) {
             numStmtWithLinenum++;

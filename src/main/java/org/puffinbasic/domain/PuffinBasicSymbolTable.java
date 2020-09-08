@@ -30,6 +30,7 @@ import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.COMPOSITE;
 import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.DOUBLE;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.BAD_FIELD;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.ILLEGAL_FUNCTION_PARAM;
+import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.MISSING_STRUCT;
 
 public class PuffinBasicSymbolTable {
 
@@ -72,7 +73,7 @@ public class PuffinBasicSymbolTable {
             if (predicate.test(scope)) {
                 return Optional.of(scope);
             } else {
-                scope = scope.getParent();
+                scope = scope.getSearchScope();
             }
         }
         return Optional.empty();
@@ -268,15 +269,15 @@ public class PuffinBasicSymbolTable {
         var type = userDefinedTypes.get(name);
         if (type == null) {
             throw new PuffinBasicRuntimeError(
-                    BAD_FIELD,
+                    MISSING_STRUCT,
                     "Missing struct: " + name
             );
         }
         return type;
     }
 
-    public void pushDeclarationScope(int funcId) {
-        currentScope = getCurrentScope().createChild(funcId);
+    public void pushDeclarationScope(int funcId, boolean localScope) {
+        currentScope = getCurrentScope().createChild(funcId, localScope);
     }
 
     public void pushRuntimeScope(int funcId, int callerInstrId) {
@@ -284,7 +285,7 @@ public class PuffinBasicSymbolTable {
         if (funcDeclScope == null) {
             throw new PuffinBasicInternalError("Failed to find scope for id: " + funcId);
         }
-        currentScope = funcDeclScope.createRuntimeScope(callerInstrId);;
+        currentScope = funcDeclScope.createRuntimeScope(callerInstrId);
     }
 
     public void popScope() {

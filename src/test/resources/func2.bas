@@ -1,0 +1,12 @@
+PRINT "DECLARE FUNCTION"
+
+A% = 10
+
+FUNCTION fun1# (X, Y)
+  Z = X + Y
+  PRINT X, Y, Z
+  RETURN Z
+
+PRINT "CALL FUNCTION"
+z=fun1#(2, 3)
+PRINT z

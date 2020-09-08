@@ -17,6 +17,7 @@ public class PuffinBasicSemanticError extends RuntimeException {
         NOT_DEFINED,
         MISMATCHED_ENDIF,
         MISMATCHED_ELSEBEGIN,
+        BAD_FUNCTION_DEF,
     }
 
     public PuffinBasicSemanticError(

@@ -13,8 +13,9 @@ public interface Scope {
 
     int getCallerInstrId();
     Scope createRuntimeScope(int callerInstrId);
-    Scope createChild(int funcId);
+    Scope createChild(int funcId, boolean localScope);
     Scope getChild(int funcId);
+    Scope getSearchScope();
     Scope getParent();
     int getIdForVariable(VariableName variableName);
     void putVariable(VariableName variableName, int id);
@@ -66,10 +67,10 @@ public interface Scope {
         }
 
         @Override
-        public Scope createChild(int funcId) {
+        public Scope createChild(int funcId, boolean localScope) {
             var child = funcIdToScope.get(funcId);
             if (child == null) {
-                child = new ChildScope(this);
+                child = localScope ? new LocalScope(this) : new ChildScope(this);
                 funcIdToScope.put(funcId, child);
             }
             return child;
@@ -82,6 +83,11 @@ public interface Scope {
 
         @Override
         public Scope getParent() {
+            return null;
+        }
+
+        @Override
+        public Scope getSearchScope() {
             return null;
         }
 
@@ -181,7 +187,7 @@ public interface Scope {
         }
 
         @Override
-        public Scope createChild(int funcId) {
+        public Scope createChild(int funcId, boolean localScope) {
             var child = funcIdToScope.get(funcId);
             if (child == null) {
                 child = new ChildScope(this);
@@ -198,6 +204,112 @@ public interface Scope {
         @Override
         public Scope getParent() {
             return parent;
+        }
+
+        @Override
+        public Scope getSearchScope() {
+            return parent;
+        }
+
+        @Override
+        public int getIdForVariable(VariableName variableName) {
+            return variableNameToEntry.getOrDefault(variableName, -1);
+        }
+
+        @Override
+        public void putVariable(VariableName variableName, int id) {
+            variableNameToEntry.put(variableName, id);
+        }
+
+        @Override
+        public boolean containsVariable(VariableName variableName) {
+            return variableNameToEntry.containsKey(variableName);
+        }
+
+        @Override
+        public void putEntry(int id, STEntry entry) {
+            entryMap.put(id, entry);
+        }
+
+        @Override
+        public STEntry getEntry(int id) {
+            return entryMap.get(id);
+        }
+
+        @Override
+        public STEntry getNullableEntry(int id) {
+            return entryMap.get(id);
+        }
+    }
+
+    final class LocalScope implements Scope {
+        private final Scope parent;
+        private final int callerInstrId;
+        private final Int2ObjectMap<Scope> funcIdToScope;
+        private final Int2ObjectMap<STEntry> entryMap;
+        private final Object2IntMap<VariableName> variableNameToEntry;
+
+        LocalScope(Scope parent) {
+            this(parent,
+                    NULL_ID,
+                    new Int2ObjectOpenHashMap<>(),
+                    new Int2ObjectOpenHashMap<>(),
+                    new Object2IntOpenHashMap<>());
+        }
+
+        private LocalScope(
+                Scope parent,
+                int callerInstrId,
+                Int2ObjectMap<Scope> funcIdToScope,
+                Int2ObjectMap<STEntry> entryMap,
+                Object2IntMap<VariableName> variableNameToEntry)
+        {
+            this.parent = parent;
+            this.callerInstrId = callerInstrId;
+            this.funcIdToScope = funcIdToScope;
+            this.entryMap = entryMap;
+            this.variableNameToEntry = variableNameToEntry;
+        }
+
+        @Override
+        public Scope createRuntimeScope(int callerInstrId) {
+            return new LocalScope(
+                    parent,
+                    callerInstrId,
+                    new Int2ObjectOpenHashMap<>(funcIdToScope),
+                    new Int2ObjectOpenHashMap<>(entryMap),
+                    new Object2IntOpenHashMap<>(variableNameToEntry)
+            );
+        }
+
+        @Override
+        public int getCallerInstrId() {
+            return callerInstrId;
+        }
+
+        @Override
+        public Scope createChild(int funcId, boolean localScope) {
+            var child = funcIdToScope.get(funcId);
+            if (child == null) {
+                child = new ChildScope(this);
+                funcIdToScope.put(funcId, child);
+            }
+            return child;
+        }
+
+        @Override
+        public Scope getChild(int funcId) {
+            return funcIdToScope.get(funcId);
+        }
+
+        @Override
+        public Scope getParent() {
+            return parent;
+        }
+
+        @Override
+        public Scope getSearchScope() {
+            return null;
         }
 
         @Override

@@ -37,10 +37,6 @@ public class Variable {
             return varname;
         }
 
-        public String getSuffix() {
-            return suffix;
-        }
-
         public PuffinBasicAtomTypeId getDataType() {
             return dataType;
         }
@@ -67,12 +63,18 @@ public class Variable {
 
     private static final String UDF_PREFIX ="FN";
 
+    public enum VariableKindHint {
+        ARRAY,
+        DERIVE_FROM_NAME,
+        UDF
+    }
+
     public static Variable of(
             @NotNull VariableName variableName,
-            boolean isArray,
+            VariableKindHint hint,
             Supplier<String> lineSupplier)
     {
-        if (isArray) {
+        if (hint == VariableKindHint.ARRAY) {
             if (!variableName.varname.startsWith(UDF_PREFIX)) {
                 return new Variable(variableName, new ArrayType(variableName.getDataType()));
             } else {
@@ -82,7 +84,9 @@ public class Variable {
                         "Array variable cannot start with " + UDF_PREFIX + ": " + variableName.varname);
             }
         } else {
-            if (variableName.varname.startsWith(UDF_PREFIX)) {
+            if ((hint == VariableKindHint.DERIVE_FROM_NAME && variableName.varname.startsWith(UDF_PREFIX))
+                || hint == VariableKindHint.UDF)
+            {
                 return new Variable(variableName, new UDFType(variableName.getDataType()));
             } else {
                 return new Variable(variableName, new ScalarType(variableName.getDataType()));
