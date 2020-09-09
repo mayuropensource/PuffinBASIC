@@ -1,46 +1,47 @@
 # PuffinBASIC
 A cross-platform modern BASIC compiler/interpreter written in Java.
 
+## Show Case
 <img src="puffin.png" width="64"/>
 
 BASIC (Beginners' All-purpose Symbolic Instruction Code) is a general-purpose high-level
 language from the 1960s. PuffinBASIC is an implementation of the BASIC language specification.
 PuffinBASIC conforms most closely to GWBASIC.
 
-#### TESSEL - A 2D Tile Game
+### TESSEL - A 2D Tile Game
 YouTube Video: <a href="https://youtu.be/L8xkM-g3Zms"><img src="samples/tessel/images/tesselsnap1.png" width="64"></a>
 Source: <a href="samples/tessel/tessel.bas">tessel.bas</a>
 
-#### FlyPuffinFly - A Scrolling Game
+### FlyPuffinFly - A Scrolling Game
 YouTube Video: <a href="https://youtu.be/bIIamQp9N3o"><img src="samples/puffingame/images/flypuffinflysnap.png" width="64"></a>
 Source: <a href="samples/puffingame/flypuffinfly.bas">flypuffinfly.bas</a>
 
-#### Conway's Game of Life
+### Conway's Game of Life
 YouTube Video: <a href="https://youtu.be/TpsxQrxKqdg"><img src="samples/gameoflife/images/gameoflifesnap.png" width="64"></a>
 <a href="https://youtu.be/A5tN6cBqoAc">#2</a>
 Source: <a href="samples/gameoflife/gameoflife.bas">gameoflife.bas</a>
 
-#### Mandelbrot Set
+### Mandelbrot Set
 YouTube Video: <a href="https://youtu.be/7CukYv9tfXA"><img src="samples/mandelbrotsnap.png" width="64"></a>
 <a href="https://youtu.be/xKp9U2BXTHM">Zoomed</a>
 Source: <a href="samples/mandelbrot.bas">mandelbrot.bas</a>
 
 ## Why Implement BASIC?
 
-1. Love and Familiarity: GWBASIC was my first programming language, I loved it and made many games in it. 
-I'm also very familiar with the language.
-1. Interpreter language: BASIC is an interpreted language and hence a good choice for implementing this interpreter.
-1. Learning antlr4: I was learning antlr4 and BASIC was the perfect language to try because 
+1. Love and Familiarity: GWBASIC was my first programming language, I loved it and made many games in it.
+1. Interpreter language: BASIC is simple and an interpreted language and hence a good choice for implementing this interpreter.
+1. Learn antlr4: I was learning antlr4 and BASIC was the perfect language to try because 
 of its simple instruction set.
-1. Resurrect BASIC: Implementations such as GWBASIC don't work on most modern platforms. PuffinBASIC works everywhere Java works.
-1. Improve BASIC: I wanted to add modern graphics, better data types, etc.
+1. Resurrect BASIC: Implementations such as GWBASIC don't work on most modern platforms. 
+My goal is to make PuffinBASIC work anywhere Java can work.
+1. Improve BASIC: I wanted to add modern graphics, better data types, etc., to make it easier to write games.
 
 ## Version
 
 0.1 experimental (NOT YET READY FOR PRODUCTION USE!)
 
-The interpreter is not yet thoroughly tested and is likely to have bugs.
-This is an active project so expect large changes at frequent intervals.
+- The interpreter is not yet thoroughly tested and is likely to have bugs.
+- This is an active project so expect large changes at frequent intervals.
 
 ## Code Samples
 
@@ -159,23 +160,25 @@ $ mvn generate-sources
 ## How it works?
 
 1. PuffinBASIC's grammar is defined using antlr4.
-1. At runtime, the user source code is parsed using antlr4 lexer+parser.
-1. After parsing, an intermediate representation (IR) of the source code is generated. A symbol table keeps track of variables, scalars, arrays, etc. objects.
-1. At runtime, the interpreter processes the IR instructions and executes them.
+1. The user source code is parsed using antlr4 lexer+parser.
+1. An intermediate representation (IR) is generated. 
+A symbol table keeps track of variables, scalars, arrays, etc. objects.
+1. The interpreter runtime processes the IR instructions and executes them in a single thread.
+For graphics, an optional Runtime is used.
 
 Since PuffinBASIC generates IR from source code and the runtime executes the IR, we can say PuffinBASIC is both a compiler and an interpreter.
 
 ## Planned Improvements
 
-1. Add decimal data type.
+1. Android port, requires a rewrite of Graphics runtime.
 1. ...
 
 ## Performance
 
 PuffinBASIC is an interpreter, and it should not be expected to have very good performance characteristics.
 Certain operations such as PRINT USING, INPUT, etc are not optimized for performance.
-We have not benchmarked PuffinBASIC primitives.
-That being said, we have written games with graphics in PuffinBASIC is work very well.
+PuffinBASIC primitives have not been benchmarked.
+That being said, games containing 2D graphics work reasonably well.
 
 ## Memory
 
@@ -381,10 +384,10 @@ Logical or bit-wise:
 1. '>>'
 1. '<<'
 
-## Functions
+## Built-in functions
 
-Functions always return a single value.
-A function may accept 0 or more parameters.
+Built-in functions always return a single scalar value.
+Built-in functions accept zero or more parameters.
 
 ### Numeric Functions
 
@@ -1091,6 +1094,8 @@ Use DIM keyword to declare an array variable.
 dim1, dim2, ... are dimension size (and not max dim value.)
 Arrays are stored in row-major order.
 The minimum index in an array dimension is 0 and maximum is dim size - 1.
+When declaring variables (except within a struct and a UDF param),
+an expression can be used to set the dimension size.
 
 Syntax:
 
@@ -1109,6 +1114,7 @@ The above statements declares a 3x5 Int32 variable.
 #### Struct
 
 User defined type composed of scalar, array, struct, list, set and dict types.
+The array dimensions must be declared using constants in a struct.
 
 Syntax:
 
@@ -1467,12 +1473,12 @@ LABEL "sub1"
 RETURN
 ```
 
-### User Defined Functions
+### User Defined Function or UDF
 
 A UDF executes an expression.
-The UDF returns the result of the expression.
+The UDF returns the result of the expression which is always a scalar.
 The UDF can declare local scoped parameters.
-Parameters are locally scoped but UDF can access variables from global scope.
+UDF can access variables from global scope.
 Recursive UDF is not supported.
 
 Syntax:
@@ -1492,7 +1498,7 @@ DEF FNsquare%(X%) = X% * X%
 
 The above example computes the square of Int32 parameter X%.
 
-### More general User defined functions
+### More general User defined function
 
 A function is a UDF that can take any number of parameters and returns a single scalar value.
 
@@ -1500,6 +1506,7 @@ The function parameter are passed as follows:
 1. Scalar params are passed-by-value.
 1. Array/Composite params are passed-by-reference. 
 Note that references themselves are copied.
+The array dimensions must be declared using constants.
 
 A function has local scope, i.e. it cannot access variables declared outside the function.
 
