@@ -3,11 +3,11 @@
 # PuffinBASIC
 A cross-platform modern BASIC compiler/interpreter written in Java.
 
-## Show Case
-
 BASIC (Beginners' All-purpose Symbolic Instruction Code) is a general-purpose high-level
 language from the 1960s. PuffinBASIC is an implementation of the BASIC language specification.
 PuffinBASIC conforms most closely to GWBASIC.
+
+## Show Case
 
 ### TESSEL - A 2D Tile Game
 YouTube Video: <a href="https://youtu.be/L8xkM-g3Zms"><img src="samples/tessel/images/tesselsnap1.png" width="64"></a>
