@@ -1,6 +1,5 @@
 package org.puffinbasic.parser;
 
-import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.misc.Interval;
 import org.jetbrains.annotations.NotNull;
 import org.puffinbasic.domain.PuffinBasicSymbolTable;
@@ -232,18 +231,17 @@ public class PuffinBasicIR {
         }
     }
 
-    private final CharStream in;
     private final PuffinBasicSymbolTable symbolTable;
     private final List<Instruction> instructions;
 
-    public PuffinBasicIR(CharStream in, PuffinBasicSymbolTable symbolTable) {
-        this.in = in;
+    public PuffinBasicIR(PuffinBasicSymbolTable symbolTable) {
         this.symbolTable = symbolTable;
         this.instructions = new ArrayList<>();
     }
 
     public String getCodeStreamFor(Instruction instruction) {
-        return in.getText(new Interval(instruction.inputRef.inputStartIndex, instruction.inputRef.inputStopIndex));
+        return instruction.getInputRef().sourceFile.getSourceCodeStream().getText(
+                new Interval(instruction.inputRef.inputStartIndex, instruction.inputRef.inputStopIndex));
     }
 
     public List<Instruction> getInstructions() {
@@ -251,11 +249,11 @@ public class PuffinBasicIR {
     }
 
     public Instruction addInstruction(
-            int linenum, int startIndex, int stopIndex,
+            PuffinBasicSourceFile sourceFile, int linenum, int startIndex, int stopIndex,
             @NotNull OpCode opCode, int op1, int op2, int result)
     {
         var instruction = new Instruction(
-                new InputRef(linenum, startIndex, stopIndex), opCode, op1, op2, result);
+                new InputRef(sourceFile, linenum, startIndex, stopIndex), opCode, op1, op2, result);
         instructions.add(instruction);
         return instruction;
     }
@@ -265,11 +263,13 @@ public class PuffinBasicIR {
     }
 
     public static final class InputRef {
+        public final PuffinBasicSourceFile sourceFile;
         public final int lineNumber;
         public final int inputStartIndex;
         public final int inputStopIndex;
 
-        public InputRef(int lineNumber, int inputStartIndex, int inputStopIndex) {
+        public InputRef(PuffinBasicSourceFile sourceFile, int lineNumber, int inputStartIndex, int inputStopIndex) {
+            this.sourceFile = sourceFile;
             this.lineNumber = lineNumber;
             this.inputStartIndex = inputStartIndex;
             this.inputStopIndex = inputStopIndex;
@@ -280,19 +280,20 @@ public class PuffinBasicIR {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             InputRef other = (InputRef) o;
-            return lineNumber == other.lineNumber &&
+            return sourceFile.equals(other.sourceFile) &&
+                    lineNumber == other.lineNumber &&
                     inputStartIndex == other.inputStartIndex &&
                     inputStopIndex == other.inputStopIndex;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(lineNumber, inputStartIndex, inputStopIndex);
+            return Objects.hash(sourceFile, lineNumber, inputStartIndex, inputStopIndex);
         }
 
         @Override
         public String toString() {
-            return "[" + lineNumber + "(" + inputStartIndex + "-" + inputStopIndex + ")]";
+            return "[" + sourceFile.getRelativePath() + ":" + lineNumber + "(" + inputStartIndex + "-" + inputStopIndex + ")]";
         }
     }
 

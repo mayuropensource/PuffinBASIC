@@ -8,9 +8,15 @@ import org.antlr.v4.runtime.misc.Interval;
 import org.jetbrains.annotations.NotNull;
 import org.puffinbasic.antlr4.PuffinBasicBaseListener;
 import org.puffinbasic.antlr4.PuffinBasicParser;
+import org.puffinbasic.error.PuffinBasicRuntimeError;
 import org.puffinbasic.error.PuffinBasicSyntaxError;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.IMPORT_ERROR;
+import static org.puffinbasic.runtime.Types.unquote;
 
 public class LinenumberListener extends PuffinBasicBaseListener {
 
@@ -23,9 +29,11 @@ public class LinenumberListener extends PuffinBasicBaseListener {
     private final CharStream input;
     private final ThrowOnDuplicate throwOnDuplicate;
     private final Int2ObjectSortedMap<String> sortedLines;
+    private final Set<String> importFiles;
     private int numLinenum;
     private int numNoLinenum;
     private int numStmtWithLinenum;
+    private String libtag;
 
     public LinenumberListener(
             @NotNull CharStream input,
@@ -35,11 +43,24 @@ public class LinenumberListener extends PuffinBasicBaseListener {
         this.input = Preconditions.checkNotNull(input);
         this.throwOnDuplicate = Preconditions.checkNotNull(throwOnDuplicate);
         this.sortedLines = new Int2ObjectAVLTreeMap<>();
+        this.importFiles = new LinkedHashSet<>();
+    }
+
+    public boolean hasLineNumbers() {
+        return numLinenum > 0;
     }
 
     public String getSortedCode() {
         checkLinenumberMode();
         return String.join("", sortedLines.values());
+    }
+
+    public Set<String> getImportFiles() {
+        return importFiles;
+    }
+
+    public String getLibtag() {
+        return libtag;
     }
 
     private void checkLinenumberMode() {
@@ -106,6 +127,25 @@ public class LinenumberListener extends PuffinBasicBaseListener {
     public void exitElsestmt(PuffinBasicParser.ElsestmtContext ctx) {
         if (ctx.linenum() != null) {
             numStmtWithLinenum++;
+        }
+    }
+
+    @Override
+    public void exitImportstmt(PuffinBasicParser.ImportstmtContext ctx) {
+        var filename = unquote(ctx.filename.STRING().getText());
+        importFiles.add(filename);
+    }
+
+    @Override
+    public void exitLibtagstmt(PuffinBasicParser.LibtagstmtContext ctx) {
+        var tag = unquote(ctx.tag.STRING().getText());
+        if (libtag == null) {
+            libtag = tag;
+        } else {
+            throw new PuffinBasicRuntimeError(
+                    IMPORT_ERROR,
+                    "Multiple libtags found: " + tag + ", previous: " + libtag
+            );
         }
     }
 

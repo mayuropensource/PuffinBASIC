@@ -1004,6 +1004,48 @@ REM USER TEXT
 ' COMMENT TEXT
 ```
 
+### Libraries
+
+PuffinBASIC supports reusing source code via libraries.
+
+A library must set a unique library tag set using LIBTAG.
+Libraries cannot have line numbers.
+
+The search path for library can be set in PUFFIN_BASIC_PATH environment variable.
+The main source file's path is the default search path.
+
+Use IMPORT statement to import libraries.
+
+Syntax:
+
+```
+LIBFILE:
+LIBTAG "UNIQUE LIBTAG"
+...
+...
+
+main.bas:
+IMPORT "LIBFILE"
+```
+
+Examples:
+
+```
+a.bas:
+LIBTAG "_a.bas_"
+PRINT "Currently in a.bas"
+
+b.bas:
+LIBTAG "_b.bas_"
+IMPORT "a.bas"
+PRINT "Currently in b.bas"
+
+main.bas:
+IMPORT "b.bas"
+IMPORT "a.bas"
+PRINT "Currently in MAIN"
+```
+
 ### Variables
 
 #### Assignment

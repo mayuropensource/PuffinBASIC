@@ -22,6 +22,7 @@ public class PuffinBasicRuntimeError extends RuntimeException {
         BAD_FIELD,
         MISSING_STRUCT,
         BAD_FUNCTION_CALL,
+        IMPORT_ERROR,
     }
 
     private final ErrorCode errorCode;
