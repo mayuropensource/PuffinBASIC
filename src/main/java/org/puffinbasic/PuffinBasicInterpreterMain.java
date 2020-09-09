@@ -43,7 +43,7 @@ import static org.puffinbasic.parser.LinenumberListener.ThrowOnDuplicate.THROW;
 
 public final class PuffinBasicInterpreterMain {
 
-    private static final String UNKNOWN_SOURCE_FILE = "UNKNOWN";
+    private static final String UNKNOWN_SOURCE_FILE = "<UNKNOWN>";
 
     private enum SourceFileMode {
         MAIN,

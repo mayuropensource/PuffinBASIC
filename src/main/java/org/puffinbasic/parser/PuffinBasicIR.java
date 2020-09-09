@@ -327,8 +327,8 @@ public class PuffinBasicIR {
         @Override
         public String toString() {
             return String.format(
-                    "[%4d]\t%4s\t%4s %4s %4s",
-                    inputRef.lineNumber, opCode.repr, op1, op2, result);
+                    "[%s:%4d]\t%4s\t%4s %4s %4s",
+                    inputRef.sourceFile.getRelativePath(), inputRef.lineNumber, opCode.repr, op1, op2, result);
         }
     }
 }
