@@ -319,27 +319,25 @@ Example:
 
 ### Variable Reference
 
-A variable can reference to another variable, i.e.
-a scalar variable can reference to another scalar variable of same data type,
-and an array variable can reference to another array variable of same data type.
+A variable can reference to another variable,
+A reference variable does not have a type-suffix.
 
 Syntax:
 
 ```
-REF variable => refVariable
+AUTO refVariable = variable
 ```
 
 Example:
 
 ```
 A% = 10
-REF A% => B%
-B% = 3 ' Both A% and B% have value 3.
+AUTO B = A%
+B = 3 ' Both A% and B have value 3.
 
 DIM X%(2,3)
-DIM Y%(0,0)
-REF X% => Y%
-Y%(0,0) = 3 ' Both X%(0,0) and Y%(0,0) have value 3.
+AUTO Y = X%
+Y(0,0) = 3 ' Both X%(0,0) and Y(0,0) have value 3.
 ```
 
 ## Operators

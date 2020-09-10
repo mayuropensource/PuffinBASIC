@@ -4041,44 +4041,6 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                 OpCode.ARRAYFILL, varInstr.result, expr.result, NULL_ID);
     }
 
-    @Override
-    public void exitRefstmt(PuffinBasicParser.RefstmtContext ctx) {
-        var src = lookupInstruction(ctx.src);
-        var dst = lookupInstruction(ctx.dst);
-        var srcEntry = ir.getSymbolTable().get(src.result);
-        var dstEntry = ir.getSymbolTable().get(dst.result);
-
-        assertVariable(srcEntry, () -> getCtxString(ctx));
-        assertVariable(dstEntry, () -> getCtxString(ctx));
-        if ((!srcEntry.getType().equals(dstEntry.getType()))) {
-            throw new PuffinBasicSemanticError(
-                    DATA_TYPE_MISMATCH,
-                    getCtxString(ctx),
-                    "src variable type is not compatible with dst variable: "
-                            + srcEntry.getType() + " vs" + dstEntry.getType()
-            );
-        }
-        if (srcEntry.getType().getTypeId() == UDF || dstEntry.getType().getTypeId() == UDF) {
-            throw new PuffinBasicSemanticError(
-                    BAD_ASSIGNMENT,
-                    getCtxString(ctx),
-                    "UDF cannot be used with REF"
-            );
-        }
-        if (srcEntry.getType().getAtomTypeId() != dstEntry.getType().getAtomTypeId()) {
-            throw new PuffinBasicSemanticError(
-                    DATA_TYPE_MISMATCH,
-                    getCtxString(ctx),
-                    "Data type mismatch: "
-                            + srcEntry.getType().getAtomTypeId()
-                            + " vs" + dstEntry.getType().getAtomTypeId()
-            );
-        }
-        ir.addInstruction(
-                sourceFile, currentLineNumber,ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
-                OpCode.VARREF, src.result, dst.result, NULL_ID);
-    }
-
     private void assertGraphics() {
         if (!graphics) {
             throw new PuffinBasicInternalError(

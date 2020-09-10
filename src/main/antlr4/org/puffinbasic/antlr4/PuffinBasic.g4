@@ -103,7 +103,6 @@ stmt
     | stopwavstmt
     | loopwavstmt
     | labelstmt
-    | refstmt
     | liststmt
     | dictstmt
     | setstmt
@@ -614,10 +613,6 @@ labelstmt
     : LABEL name=string
     ;
 
-refstmt
-    : REF src=variable EQGT dst=variable
-    ;
-
 liststmt
     : LIST RELLT (typename=varname|typesuffix=varsuffix) RELGT listname=varname
     ;
@@ -656,10 +651,6 @@ DICT
 
 SET
     : S E T
-    ;
-
-REF
-    : R E F
     ;
 
 EQGT
