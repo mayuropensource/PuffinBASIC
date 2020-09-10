@@ -1670,6 +1670,20 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         ));
     }
 
+    @Override
+    public void exitFuncSplitDlr(PuffinBasicParser.FuncSplitDlrContext ctx) {
+        var str = lookupInstruction(ctx.expr(0));
+        var regex = lookupInstruction(ctx.expr(1));
+        Types.assertString(ir.getSymbolTable().get(str.result).getType().getAtomTypeId(),
+                () -> getCtxString(ctx));
+        Types.assertString(ir.getSymbolTable().get(regex.result).getType().getAtomTypeId(),
+                () -> getCtxString(ctx));
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                sourceFile, currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.SPLITDLR, str.result, regex.result,
+                ir.getSymbolTable().addTmp(new ArrayType(STRING), c -> {})));
+    }
+
     private Instruction addFuncWithExprInstruction(
             OpCode opCode, ParserRuleContext parent,
             PuffinBasicParser.ExprContext expr, NumericOrString numericOrString)

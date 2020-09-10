@@ -95,7 +95,7 @@ public class STObjects {
             }
 
             @Override
-            public void copyArray(Collection<Object> src, STValue dst) {
+            public void copyArray(Collection<?> src, STValue dst) {
                 var dims = new IntArrayList(1);
                 dims.add(src.size());
                 dst.setArrayDimensions(dims);
@@ -103,6 +103,19 @@ public class STObjects {
                 int i = 0;
                 for (Object o : src) {
                     array[i++] = (int) o;
+                }
+            }
+
+            @Override
+            public void copyArray(Object[] src, STValue dst) {
+                Integer[] srcList = (Integer[]) src;
+                var dims = new IntArrayList(1);
+                dims.add(src.length);
+                dst.setArrayDimensions(dims);
+                int[] array = ((STInt32ArrayValue) dst).getValue();
+                int i = 0;
+                for (Integer o : srcList) {
+                    array[i++] = o;
                 }
             }
 
@@ -151,7 +164,7 @@ public class STObjects {
             }
 
             @Override
-            public void copyArray(Collection<Object> src, STValue dst) {
+            public void copyArray(Collection<?> src, STValue dst) {
                 var dims = new IntArrayList(1);
                 dims.add(src.size());
                 dst.setArrayDimensions(dims);
@@ -159,6 +172,19 @@ public class STObjects {
                 int i = 0;
                 for (Object o : src) {
                     array[i++] = (long) o;
+                }
+            }
+
+            @Override
+            public void copyArray(Object[] src, STValue dst) {
+                Long[] srcList = (Long[]) src;
+                var dims = new IntArrayList(1);
+                dims.add(src.length);
+                dst.setArrayDimensions(dims);
+                long[] array = ((STInt64ArrayValue) dst).getValue();
+                int i = 0;
+                for (long o : srcList) {
+                    array[i++] = o;
                 }
             }
 
@@ -207,7 +233,7 @@ public class STObjects {
             }
 
             @Override
-            public void copyArray(Collection<Object> src, STValue dst) {
+            public void copyArray(Collection<?> src, STValue dst) {
                 var dims = new IntArrayList(1);
                 dims.add(src.size());
                 dst.setArrayDimensions(dims);
@@ -215,6 +241,19 @@ public class STObjects {
                 int i = 0;
                 for (Object o : src) {
                     array[i++] = (float) o;
+                }
+            }
+
+            @Override
+            public void copyArray(Object[] src, STValue dst) {
+                Float[] srcList = (Float[]) src;
+                var dims = new IntArrayList(1);
+                dims.add(src.length);
+                dst.setArrayDimensions(dims);
+                float[] array = ((STFloat32ArrayValue) dst).getValue();
+                int i = 0;
+                for (Float o : srcList) {
+                    array[i++] = o;
                 }
             }
 
@@ -263,7 +302,7 @@ public class STObjects {
             }
 
             @Override
-            public void copyArray(Collection<Object> src, STValue dst) {
+            public void copyArray(Collection<?> src, STValue dst) {
                 var dims = new IntArrayList(1);
                 dims.add(src.size());
                 dst.setArrayDimensions(dims);
@@ -271,6 +310,19 @@ public class STObjects {
                 int i = 0;
                 for (Object o : src) {
                     array[i++] = (double) o;
+                }
+            }
+
+            @Override
+            public void copyArray(Object[] src, STValue dst) {
+                Double[] srcList = (Double[]) src;
+                var dims = new IntArrayList(1);
+                dims.add(src.length);
+                dst.setArrayDimensions(dims);
+                double[] array = ((STFloat64ArrayValue) dst).getValue();
+                int i = 0;
+                for (Double o : srcList) {
+                    array[i++] = o;
                 }
             }
 
@@ -326,7 +378,7 @@ public class STObjects {
             }
 
             @Override
-            public void copyArray(Collection<Object> src, STValue dst) {
+            public void copyArray(Collection<?> src, STValue dst) {
                 var dims = new IntArrayList(1);
                 dims.add(src.size());
                 dst.setArrayDimensions(dims);
@@ -334,6 +386,19 @@ public class STObjects {
                 int i = 0;
                 for (Object o : src) {
                     array[i++] = (String) o;
+                }
+            }
+
+            @Override
+            public void copyArray(Object[] src, STValue dst) {
+                String[] srcList = (String[]) src;
+                var dims = new IntArrayList(1);
+                dims.add(src.length);
+                dst.setArrayDimensions(dims);
+                String[] array = ((STStringArrayValue) dst).getValue();
+                int i = 0;
+                for (String o : srcList) {
+                    array[i++] = o;
                 }
             }
 
@@ -374,7 +439,12 @@ public class STObjects {
             }
 
             @Override
-            public void copyArray(Collection<Object> src, STValue dst) {
+            public void copyArray(Collection<?> src, STValue dst) {
+                throw new PuffinBasicInternalError("Not implemented");
+            }
+
+            @Override
+            public void copyArray(Object[] src, STValue dst) {
                 throw new PuffinBasicInternalError("Not implemented");
             }
 
@@ -420,7 +490,9 @@ public class STObjects {
 
         public abstract void setValueIn(Object value, STValue dst);
 
-        public abstract void copyArray(Collection<Object> src, STValue dst);
+        public abstract void copyArray(Collection<?> src, STValue dst);
+
+        public abstract void copyArray(Object[] src, STValue dst);
 
         public static PuffinBasicAtomTypeId lookup(String repr) {
             if (repr == null || repr.length() != 1) {
@@ -530,7 +602,7 @@ public class STObjects {
         private final IntList dims;
         private final boolean canBeLValue;
 
-        ArrayType(PuffinBasicAtomTypeId atomType) {
+        public ArrayType(PuffinBasicAtomTypeId atomType) {
             this.atomType = atomType;
             this.dims = null;
             this.canBeLValue = false;

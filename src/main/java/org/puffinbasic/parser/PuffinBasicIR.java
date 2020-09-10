@@ -163,6 +163,7 @@ public class PuffinBasicIR {
         INSTR("instr"),
         MIDDLR("mid$"),
         MIDDLR_STMT("mid$_stmt"),
+        SPLITDLR("split$"),
         RND("rnd"),
         SGN("sgn"),
         TIMER("timer"),

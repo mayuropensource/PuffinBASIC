@@ -673,6 +673,13 @@ public class Functions {
         symbolTable.get(instruction.result).getValue().setString(result);
     }
 
+    static void splitdlr(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
+        var str = symbolTable.get(instruction.op1).getValue().getString();
+        var regex = symbolTable.get(instruction.op2).getValue().getString();
+        String[] tokens = str.split(regex);
+        STRING.copyArray(tokens, symbolTable.get(instruction.result).getValue());
+    }
+
     static void throwUnsupportedType(PuffinBasicAtomTypeId type) {
         throw new PuffinBasicInternalError(
                 "Data type " + type + " is not supported"

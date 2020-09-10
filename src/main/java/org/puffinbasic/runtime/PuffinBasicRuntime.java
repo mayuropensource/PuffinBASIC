@@ -600,6 +600,9 @@ public class PuffinBasicRuntime {
             case RIGHTDLR:
                 Functions.rightdlr(ir.getSymbolTable(), instruction);
                 break;
+            case SPLITDLR:
+                Functions.splitdlr(ir.getSymbolTable(), instruction);
+                break;
             case PARAM1:
             case PARAM2:
                 params.add(instruction);

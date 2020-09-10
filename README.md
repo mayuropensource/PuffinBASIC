@@ -747,6 +747,22 @@ RIGHT("ABCD", 2)
 "CD"
 ```
 
+#### SPLIT$
+
+Split the given string str$ using the regex and return a string array.
+
+Syntax:
+
+```
+SPLIT$(str$, regex$)
+```
+
+Example:
+
+```
+AUTO splitstrarray = SPLIT$("A,BB,CC", ",")
+```
+
 #### SPACE$
 
 Returns a String with n spaces.

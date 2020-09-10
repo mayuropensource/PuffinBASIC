@@ -240,6 +240,7 @@ func
     | MOUSEBUTTONCLICKED LPAREN RPAREN                      # FuncMouseButtonClicked
     | MOUSEBUTTONPRESSED LPAREN RPAREN                      # FuncMouseButtonPressed
     | MOUSEBUTTONRELEASED LPAREN RPAREN                     # FuncMouseButtonReleased
+    | SPLITDLR LPAREN str=expr COMMA regex=expr RPAREN      # FuncSplitDlr
     ;
 
 funcname
@@ -1316,6 +1317,10 @@ BUFFERCOPYHOR
 
 STRUCT
     : S T R U C T
+    ;
+
+SPLITDLR
+    : S P L I T DOLLAR
     ;
 
 string
