@@ -48,7 +48,7 @@ WHILE -1
       STOPWAV SOUNDBG1%
       STOPWAV SOUNDBG2%
       PLAYWAV SOUNDDEAD1%
-      hi% = points%
+      hi% = MAX(hi%, points%)
       run% = 0
       GOSUB "GAME_OVER"
     END IF

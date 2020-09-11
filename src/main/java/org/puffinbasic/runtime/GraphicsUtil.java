@@ -95,6 +95,20 @@ public final class GraphicsUtil {
         }
     }
 
+    private static void copyRect(int[] srcArray, int srcx, int srcy, int srcWidth,
+                                 int[] dstArray, int dstx, int dsty, int dstWidth,
+                                 int copyW, int copyH) {
+        int srcVerticalOffset = srcy * srcWidth;
+        int dstVerticalOffset = dsty * dstWidth;
+        for (int yi = srcy; yi < srcy + copyH; yi++) {
+            System.arraycopy(srcArray, srcVerticalOffset + srcx,
+                    dstArray, dstVerticalOffset + dstx,
+                    copyW);
+            srcVerticalOffset += srcWidth;
+            dstVerticalOffset += dstWidth;
+        }
+    }
+
     private interface Canvas {
         BufferedImage getFront();
         BufferedImage getBack1();
@@ -307,19 +321,9 @@ public final class GraphicsUtil {
             var dst = canvas.getBack1();
             int[] srcArray = ((DataBufferInt) src.getRaster().getDataBuffer()).getData();
             int[] dstArray = ((DataBufferInt) dst.getRaster().getDataBuffer()).getData();
-            copyRect(srcArray, srcx, 0, src.getWidth(), dstArray, dstx, 0, src.getWidth(), copyW, src.getHeight());
-        }
-
-        private static void copyRect(int[] srcArray, int srcx, int srcy, int srcWidth,
-                                     int[] dstArray, int dstx, int dsty, int dstWidth,
-                                     int copyW, int copyH) {
-            int srcVerticalOffset = srcy * srcWidth;
-            int dstVerticalOffset = dsty * dstWidth;
-            for (int yi = srcy; yi < srcy + copyH; yi++) {
-                System.arraycopy(srcArray, srcVerticalOffset + srcx, dstArray, dstVerticalOffset + dstx, copyW);
-                srcVerticalOffset += srcWidth;
-                dstVerticalOffset += dstWidth;
-            }
+            copyRect(srcArray, srcx, 0, src.getWidth(),
+                    dstArray, dstx, 0, dst.getWidth(),
+                    copyW, src.getHeight());
         }
 
         void copyGraphicsToArray(int bufferNumber, int x1, int y1, int x2, int y2, int[] dest) {
