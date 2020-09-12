@@ -1732,6 +1732,10 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
             // struct
             var typeName = ctx.typename.VARNAME().getText();
             itemType = ir.getSymbolTable().getStructType(typeName);
+        } else if (ctx.dimtypesuffix != null) {
+            // array
+            var atomType = PuffinBasicAtomTypeId.lookup(ctx.dimtypesuffix.getText());
+            itemType = new ArrayType(atomType);
         } else {
             // scalar data type
             var atomType = PuffinBasicAtomTypeId.lookup(ctx.typesuffix.getText());
@@ -1923,10 +1927,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         var resultType = ir.getSymbolTable().get(exprInstruction.result).getType();
         int varId = ir.getSymbolTable().addVariableOrUDF(
                 new VariableName(varname, null, resultType.getAtomTypeId()),
-                variableName1 -> Variable.of(variableName1,
-                        resultType.getTypeId() == ARRAY
-                                ? VariableKindHint.ARRAY : VariableKindHint.DERIVE_FROM_NAME,
-                        () -> getCtxString(ctx)),
+                variableName1 -> new Variable(variableName1, resultType),
                 (id, entry, v1) -> {});
         ir.addInstruction(
                 sourceFile, currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),

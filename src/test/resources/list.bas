@@ -112,3 +112,22 @@ PRINT len(list5)
 
 list5.clear()
 PRINT len(list5)
+
+LIST<DIM %> list6
+DIM D0%(5)
+DIM D1%(5)
+D0%(0) = 10
+D1%(0) = 20
+list6.append(D0%)
+list6.append(D1%)
+AUTO x0 = list6.get(0)
+AUTO x1 = list6.get(1)
+PRINT x0(0), x1(0)
+
+STRUCT Struct1 { X$ }
+Struct1 s1 {}
+s1.X$ = "A10"
+LIST<Struct1> list7
+list7.append(s1)
+AUTO x70 = list7.get(0)
+PRINT x70.X$

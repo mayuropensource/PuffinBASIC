@@ -410,7 +410,7 @@ public class STObjects {
         COMPOSITE(null) {
             @Override
             public STVariable createVariableEntry(Variable variable) {
-                throw new PuffinBasicInternalError("Not implemented");
+                return new STVariable(null, variable);
             }
 
             @Override
@@ -864,7 +864,11 @@ public class STObjects {
                                     (obj, params, result) -> {
                                         @SuppressWarnings("unchecked")
                                         var list = (List<Object>) obj;
-                                        list.add(type.getAtomTypeId().getValueFrom(params[0]));
+                                        if (type.getTypeId() == PuffinBasicTypeId.SCALAR) {
+                                            list.add(type.getAtomTypeId().getValueFrom(params[0]));
+                                        } else {
+                                            list.add(params[0]);
+                                        }
                                         result.setInt32(0);
                                     }))
                             .add(new MemberFunction(
@@ -873,8 +877,12 @@ public class STObjects {
                                         @SuppressWarnings("unchecked")
                                         var list = (List<Object>) obj;
                                         int index = params[0].getInt32();
-                                        var value = type.getAtomTypeId().getValueFrom(params[1]);
-                                        list.add(index, value);
+                                        if (type.getTypeId() == PuffinBasicTypeId.SCALAR) {
+                                            var value = type.getAtomTypeId().getValueFrom(params[1]);
+                                            list.add(index, value);
+                                        } else {
+                                            list.add(index, params[1]);
+                                        }
                                         result.setInt32(0);
                                     }))
                             .add(new MemberFunction(
@@ -890,14 +898,25 @@ public class STObjects {
                                                             + " is out of bounds, list size: " + list.size()
                                             );
                                         }
-                                        type.getAtomTypeId().setValueIn(list.get(index), result);
+                                        if (type.getTypeId() == PuffinBasicTypeId.SCALAR) {
+                                            type.getAtomTypeId().setValueIn(list.get(index), result);
+                                        } else {
+                                            result.replace((STValue) list.get(index));
+                                        }
                                     }))
                             .add(new MemberFunction(
                                     "values", new PuffinBasicType[] {}, valuesType,
                                     (obj, params, result) -> {
                                         @SuppressWarnings("unchecked")
                                         var list = (List<Object>) obj;
-                                        type.getAtomTypeId().copyArray(list, result);
+                                        if (type.getTypeId() == PuffinBasicTypeId.SCALAR) {
+                                            type.getAtomTypeId().copyArray(list, result);
+                                        } else {
+                                            throw new PuffinBasicRuntimeError(
+                                                    BAD_FUNCTION_CALL,
+                                                    "values() not supported for non-scalar type!"
+                                            );
+                                        }
                                     }))
                             .add(new MemberFunction(
                                     "clear", new PuffinBasicType[] {}, ScalarType.INT32,
@@ -1303,6 +1322,9 @@ public class STObjects {
         String printFormat();
         String writeFormat();
         void assign(STValue entry);
+        default void replace(STValue entry) {
+            assign(entry);
+        }
         int getInt32();
         long getInt64();
         float getFloat32();
@@ -2233,6 +2255,14 @@ public class STObjects {
         private int ndim;
 
         @Override
+        public void replace(STValue entry) {
+            var from = (AbstractSTArrayValue) entry;
+            dimensions = from.dimensions;
+            totalLength = from.totalLength;
+            ndim = from.ndim;
+        }
+
+        @Override
         public int getTotalLength() {
             return totalLength;
         }
@@ -2294,6 +2324,13 @@ public class STObjects {
     public static final class STInt32ArrayValue extends AbstractSTArrayValue {
 
         private int[] value;
+
+        @Override
+        public void replace(STValue entry) {
+            super.replace(entry);
+            var from = (STInt32ArrayValue) entry;
+            value = from.value;
+        }
 
         @Override
         public void fill(Number fill) {

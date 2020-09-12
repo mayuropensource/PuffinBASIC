@@ -615,7 +615,7 @@ labelstmt
     ;
 
 liststmt
-    : LIST RELLT (typename=varname|typesuffix=varsuffix) RELGT listname=varname
+    : LIST RELLT (typename=varname|typesuffix=varsuffix|DIM dimtypesuffix=varsuffix) RELGT listname=varname
     ;
 
 dictstmt
