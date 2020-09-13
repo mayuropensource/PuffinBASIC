@@ -878,6 +878,9 @@ public class PuffinBasicRuntime {
             case MOUSEBUTTONRELEASED:
                 GraphicsRuntime.mouseButtonReleased(graphicsState, ir.getSymbolTable(), instruction);
                 break;
+            case ISKEYPRESSED:
+                GraphicsRuntime.isKeyPressed(graphicsState, ir.getSymbolTable(), instruction);
+                break;
         }
 
         this.programCounter = nextProgramCounter;

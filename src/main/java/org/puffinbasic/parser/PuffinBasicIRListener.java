@@ -54,7 +54,6 @@ import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.FLOAT;
 import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.INT32;
 import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.INT64;
 import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.STRING;
-import static org.puffinbasic.domain.STObjects.PuffinBasicTypeId.ARRAY;
 import static org.puffinbasic.domain.STObjects.PuffinBasicTypeId.UDF;
 import static org.puffinbasic.error.PuffinBasicSemanticError.ErrorCode.BAD_ARGUMENT;
 import static org.puffinbasic.error.PuffinBasicSemanticError.ErrorCode.BAD_ASSIGNMENT;
@@ -1640,6 +1639,17 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         nodeToInstruction.put(ctx, ir.addInstruction(
                 sourceFile, currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
                 OpCode.MOUSEBUTTONRELEASED, NULL_ID, NULL_ID,
+                ir.getSymbolTable().addTmp(INT32, e -> {})));
+    }
+
+    @Override
+    public void exitFuncIsKeyPressed(PuffinBasicParser.FuncIsKeyPressedContext ctx) {
+        assertGraphics();
+        var expr = lookupInstruction(ctx.expr());
+        Types.assertString(ir.getSymbolTable().get(expr.result).getType().getAtomTypeId(), () -> getCtxString(ctx));
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                sourceFile, currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.ISKEYPRESSED, expr.result, NULL_ID,
                 ir.getSymbolTable().addTmp(INT32, e -> {})));
     }
 

@@ -240,6 +240,7 @@ func
     | MOUSEBUTTONCLICKED LPAREN RPAREN                      # FuncMouseButtonClicked
     | MOUSEBUTTONPRESSED LPAREN RPAREN                      # FuncMouseButtonPressed
     | MOUSEBUTTONRELEASED LPAREN RPAREN                     # FuncMouseButtonReleased
+    | ISKEYPRESSED LPAREN expr RPAREN                       # FuncIsKeyPressed
     | SPLITDLR LPAREN str=expr COMMA regex=expr RPAREN      # FuncSplitDlr
     ;
 
@@ -1301,6 +1302,10 @@ MOUSEBUTTONPRESSED
 
 MOUSEBUTTONRELEASED
     : M O U S E B U T T O N R E L E A S E D
+    ;
+
+ISKEYPRESSED
+    : I S K E Y P R E S S E D
     ;
 
 FRONT

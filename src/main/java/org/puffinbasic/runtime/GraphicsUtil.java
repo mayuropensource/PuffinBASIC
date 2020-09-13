@@ -2,6 +2,9 @@ package org.puffinbasic.runtime;
 
 import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ObjectSet;
 import org.puffinbasic.error.PuffinBasicInternalError;
 import org.puffinbasic.error.PuffinBasicRuntimeError;
 
@@ -26,6 +29,7 @@ import java.awt.image.DataBufferInt;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
+import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -213,6 +217,7 @@ public final class GraphicsUtil {
         private final int[] clearBuffer;
         private final BasicMouseState mouseState;
         private final Canvas canvas;
+        private final ObjectSet<String> keysPressed;
 
         DrawingCanvas(
                 int w, int h, int iw, int ih,
@@ -233,6 +238,7 @@ public final class GraphicsUtil {
             this.keyBuffer = new ArrayDeque<>();
             this.keyBufferSize = keyBufferSize;
             this.mouseState = mouseState;
+            this.keysPressed = new ObjectOpenHashSet<>();
         }
 
         public int getScreenWidth() {
@@ -261,12 +267,25 @@ public final class GraphicsUtil {
             }
         }
 
-        void addNextKey(String key) {
+        void setKeyPressed(String key) {
             synchronized (keyBuffer) {
+                keysPressed.add(key);
                 var lastKey = !keyBuffer.isEmpty() ? keyBuffer.getLast() : null;
                 if (!key.equals(lastKey) && keyBuffer.size() < keyBufferSize) {
                     keyBuffer.add(key);
                 }
+            }
+        }
+
+        void setKeyReleased(String key) {
+            synchronized (keyBuffer) {
+                keysPressed.remove(key);
+            }
+        }
+
+        boolean isKeyPressed(String key) {
+            synchronized (keyBuffer) {
+                return keysPressed.contains(key);
             }
         }
 
@@ -424,7 +443,12 @@ public final class GraphicsUtil {
 
         @Override
         public void keyPressed(KeyEvent e) {
-            drawingCanvas.addNextKey(getKeyString(e));
+            drawingCanvas.setKeyPressed(getKeyString(e));
+        }
+
+        @Override
+        public void keyReleased(KeyEvent e) {
+            drawingCanvas.setKeyReleased(getKeyString(e));
         }
     }
 

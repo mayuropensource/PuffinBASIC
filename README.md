@@ -976,6 +976,24 @@ Example:
 HSB2RGB(0.5, 1.0, 1.0)
 ```
 
+### Keyboard Functions
+
+These functions work in graphics mode only.
+
+Check whether the given key$ is pressed.
+
+Syntax:
+
+```
+ISKEYPRESSED(key$)
+```
+
+Example:
+
+```
+isLeftArrowPressed% = ISKEYPRESSED(CHR$(0) + CHR$(37))
+```
+
 ### Mouse Functions
 
 Mouse functions work in graphics mode only.

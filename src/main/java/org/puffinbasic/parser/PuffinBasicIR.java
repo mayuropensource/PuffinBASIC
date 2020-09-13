@@ -223,6 +223,7 @@ public class PuffinBasicIR {
         MOUSEBUTTONCLICKED("mousebuttonclicked"),
         MOUSEBUTTONPRESSED("mousebuttonpressed"),
         MOUSEBUTTONRELEASED("mousebuttonreleased"),
+        ISKEYPRESSED("iskeypressed"),
         ;
 
         public final String repr;

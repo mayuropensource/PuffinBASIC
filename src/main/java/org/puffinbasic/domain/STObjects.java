@@ -901,7 +901,15 @@ public class STObjects {
                                         if (type.getTypeId() == PuffinBasicTypeId.SCALAR) {
                                             type.getAtomTypeId().setValueIn(list.get(index), result);
                                         } else {
-                                            result.replace((STValue) list.get(index));
+                                            STValue item = (STValue) list.get(index);
+                                            if (item == null) {
+                                                throw new PuffinBasicRuntimeError(
+                                                        NOT_INITIALIZED,
+                                                        "Value at list index: " + index
+                                                                + " is not set!"
+                                                );
+                                            }
+                                            result.replace(item);
                                         }
                                     }))
                             .add(new MemberFunction(

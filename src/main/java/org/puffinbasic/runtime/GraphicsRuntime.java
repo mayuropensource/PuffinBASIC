@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import static org.puffinbasic.domain.PuffinBasicSymbolTable.NULL_ID;
-import static org.puffinbasic.domain.STObjects.PuffinBasicTypeId.ARRAY;
 import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.INT32;
+import static org.puffinbasic.domain.STObjects.PuffinBasicTypeId.ARRAY;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.GRAPHICS_ERROR;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.IO_ERROR;
 import static org.puffinbasic.runtime.GraphicsUtil.PUT_XOR;
@@ -754,5 +754,15 @@ class GraphicsRuntime {
     {
         symbolTable.get(instruction.result).getValue().setInt32(
                 graphicsState.getFrame().getDrawingCanvas().getMouseState().getButtonReleased());
+    }
+
+    public static void isKeyPressed(
+            GraphicsState graphicsState,
+            PuffinBasicSymbolTable symbolTable,
+            Instruction instruction)
+    {
+        var key = symbolTable.get(instruction.op1).getValue().getString();
+        symbolTable.get(instruction.result).getValue().setInt32(
+                graphicsState.getFrame().getDrawingCanvas().isKeyPressed(key) ? -1 : 0);
     }
 }
