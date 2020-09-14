@@ -2211,17 +2211,6 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                         scalarAtomTypeId.getRepr(),
                         scalarAtomTypeId);
                 paramType = new ScalarType(paramName.getDataType());
-            } else if (compCtx.DIM() != null) {
-                // array
-                var arrayName = compCtx.elem.VARNAME().getText();
-                var arrayAtomType = ir.getSymbolTable().getDataTypeFor(arrayName,
-                        compCtx.elemsuffix != null ? compCtx.elemsuffix.getText() : null);
-                IntList dims = new IntArrayList(compCtx.DECIMAL().size());
-                for (var dimStrNode : compCtx.DECIMAL()) {
-                    dims.add(Numbers.parseInt32(dimStrNode.getText(), () -> getCtxString(ctx)));
-                }
-                paramName = new VariableName(arrayName, arrayAtomType.getRepr(), arrayAtomType);
-                paramType = new ArrayType(arrayAtomType, dims, true);
             } else if (compCtx.LIST() != null) {
                 // list
                 paramName = new VariableName(compCtx.elem.VARNAME().getText(), null, COMPOSITE);
@@ -2229,6 +2218,10 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                 if (compCtx.list1 != null) {
                     // struct
                     itemType = ir.getSymbolTable().getStructType(compCtx.list1.VARNAME().getText());
+                } else if (compCtx.list3 != null) {
+                    // array
+                    var atomType = PuffinBasicAtomTypeId.lookup(compCtx.list3.getText());
+                    itemType = new ArrayType(atomType);
                 } else {
                     // scalar data type
                     itemType = new ScalarType(PuffinBasicAtomTypeId.lookup(compCtx.list2.getText()));
@@ -2256,6 +2249,17 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                 var memberType = compCtx.struct1.VARNAME().getText();
                 paramName = new VariableName(compCtx.elem.VARNAME().getText(), null, COMPOSITE);
                 paramType = ir.getSymbolTable().getStructType(memberType);
+            } else if (compCtx.DIM() != null) {
+                // array
+                var arrayName = compCtx.elem.VARNAME().getText();
+                var arrayAtomType = ir.getSymbolTable().getDataTypeFor(arrayName,
+                        compCtx.elemsuffix != null ? compCtx.elemsuffix.getText() : null);
+                IntList dims = new IntArrayList(compCtx.DECIMAL().size());
+                for (var dimStrNode : compCtx.DECIMAL()) {
+                    dims.add(Numbers.parseInt32(dimStrNode.getText(), () -> getCtxString(ctx)));
+                }
+                paramName = new VariableName(arrayName, arrayAtomType.getRepr(), arrayAtomType);
+                paramType = new ArrayType(arrayAtomType, dims, true);
             } else {
                 // throw
                 throw new PuffinBasicSemanticError(

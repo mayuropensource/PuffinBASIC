@@ -2316,7 +2316,8 @@ public class STObjects {
                                 + dim + "]=" + dimensions.getInt(dim)
                 );
             }
-            this.index1d = this.index1d + (dim + 1 < ndim ? dimensions.getInt(dim + 1) : 1) * index;
+            int dIplus1 = dim + 1 < ndim ? dimensions.getInt(dim + 1) : 1;
+            this.index1d = (this.index1d + index) * dIplus1;
         }
 
         @Override

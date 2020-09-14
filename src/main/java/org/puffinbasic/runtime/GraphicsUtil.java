@@ -437,6 +437,10 @@ public final class GraphicsUtil {
             if (charCode == 65535) {
                 return ((char) 0) + String.valueOf((char) keyCode);
             } else {
+                // Always store lower case
+                if (charCode >= 65 && charCode <= 90) {
+                    charCode += 32;
+                }
                 return String.valueOf((char) charCode);
             }
         }

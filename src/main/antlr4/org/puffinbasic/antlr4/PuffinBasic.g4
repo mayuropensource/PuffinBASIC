@@ -635,7 +635,7 @@ compositetype
     : (var1=varname var2=varsuffix?
         | DIM elem=varname elemsuffix=varsuffix? LPAREN dim=DECIMAL (COMMA dim=DECIMAL)* RPAREN
         | struct1=varname elem=varname
-        | LIST RELLT (list1=varname|list2=varsuffix) RELGT elem=varname
+        | LIST RELLT (list1=varname|list2=varsuffix|DIM list3=varsuffix) RELGT elem=varname
         | SET RELLT (set1=varname|set2=varsuffix) RELGT elem=varname
         | DICT RELLT (dictk1=varsuffix) COMMA (dictv1=varname|dictv2=varsuffix) RELGT elem=varname)
     ;
