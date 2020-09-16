@@ -706,6 +706,214 @@ final class ArraysUtil {
                 throwUnsupportedType(array.getType().getAtomTypeId());
         }
         return stats;
+    }
 
+    static void array2dFindRow(
+            PuffinBasicSymbolTable symbolTable,
+            List<Instruction> params,
+            Instruction instruction)
+    {
+        var i1 = params.get(0);
+        var i2 = params.get(1);
+
+        var arrayEntry = symbolTable.get(instruction.op1);
+        var array = arrayEntry.getValue();
+        var search = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+
+        var dims = array.getArrayDimensions();
+        // Arrays are row-major.
+        var numRows = dims.getInt(0);
+        var numCols = dims.getInt(1);
+        var n = array.getTotalLength();
+
+        var x1 = Math.min(Math.max(0, symbolTable.get(i1.op1).getValue().getInt32()), numCols - 1);
+        var y1 = Math.min(Math.max(0, symbolTable.get(i1.op2).getValue().getInt32()), numRows - 1);
+        var x2 = Math.min(Math.max(0, symbolTable.get(i2.op1).getValue().getInt32()), numCols - 1);
+        var y2 = Math.min(Math.max(0, symbolTable.get(i2.op2).getValue().getInt32()), numRows - 1);
+
+        if (y1 * numCols + x1 >= n || y2 * numCols + x2 >= n) {
+            throw new PuffinBasicRuntimeError(
+                    PuffinBasicRuntimeError.ErrorCode.INDEX_OUT_OF_BOUNDS,
+                    "x1=" + x1 + "/y1=" + y1 + "/x2=" + x2 + "/y2=" + y2
+                        + " is out of bounds, array length=" + n
+            );
+        }
+        switch (arrayEntry.getType().getAtomTypeId()) {
+            case INT32: {
+                int[] int32Array = ((STInt32ArrayValue) array).getValue();
+                result.setInt32(findRowWithValue(int32Array, numCols, x1, y1, x2, y2, search.getInt32()));
+            }
+            break;
+            case INT64: {
+                long[] int64Array = ((STInt64ArrayValue) array).getValue();
+                result.setInt32(findRowWithValue(int64Array, numCols, x1, y1, x2, y2, search.getInt64()));
+            }
+            break;
+            default:
+                throwUnsupportedType(arrayEntry.getType().getAtomTypeId());
+        }
+    }
+
+    static void array2dFindColumn(
+            PuffinBasicSymbolTable symbolTable,
+            List<Instruction> params,
+            Instruction instruction)
+    {
+        var i1 = params.get(0);
+        var i2 = params.get(1);
+
+        var arrayEntry = symbolTable.get(instruction.op1);
+        var array = arrayEntry.getValue();
+        var search = symbolTable.get(instruction.op2).getValue();
+        var result = symbolTable.get(instruction.result).getValue();
+
+        var dims = array.getArrayDimensions();
+        // Arrays are row-major.
+        var numRows = dims.getInt(0);
+        var numCols = dims.getInt(1);
+        var n = array.getTotalLength();
+
+        var x1 = Math.min(Math.max(0, symbolTable.get(i1.op1).getValue().getInt32()), numCols - 1);
+        var y1 = Math.min(Math.max(0, symbolTable.get(i1.op2).getValue().getInt32()), numRows - 1);
+        var x2 = Math.min(Math.max(0, symbolTable.get(i2.op1).getValue().getInt32()), numCols - 1);
+        var y2 = Math.min(Math.max(0, symbolTable.get(i2.op2).getValue().getInt32()), numRows - 1);
+
+        if (y1 * numCols + x1 >= n || y2 * numCols + x2 >=n) {
+            throw new PuffinBasicRuntimeError(
+                    PuffinBasicRuntimeError.ErrorCode.INDEX_OUT_OF_BOUNDS,
+                    "x1=" + x1 + "/y1=" + y1 + "/x2=" + x2 + "/y2=" + y2
+                            + " is out of bounds, array length=" + n
+            );
+        }
+        switch (arrayEntry.getType().getAtomTypeId()) {
+            case INT32: {
+                int[] int32Array = ((STInt32ArrayValue) array).getValue();
+                result.setInt32(findColumnWithValue(int32Array, numCols, x1, y1, x2, y2, search.getInt32()));
+            }
+            break;
+            case INT64: {
+                long[] int64Array = ((STInt64ArrayValue) array).getValue();
+                result.setInt32(findColumnWithValue(int64Array, numCols, x1, y1, x2, y2, search.getInt64()));
+            }
+            break;
+            default:
+                throwUnsupportedType(arrayEntry.getType().getAtomTypeId());
+        }
+    }
+
+    private static int findRowWithValue(int[] array, int w, int x1, int y1, int x2, int y2, int search) {
+        if (y1 <= y2) {
+            for (int r = y1; r <= y2; r++) {
+                for (int c = x1; c <= x2; c++) {
+                    var v = array[r * w + c];
+                    if (v == search) {
+                        return r;
+                    }
+                }
+            }
+        } else {
+            for (int r = y1; r >= y2; r--) {
+                for (int c = x1; c <= x2; c++) {
+                    var v = array[r * w + c];
+                    if (v == search) {
+                        return r;
+                    }
+                }
+            }
+        }
+        return -1;
+    }
+
+    private static int findColumnWithValue(int[] array, int w, int x1, int y1, int x2, int y2, int search) {
+        if (x1 <= x2) {
+            for (int c = x1; c <= x2; c++) {
+                for (int r = y1; r <= y2; r++) {
+                    var v = array[r * w + c];
+                    if (v == search) {
+                        return c;
+                    }
+                }
+            }
+        } else {
+            for (int c = x1; c >= x2; c--) {
+                for (int r = y1; r <= y2; r++) {
+                    var v = array[r * w + c];
+                    if (v == search) {
+                        return c;
+                    }
+                }
+            }
+        }
+        return -1;
+    }
+
+    private static int findRowWithValue(long[] array, int w, int x1, int y1, int x2, int y2, long search) {
+        if (y1 <= y2) {
+            for (int r = y1; r <= y2; r++) {
+                for (int c = x1; c <= x2; c++) {
+                    var v = array[r * w + c];
+                    if (v == search) {
+                        return r;
+                    }
+                }
+            }
+        } else {
+            for (int r = y1; r >= y2; r--) {
+                for (int c = x1; c <= x2; c++) {
+                    var v = array[r * w + c];
+                    if (v == search) {
+                        return r;
+                    }
+                }
+            }
+        }
+        return -1;
+    }
+
+    private static int findColumnWithValue(long[] array, int w, int x1, int y1, int x2, int y2, long search) {
+        if (x1 <= x2) {
+            for (int c = x1; c <= x2; c++) {
+                for (int r = y1; r <= y2; r++) {
+                    var v = array[r * w + c];
+                    if (v == search) {
+                        return c;
+                    }
+                }
+            }
+        } else {
+            for (int c = x1; c >= x2; c--) {
+                for (int r = y1; r <= y2; r++) {
+                    var v = array[r * w + c];
+                    if (v == search) {
+                        return c;
+                    }
+                }
+            }
+        }
+        return -1;
+    }
+
+    private int findRowWithValue(double[] array, int w, int x1, int y1, int x2, int y2, int search) {
+        if (y1 <= y2) {
+            for (int r = y1; r <= y2; r++) {
+                for (int c = x1; c <= x2; c++) {
+                    var v = array[r * w + c];
+                    if (v == search) {
+                        return r;
+                    }
+                }
+            }
+        } else {
+            for (int r = y1; r >= y2; r--) {
+                for (int c = x1; c <= x2; c++) {
+                    var v = array[r * w + c];
+                    if (v == search) {
+                        return r;
+                    }
+                }
+            }
+        }
+        return -1;
     }
 }

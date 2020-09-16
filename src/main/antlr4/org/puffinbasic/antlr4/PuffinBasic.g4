@@ -232,6 +232,12 @@ func
     | ARRAY1DMEDIAN LPAREN variable RPAREN                  # FuncArray1DMedian
     | ARRAY1DPCT LPAREN variable COMMA p=expr RPAREN        # FuncArray1DPct
     | ARRAY1DBINSEARCH LPAREN variable COMMA expr RPAREN    # FuncArray1DBinSearch
+    | ARRAY2DFINDROW LPAREN variable COMMA
+        x1=expr COMMA y1=expr COMMA x2=expr COMMA
+        y2=expr COMMA search=expr RPAREN                    # FuncArray2DFindRow
+    | ARRAY2DFINDCOLUMN LPAREN variable COMMA
+        x1=expr COMMA y1=expr COMMA x2=expr COMMA
+        y2=expr COMMA search=expr RPAREN                    # FuncArray2DFindColumn
     | HSB2RGB LPAREN expr COMMA expr COMMA expr RPAREN      # FuncHsb2Rgb
     | MOUSEMOVEDX LPAREN RPAREN                             # FuncMouseMovedX
     | MOUSEMOVEDY LPAREN RPAREN                             # FuncMouseMovedY
@@ -1246,6 +1252,14 @@ ARRAY1DSORT
 
 ARRAY1DBINSEARCH
     : A R R A Y '1' D B I N S E A R C H
+    ;
+
+ARRAY2DFINDROW
+    : A R R A Y '2' D F I N D R O W
+    ;
+
+ARRAY2DFINDCOLUMN
+    : A R R A Y '2' D F I N D C O L U M N
     ;
 
 ARRAYCOPY

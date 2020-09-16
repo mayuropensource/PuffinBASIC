@@ -11,6 +11,8 @@ import org.puffinbasic.parser.PuffinBasicIR.Instruction;
 
 import java.util.function.Supplier;
 
+import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.INT32;
+import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.INT64;
 import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.STRING;
 import static org.puffinbasic.domain.STObjects.PuffinBasicTypeId.SCALAR;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.BAD_FIELD;
@@ -84,6 +86,18 @@ public class Types {
                     DATA_TYPE_MISMATCH,
                     line.get(),
                     "Expected numeric type but found String!"
+            );
+        }
+    }
+
+    public static void assertIntType(
+            PuffinBasicAtomTypeId dt, Supplier<String> line
+    ) {
+        if (dt != INT32 && dt !=INT64) {
+            throw new PuffinBasicSemanticError(
+                    DATA_TYPE_MISMATCH,
+                    line.get(),
+                    "Expected int type but found: " + dt
             );
         }
     }

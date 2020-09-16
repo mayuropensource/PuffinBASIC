@@ -531,6 +531,22 @@ public class PuffinBasicRuntime {
                 params.clear();
             }
             break;
+            case ARRAY2DFINDROW: {
+                if (params.size() != 2) {
+                    throw new PuffinBasicInternalError("Expected 2 params, but found: " + params);
+                }
+                ArraysUtil.array2dFindRow(ir.getSymbolTable(), params, instruction);
+                params.clear();
+            }
+            break;
+            case ARRAY2DFINDCOLUMN: {
+                if (params.size() != 2) {
+                    throw new PuffinBasicInternalError("Expected 2 params, but found: " + params);
+                }
+                ArraysUtil.array2dFindColumn(ir.getSymbolTable(), params, instruction);
+                params.clear();
+            }
+            break;
             case CINT:
                 Functions.cint(ir.getSymbolTable(), instruction);
                 break;

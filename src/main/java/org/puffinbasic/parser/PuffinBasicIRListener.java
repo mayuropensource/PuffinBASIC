@@ -1563,6 +1563,58 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
     }
 
     @Override
+    public void exitFuncArray2DFindRow(PuffinBasicParser.FuncArray2DFindRowContext ctx) {
+        var varInstr = getArray2dVariableInstruction(ctx, ctx.variable());
+        var x1 = lookupInstruction(ctx.x1);
+        var y1 = lookupInstruction(ctx.y1);
+        var x2 = lookupInstruction(ctx.x2);
+        var y2 = lookupInstruction(ctx.y2);
+        var search = lookupInstruction(ctx.search);
+        Types.assertIntType(ir.getSymbolTable().get(x1.result).getType().getAtomTypeId(), () -> getCtxString(ctx));
+        Types.assertIntType(ir.getSymbolTable().get(y1.result).getType().getAtomTypeId(), () -> getCtxString(ctx));
+        Types.assertIntType(ir.getSymbolTable().get(x2.result).getType().getAtomTypeId(), () -> getCtxString(ctx));
+        Types.assertIntType(ir.getSymbolTable().get(y2.result).getType().getAtomTypeId(), () -> getCtxString(ctx));
+        Types.assertIntType(ir.getSymbolTable().get(search.result).getType().getAtomTypeId(), () -> getCtxString(ctx));
+
+        ir.addInstruction(
+                sourceFile, currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.PARAM2, x1.result, y1.result, NULL_ID);
+        ir.addInstruction(
+                sourceFile, currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.PARAM2, x2.result, y2.result, NULL_ID);
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                sourceFile, currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.ARRAY2DFINDROW, varInstr.result, search.result,
+                ir.getSymbolTable().addTmp(DOUBLE, e -> {})));
+    }
+
+    @Override
+    public void exitFuncArray2DFindColumn(PuffinBasicParser.FuncArray2DFindColumnContext ctx) {
+        var varInstr = getArray2dVariableInstruction(ctx, ctx.variable());
+        var x1 = lookupInstruction(ctx.x1);
+        var y1 = lookupInstruction(ctx.y1);
+        var x2 = lookupInstruction(ctx.x2);
+        var y2 = lookupInstruction(ctx.y2);
+        var search = lookupInstruction(ctx.search);
+        Types.assertIntType(ir.getSymbolTable().get(x1.result).getType().getAtomTypeId(), () -> getCtxString(ctx));
+        Types.assertIntType(ir.getSymbolTable().get(y1.result).getType().getAtomTypeId(), () -> getCtxString(ctx));
+        Types.assertIntType(ir.getSymbolTable().get(x2.result).getType().getAtomTypeId(), () -> getCtxString(ctx));
+        Types.assertIntType(ir.getSymbolTable().get(y2.result).getType().getAtomTypeId(), () -> getCtxString(ctx));
+        Types.assertIntType(ir.getSymbolTable().get(search.result).getType().getAtomTypeId(), () -> getCtxString(ctx));
+
+        ir.addInstruction(
+                sourceFile, currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.PARAM2, x1.result, y1.result, NULL_ID);
+        ir.addInstruction(
+                sourceFile, currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.PARAM2, x2.result, y2.result, NULL_ID);
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                sourceFile, currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.ARRAY2DFINDCOLUMN, varInstr.result, search.result,
+                ir.getSymbolTable().addTmp(DOUBLE, e -> {})));
+    }
+
+    @Override
     public void exitFuncHsb2Rgb(PuffinBasicParser.FuncHsb2RgbContext ctx) {
         var h = lookupInstruction(ctx.expr(0));
         var s = lookupInstruction(ctx.expr(1));

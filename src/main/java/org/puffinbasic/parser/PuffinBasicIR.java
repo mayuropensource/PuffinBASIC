@@ -155,6 +155,8 @@ public class PuffinBasicIR {
         ARRAYCOPY("arraycopy"),
         ARRAY2DSHIFTHOR("array2dshifthor"),
         ARRAY2DSHIFTVER("array2dshiftver"),
+        ARRAY2DFINDROW("array2dFindRow"),
+        ARRAY2DFINDCOLUMN("array2sFindColumn"),
         LEN("len"),
         HEXDLR("hex$"),
         OCTDLR("oct$"),
