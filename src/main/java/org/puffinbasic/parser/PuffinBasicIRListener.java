@@ -1746,6 +1746,24 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                 ir.getSymbolTable().addTmp(new ArrayType(STRING), c -> {})));
     }
 
+    @Override
+    public void exitFuncAllocArray(PuffinBasicParser.FuncAllocArrayContext ctx) {
+        var elementType = PuffinBasicAtomTypeId.lookup(ctx.varsuffix().getText());
+
+        for (var exprCtx : ctx.expr()) {
+            var exprInstr = lookupInstruction(exprCtx);
+            ir.addInstruction(
+                    sourceFile, currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                    OpCode.PARAM1, exprInstr.result, NULL_ID, NULL_ID
+            );
+        }
+
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                sourceFile, currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.ALLOCARRAY, NULL_ID, NULL_ID,
+                ir.getSymbolTable().addTmp(new ArrayType(elementType), c -> {})));
+    }
+
     private Instruction addFuncWithExprInstruction(
             OpCode opCode, ParserRuleContext parent,
             PuffinBasicParser.ExprContext expr, NumericOrString numericOrString)

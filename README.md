@@ -1144,6 +1144,22 @@ DIM A%(3, 5)
 
 The above statements declares a 3x5 Int32 variable.
 
+#### Dynamic Arrays
+
+ALLOCARRAY function Dynamically allocates array.
+The result should be assigned to a variable reference.
+
+Syntax:
+
+```
+AUTO arrayvarref = ALLOCARRAY varsuffix(dim1, dim2, ...)
+```
+
+Example: 
+```
+AUTO aa1 = ALLOCARRAY%(2, 3)
+```
+
 #### Struct
 
 User defined type composed of scalar, array, struct, list, set and dict types.

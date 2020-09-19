@@ -145,6 +145,14 @@ public class PuffinBasicRuntime {
                 params.clear();
             }
             break;
+            case ALLOCARRAY: {
+                if (params.isEmpty()) {
+                    throw new PuffinBasicInternalError("Expected >0 params, but found none!");
+                }
+                ArraysUtil.allocArray(ir.getSymbolTable(), params, instruction);
+                params.clear();
+            }
+            break;
             case CREATE_INSTANCE:
                 Statements.createInstance(ir.getSymbolTable(), instruction);
                 break;

@@ -48,6 +48,14 @@ final class ArraysUtil {
         symbolTable.get(instruction.op1).getValue().resetArrayIndex();
     }
 
+    static void allocArray(PuffinBasicSymbolTable symbolTable, List<Instruction> params, Instruction instruction) {
+        IntList dims = new IntArrayList(params.size());
+        for (var param : params) {
+            dims.add(symbolTable.get(param.op1).getValue().getInt32());
+        }
+        symbolTable.get(instruction.result).getValue().setArrayDimensions(dims);
+    }
+
     static void setIndex(ArrayState state, PuffinBasicSymbolTable symbolTable, Instruction instruction) {
         int index = symbolTable.get(instruction.op2).getValue().getInt32();
         symbolTable.get(instruction.op1).getValue().setArrayIndex(state.getAndIncrement(), index);

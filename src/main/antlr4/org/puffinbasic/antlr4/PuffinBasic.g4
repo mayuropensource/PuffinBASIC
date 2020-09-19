@@ -248,6 +248,7 @@ func
     | MOUSEBUTTONRELEASED LPAREN RPAREN                     # FuncMouseButtonReleased
     | ISKEYPRESSED LPAREN expr RPAREN                       # FuncIsKeyPressed
     | SPLITDLR LPAREN str=expr COMMA regex=expr RPAREN      # FuncSplitDlr
+    | ALLOCARRAY varsuffix LPAREN expr (COMMA expr)? RPAREN # FuncAllocArray
     ;
 
 funcname
@@ -780,6 +781,10 @@ DEF
 
 DIM
     : D I M
+    ;
+
+ALLOCARRAY
+    : A L L O C A R R A Y
     ;
 
 GOSUB
