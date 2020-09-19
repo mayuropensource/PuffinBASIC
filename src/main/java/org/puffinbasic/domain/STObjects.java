@@ -614,6 +614,10 @@ public class STObjects {
             this.canBeLValue = canBeLValue;
         }
 
+        public boolean isNDArray(int n) {
+            return dims != null && dims.size() == n;
+        }
+
         @Override
         public boolean canBeLValue() {
             return canBeLValue;

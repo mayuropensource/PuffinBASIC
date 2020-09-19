@@ -2115,7 +2115,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         var variableName = getVariableNameFromCtx(ctx.varname(), ctx.varsuffix());
         var varId = ir.getSymbolTable().addVariableOrUDF(
                 variableName,
-                variableName1 -> Variable.of(variableName1, VariableKindHint.ARRAY, () -> getCtxString(ctx)),
+                variableName1 -> new Variable(variableName1, new ArrayType(variableName1.getDataType(), dims, true)),
                 (id, entry, v1) -> entry.getValue().setArrayDimensions(dims));
 
         for (var expr : ctx.expr()) {
@@ -3126,24 +3126,24 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
         }
     }
 
-    private void assert1DArray(STVariable variable, Supplier<String> line) {
-        if (!variable.getVariable().isArray() || variable.getValue().getNumArrayDimensions() != 1) {
+    private void assert1DArray(STVariable variableEntry, Supplier<String> line) {
+        var variable = variableEntry.getVariable();
+        if (!variable.isArray() || !((ArrayType) variable.getType()).isNDArray(1)) {
             throw new PuffinBasicSemanticError(
                     BAD_ARGUMENT,
                     line.get(),
-                    "Variable: " + variable.getVariable().getVariableName()
-                            + " is not array1d"
+                    "Variable: " + variable.getVariableName() + " is not array1d"
             );
         }
     }
 
-    private void assert2DArray(STVariable variable, Supplier<String> line) {
-        if (!variable.getVariable().isArray() || variable.getValue().getNumArrayDimensions() != 2) {
+    private void assert2DArray(STVariable variableEntry, Supplier<String> line) {
+        var variable = variableEntry.getVariable();
+        if (!variable.isArray() || !((ArrayType) variable.getType()).isNDArray(2)) {
             throw new PuffinBasicSemanticError(
                     BAD_ARGUMENT,
                     line.get(),
-                    "Variable: " + variable.getVariable().getVariableName()
-                            + " is not array2d"
+                    "Variable: " + variable.getVariableName() + " is not array2d"
             );
         }
     }
@@ -3153,8 +3153,7 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
             throw new PuffinBasicSemanticError(
                     BAD_ARGUMENT,
                     line.get(),
-                    "Variable: " + variable.getVariable().getVariableName()
-                            + " is not array"
+                    "Variable: " + variable.getVariable().getVariableName() + " is not array"
             );
         }
     }
