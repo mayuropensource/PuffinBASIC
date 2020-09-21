@@ -604,7 +604,7 @@ public class STObjects {
 
         public ArrayType(PuffinBasicAtomTypeId atomType) {
             this.atomType = atomType;
-            this.dims = null;
+            this.dims = new IntArrayList();
             this.canBeLValue = false;
         }
 
@@ -612,6 +612,11 @@ public class STObjects {
             this.atomType = atomType;
             this.dims = dims;
             this.canBeLValue = canBeLValue;
+        }
+
+        public void setArrayDimensions(IntList dims) {
+            this.dims.clear();
+            this.dims.addAll(dims);
         }
 
         public boolean isNDArray(int n) {

@@ -2152,6 +2152,34 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
     }
 
     @Override
+    public void exitReallocstmt(PuffinBasicParser.ReallocstmtContext ctx) {
+        IntList dims = new IntArrayList(ctx.expr().size());
+        for (int i = 0; i < ctx.expr().size(); i++) {
+            dims.add(0);
+        }
+
+        var variableName = getVariableNameFromCtx(ctx.varname(), ctx.varsuffix());
+        var varId = ir.getSymbolTable().addVariableOrUDF(
+                variableName,
+                variableName1 -> new Variable(variableName1, new ArrayType(variableName1.getDataType(), dims, true)),
+                (id, entry, v1) -> entry.getValue().setArrayDimensions(dims));
+
+        for (var expr : ctx.expr()) {
+            var dimi = lookupInstruction(expr);
+            Types.assertNumeric(ir.getSymbolTable().get(dimi.result).getType().getAtomTypeId(),
+                    () -> getCtxString(ctx));
+            ir.addInstruction(
+                    sourceFile, currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                    OpCode.PARAM1, dimi.result, NULL_ID, NULL_ID
+            );
+        }
+        ir.addInstruction(
+                sourceFile, currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.REALLOCARRAY, varId, NULL_ID, NULL_ID
+        );
+    }
+
+    @Override
     public void enterDeffnstmt(PuffinBasicParser.DeffnstmtContext ctx) {
         var variableName = getVariableNameFromCtx(ctx.varname(), ctx.varsuffix());
 

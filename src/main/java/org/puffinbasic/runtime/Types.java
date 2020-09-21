@@ -2,6 +2,7 @@ package org.puffinbasic.runtime;
 
 import org.puffinbasic.domain.PuffinBasicSymbolTable;
 import org.puffinbasic.domain.STObjects;
+import org.puffinbasic.domain.STObjects.ArrayType;
 import org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId;
 import org.puffinbasic.domain.STObjects.STLValue;
 import org.puffinbasic.error.PuffinBasicRuntimeError;
@@ -14,6 +15,7 @@ import java.util.function.Supplier;
 import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.INT32;
 import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.INT64;
 import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.STRING;
+import static org.puffinbasic.domain.STObjects.PuffinBasicTypeId.ARRAY;
 import static org.puffinbasic.domain.STObjects.PuffinBasicTypeId.SCALAR;
 import static org.puffinbasic.error.PuffinBasicRuntimeError.ErrorCode.BAD_FIELD;
 import static org.puffinbasic.error.PuffinBasicSemanticError.ErrorCode.DATA_TYPE_MISMATCH;

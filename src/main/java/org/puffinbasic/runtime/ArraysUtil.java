@@ -5,6 +5,9 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.puffinbasic.domain.PuffinBasicSymbolTable;
+import org.puffinbasic.domain.STObjects;
+import org.puffinbasic.domain.STObjects.AbstractSTEntry;
+import org.puffinbasic.domain.STObjects.ArrayType;
 import org.puffinbasic.domain.STObjects.STEntry;
 import org.puffinbasic.domain.STObjects.STFloat32ArrayValue;
 import org.puffinbasic.domain.STObjects.STFloat64ArrayValue;
@@ -53,7 +56,22 @@ final class ArraysUtil {
         for (var param : params) {
             dims.add(symbolTable.get(param.op1).getValue().getInt32());
         }
-        symbolTable.get(instruction.result).getValue().setArrayDimensions(dims);
+        var arrayEntry = symbolTable.get(instruction.result);
+        var arrayType = (ArrayType) arrayEntry.getType();
+        arrayType.setArrayDimensions(dims);
+        arrayEntry.getValue().setArrayDimensions(dims);
+    }
+
+    static void reallocArray(PuffinBasicSymbolTable symbolTable, List<Instruction> params, Instruction instruction) {
+        IntList dims = new IntArrayList(params.size());
+        for (var param : params) {
+            dims.add(symbolTable.get(param.op1).getValue().getInt32());
+        }
+        var arrayEntry = symbolTable.get(instruction.op1);
+        var arrayType = (ArrayType) arrayEntry.getType();
+        arrayType.setArrayDimensions(dims);
+        // Create new value
+        ((AbstractSTEntry) arrayEntry).createAndSetInstance(symbolTable);
     }
 
     static void setIndex(ArrayState state, PuffinBasicSymbolTable symbolTable, Instruction instruction) {

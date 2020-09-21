@@ -9,6 +9,11 @@ PuffinBASIC conforms most closely to GWBASIC.
 
 ## Show Case
 
+### 2D Scrolling Game (Teaser)
+
+YouTube Video: <a href="https://youtu.be/3ohQ4Lqj6ZI"><img src="samples/nextGame.png"></a>
+Source: Under development, not committed yet
+
 ### TESSEL - A 2D Tile Game
 YouTube Video: <a href="https://youtu.be/L8xkM-g3Zms"><img src="samples/tessel/images/tesselsnap1.png" width="64"></a>
 Source: <a href="samples/tessel/tessel.bas">tessel.bas</a>

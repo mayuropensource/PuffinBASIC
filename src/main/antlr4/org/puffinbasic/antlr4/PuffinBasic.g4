@@ -45,6 +45,7 @@ stmt
     | importstmt
     | libtagstmt
     | dimstmt
+    | reallocstmt
     | gosubstmt
     | gosublabelstmt
     | returnstmt
@@ -377,6 +378,10 @@ libtagstmt
 
 dimstmt
     : DIM varname varsuffix? LPAREN expr (COMMA expr)* RPAREN
+    ;
+
+reallocstmt
+    : REALLOCARRAY varname varsuffix? LPAREN expr (COMMA expr)* RPAREN
     ;
 
 whilestmt
@@ -785,6 +790,10 @@ DIM
 
 ALLOCARRAY
     : A L L O C A R R A Y
+    ;
+
+REALLOCARRAY
+    : R E A L L O C A R R A Y
     ;
 
 GOSUB

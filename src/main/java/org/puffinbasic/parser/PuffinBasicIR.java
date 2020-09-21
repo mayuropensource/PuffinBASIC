@@ -19,6 +19,7 @@ public class PuffinBasicIR {
         MEMBER_FUNC_CALL("memberFuncCall"),
         DIM("dim"),
         ALLOCARRAY("allocArray"),
+        REALLOCARRAY("reAllocArray"),
         CREATE_INSTANCE("createAndSetInstance"),
         STRUCT_MEMBER_REF("structMemberRef"),
         ASSIGN("a="),
