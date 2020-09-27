@@ -115,6 +115,7 @@ GAMENROWS% = BGNROWS% * SPLIT% : GAMENCOLS% = BGNCOLS% * SPLIT%
 DIM GAMEMAP%(GAMENROWS%, GAMENCOLS%)
 
 LOADWAV SOUNDROOT$ + "level1_bg1.wav", SOUNDLEVEL1BG1%
+LOADWAV SOUNDROOT$ + "level1_bg2.wav", SOUNDLEVEL1BG2%
 LOADWAV SOUNDROOT$ + "bullet1.wav", SOUNDBULLET1%
 LOADWAV SOUNDROOT$ + "land1.wav", SOUNDLAND1%
 
@@ -165,12 +166,30 @@ DIM LavaFallSpeedY%(MaxLavaFall%)
 DIM LavaFallState%(MaxLavaFall%)
 DIM LavaFallTimer@(MaxLavaFall%)
 DIM LavaFallInterval%(MaxLavaFall%)
-DIM LavaFallSprite%(MaxLavaFall%)
+
+' Tank1
+Tank1StateDormant% = 0
+Tank1StateDead% = 1
+
+MaxTank1% = 32
+startTank1Idx% = 0
+numTank1% = 0
+DIM Tank1X%(MaxTank1%)
+DIM Tank1Y%(MaxTank1%)
+DIM Tank1ShootPosX%(MaxTank1%)
+DIM Tank1ShootPosY%(MaxTank1%)
+DIM Tank1SpeedY%(MaxTank1%)
+DIM Tank1State%(MaxTank1%)
+DIM Tank1Timer@(MaxTank1%)
+DIM Tank1Interval%(MaxTank1%)
 
 ' Enemy bullet config
 EnemyBulletStateEmpty% = 0
 EnemyBulletStateFire% = 1
 EnemyBulletStateMove% = 2
+
+EnemyBulletKindLava% = 1
+EnemyBulletKindTank1% = 2
 
 NumEnemyBullets% = 8
 DIM EnemyBulletX%(NumEnemyBullets%)
@@ -179,7 +198,20 @@ DIM EnemyBulletSpeedX%(NumEnemyBullets%)
 DIM EnemyBulletSpeedY%(NumEnemyBullets%)
 DIM EnemyBulletState%(NumEnemyBullets%)
 DIM EnemyBulletEntity%(NumEnemyBullets%)
-DIM EnemyBulletSprite%(NumEnemyBullets%)
+DIM EnemyBulletSpriteIdx%(NumEnemyBullets%)
+DIM EnemyBulletNumSprites%(NumEnemyBullets%)
+DIM EnemyBulletKind%(NumEnemyBullets%)
+NumEnemyBulletSprites% = 2
+
+DIM ShootAngleSpeedX%(7)
+DIM ShootAngleSpeedY%(7)
+ShootAngleSpeedX%(0) = 2 : ShootAngleSpeedY%(0) = 0
+ShootAngleSpeedX%(1) = 2 : ShootAngleSpeedY%(1) = 1
+ShootAngleSpeedX%(2) = 3 : ShootAngleSpeedY%(2) = 1
+ShootAngleSpeedX%(3) = 2 : ShootAngleSpeedY%(3) = 2
+ShootAngleSpeedX%(4) = 1 : ShootAngleSpeedY%(4) = 3
+ShootAngleSpeedX%(5) = 1 : ShootAngleSpeedY%(5) = 2
+ShootAngleSpeedX%(6) = 0 : ShootAngleSpeedY%(6) = 2
 
 LIST<DIM %> bgSprites
 mapFile$ = MAPROOT$ + "game_level1.map"
@@ -240,15 +272,41 @@ loadAndAddSprite(IMAGEROOT$, "player/JUMP_L_1.png", PLAYERJUMPL1%, playerSprites
 loadAndAddSprite(IMAGEROOT$, "player/JUMP_L_2.png", PLAYERJUMPL2%, playerSprites)
 loadAndAddSprite(IMAGEROOT$, "player/SIT_L_1.png", PLAYERSITL1%, playerSprites)
 
+' Load lives
+
+LIVESW% = 32 : LIVESH% = 32
+DIM LIVES1%(LIVESW%, LIVESH%)
+LIST<DIM %> livesSprites
+loadAndAddSprite(IMAGEROOT$, "Life.png", LIVES1%, livesSprites)
+
 ' Load bullet sprites
 
-LIST<DIM %> bulletSprites
-LIST<DIM %> enemyBulletSprites
 BULLETW% = 16 : BULLETH% = 16
-DIM BULLET1%(BULLETH%, BULLETW%)         ' 0
-DIM LavaFallEnemyBullet1%(BULLETH%, BULLETW%)  ' 0
-loadAndAddSprite(IMAGEROOT$, "Bullet_1.png", BULLET1%, bulletSprites)
-loadAndAddSprite(IMAGEROOT$, "LavaFallBullet1.png", LavaFallEnemyBullet1%, enemyBulletSprites)
+
+DIM BULLET1S1%(BULLETH%, BULLETW%)
+DIM BULLET1S2%(BULLETH%, BULLETW%)
+DIM BULLET1S3%(BULLETH%, BULLETW%)
+DIM BULLET1S4%(BULLETH%, BULLETW%)
+
+DIM LavaFallEnemyBullet1S1%(BULLETH%, BULLETW%)
+DIM LavaFallEnemyBullet1S2%(BULLETH%, BULLETW%)
+
+DIM Tank1EnemyBullet1S1%(BULLETH%, BULLETW%)
+DIM Tank1EnemyBullet1S2%(BULLETH%, BULLETW%)
+
+LIST<DIM %> bulletSprites
+loadAndAddSprite(IMAGEROOT$, "Bullet_1_1.png", BULLET1S1%, bulletSprites)
+loadAndAddSprite(IMAGEROOT$, "Bullet_1_2.png", BULLET1S2%, bulletSprites)
+loadAndAddSprite(IMAGEROOT$, "Bullet_1_3.png", BULLET1S3%, bulletSprites)
+loadAndAddSprite(IMAGEROOT$, "Bullet_1_4.png", BULLET1S4%, bulletSprites)
+
+LIST<DIM %> lavaFallBulletSprites
+loadAndAddSprite(IMAGEROOT$, "LavaFallBullet_1_1.png", LavaFallEnemyBullet1S1%, lavaFallBulletSprites)
+loadAndAddSprite(IMAGEROOT$, "LavaFallBullet_1_2.png", LavaFallEnemyBullet1S2%, lavaFallBulletSprites)
+
+LIST<DIM %> tank1BulletSprites
+loadAndAddSprite(IMAGEROOT$, "TankBullet_1_1.png", Tank1EnemyBullet1S1%, tank1BulletSprites)
+loadAndAddSprite(IMAGEROOT$, "TankBullet_1_2.png", Tank1EnemyBullet1S2%, tank1BulletSprites)
 
 ' Player Config
 
@@ -423,13 +481,15 @@ BulletStateFire% = 1
 BulletStateMove% = 2
 
 NumP1Bullets% = 8
-DIM bullet1x%(NumP1Bullets%)
-DIM bullet1y%(NumP1Bullets%)
-DIM bullet1speedX%(NumP1Bullets%)
-DIM bullet1speedY%(NumP1Bullets%)
-DIM bullet1state%(NumP1Bullets%)
-DIM bullet1entity%(NumP1Bullets%)
-DIM bullet1sprite%(NumP1Bullets%)
+DIM Bullet1X%(NumP1Bullets%)
+DIM Bullet1Y%(NumP1Bullets%)
+DIM Bullet1SpeedX%(NumP1Bullets%)
+DIM Bullet1SpeedY%(NumP1Bullets%)
+DIM Bullet1State%(NumP1Bullets%)
+DIM Bullet1Entity%(NumP1Bullets%)
+DIM Bullet1SpriteIdx%(NumP1Bullets%)
+DIM Bullet1NumSprites%(NumP1Bullets%)
+NumBullet1Sprites% = 4
 
 ' Key config
 
@@ -500,11 +560,17 @@ cycleSinceLastP1Jump% = 0
 cycleSinceLastP1Shoot% = 0
 P1ActionNumCycles% = 5
 
+bulletCycle% = 0
+bulletMaxCycle% = 8
+
+bulletSpeedCycle% = 0
+bulletSpeedMaxCycle% = 2
+
 shiftX% = 0
 shiftY% = 0
 
 ' Play bg sound
-PLAYWAV SOUNDLEVEL1BG1%
+LOOPWAV SOUNDLEVEL1BG2%
 
 timer0@ = TIMERMILLIS
 
@@ -528,6 +594,11 @@ WHILE player1.numLives% > 0
     p1scrX% = p1x% * GAMEW%
     p1scrY% = p1y% * GAMEH%
 
+    ' Draw lives
+    FOR I% = 1 TO MIN(3, player1.numLives%)
+        PUT(I% * LIVESW% + 2, 16), LIVES1%, "MIX"
+    NEXT I%
+
     '  Draw Player1
     AUTO p1sprite = playerSprites.get(p1frame%)
     PUT(p1scrX%, p1scrY%), p1sprite, "MIX"
@@ -535,11 +606,12 @@ WHILE player1.numLives% > 0
 
     ' Draw bullets
     FOR I% = 0 TO NumP1Bullets% - 1
-        b1state% = bullet1state%(I%)
+        b1state% = Bullet1State%(I%)
         IF b1state% = BulletStateMove% THEN BEGIN
-            b1scrX% = bullet1x%(I%) * GAMEW%
-            b1scrY% = bullet1y%(I%) * GAMEH%
-            PUT(b1scrX%, b1scrY%), BULLET1%, "MIX"
+            b1scrX% = Bullet1X%(I%) * GAMEW%
+            b1scrY% = Bullet1Y%(I%) * GAMEH%
+            AUTO bullet1Sprite = bulletSprites.get(Bullet1SpriteIdx%(I%))
+            PUT(b1scrX%, b1scrY%), bullet1Sprite, "MIX"
         END IF
     NEXT I%
 
@@ -549,7 +621,11 @@ WHILE player1.numLives% > 0
         IF ebstate% = EnemyBulletStateMove% THEN BEGIN
             ebscrX% = EnemyBulletX%(I%) * SPLIT%
             ebscrY% = EnemyBulletY%(I%) * SPLIT%
-            PUT(ebscrX%, ebscrY%), LavaFallEnemyBullet1%, "MIX"
+            spriteIdx% = EnemyBulletSpriteIdx%(I%)
+            bulletKind% = EnemyBulletKind%(I%)
+            IF bulletKind% = EnemyBulletKindLava% THEN AUTO enemyBulletSprite = lavaFallBulletSprites.get(spriteIdx%)
+            IF bulletKind% = EnemyBulletKindTank1% THEN AUTO enemyBulletSprite = tank1BulletSprites.get(spriteIdx%)
+            PUT(ebscrX%, ebscrY%), enemyBulletSprite, "MIX"
         END IF
     NEXT I%
 
@@ -617,14 +693,15 @@ WHILE player1.numLives% > 0
         I% = 0
         slot% = -1
         WHILE slot%  = -1 AND I% < NumP1Bullets%
-            IF bullet1state%(I%) = BulletStateEmpty% THEN slot% = I%
+            IF Bullet1State%(I%) = BulletStateEmpty% THEN slot% = I%
             I% = I% + 1
         WEND
         IF slot% > -1 THEN BEGIN
             cycleSinceLastP1Shoot% = 0
-            bullet1state%(slot%) = BulletStateFire%
-            bullet1entity%(slot%) = 0
-            bullet1sprite%(slot%) = 0
+            Bullet1State%(slot%) = BulletStateFire%
+            Bullet1Entity%(slot%) = 0
+            Bullet1SpriteIdx%(slot%) = 0
+            Bullet1NumSprites%(slot%) = NumBullet1Sprites%
             PLAYWAV SOUNDBULLET1%
         END IF
     END IF
@@ -650,13 +727,16 @@ WHILE player1.numLives% > 0
                         J% = J% + 1
                     WEND
                     IF slot% > -1 THEN BEGIN
-                        PRINT "FIRE Lava" : LavaFallTimer@(I%) = timer1@
+                        LavaFallTimer@(I%) = timer1@
                         EnemyBulletState%(slot%) = EnemyBulletStateFire%
                         EnemyBulletX%(slot%) = x%
                         EnemyBulletY%(slot%) = y%
                         EnemyBulletEntity%(slot%) = 0
-                        EnemyBulletSprite%(slot%) = 0
-                        PRINT I%, x%, y%, GAMESCRW%, GAMESCRH%, state%
+                        EnemyBulletSpriteIdx%(slot%) = 0
+                        EnemyBulletNumSprites%(slot%) = NumEnemyBulletSprites%
+                        EnemyBulletKind%(slot%) = EnemyBulletKindLava%
+                        EnemyBulletSpeedX%(slot%) = 0
+                        EnemyBulletSpeedY%(slot%) = 1
                         'PLAYWAV SOUNDBULLET1%
                     END IF
                 END IF
@@ -665,6 +745,47 @@ WHILE player1.numLives% > 0
         END IF
     NEXT I%
     startLavaFallIdx% = nextStartLavaFallIdx%
+
+    ' Handle Tank1
+    nextStartTank1Idx% = startTank1Idx%
+    FOR I% = startTank1Idx% TO numTank1% - 1
+        state% = Tank1State%(I%)
+        IF state% <> Tank1StateDead% THEN BEGIN
+            x% = Tank1X%(I%) + Tank1ShootPosX%(I%) + shiftX%
+            y% = Tank1Y%(I%) + Tank1ShootPosY%(I%) + shiftY%
+            IF x% >= 0 AND y% >=0 AND x% < GAMESCRW% AND y% < GAMESCRH% THEN BEGIN
+                dt@ = timer1@ - Tank1Timer@(I%)
+                interval% = Tank1Interval%(I%)
+                IF dt@ > interval% THEN BEGIN
+                    J% = 0
+                    slot% = -1
+                    WHILE slot%  = -1 AND J% < NumEnemyBullets%
+                        IF EnemyBulletState%(J%) = EnemyBulletStateEmpty% THEN slot% = J%
+                        J% = J% + 1
+                    WEND
+                    IF slot% > -1 THEN BEGIN
+                        Tank1Timer@(I%) = timer1@
+                        EnemyBulletState%(slot%) = EnemyBulletStateFire%
+                        EnemyBulletX%(slot%) = x%
+                        EnemyBulletY%(slot%) = y%
+                        EnemyBulletEntity%(slot%) = 0
+                        EnemyBulletSpriteIdx%(slot%) = 0
+                        EnemyBulletNumSprites%(slot%) = NumEnemyBulletSprites%
+                        EnemyBulletKind%(slot%) = EnemyBulletKindTank1%
+                        dx% = p1x% - x%
+                        dy% = p1y% - y%
+                        IF dx% <> 0 THEN angle% = TODEG(ATN(ABS(dy%) / ABS(dx%))) ELSE angle% = 90
+                        angleIdx% = ROUND(angle% / 15.0)
+                        EnemyBulletSpeedX%(slot%) = SGN(dx%) * ShootAngleSpeedX%(angleIdx%)
+                        EnemyBulletSpeedY%(slot%) = SGN(dy%) * ShootAngleSpeedY%(angleIdx%)
+                        'PLAYWAV SOUNDBULLET1%
+                    END IF
+                END IF
+            END IF
+            IF x% < 0 THEN Tank1State%(I%) = Tank1StateDead% : nextStartTank1Idx% = I% + 1
+        END IF
+    NEXT I%
+    startTank1Idx% = nextStartTank1Idx%
 
     ' Handle vertical speed changes
     canChangeVertSpeed% = 0
@@ -689,7 +810,7 @@ WHILE player1.numLives% > 0
         p1y% = MIN(MAX(0, p1y% + p1speedY%), GAMESCRH% - 16)
         p1numFrames% = AFRAME%(nextp1state%, p1moveDirNum%, 0)
         cycleNum% = cycleNum% + 1
-        IF cycleNum% = numCycleFrame% THEN p1currFrame% = (p1currFrame% + 1) MOD p1numFrames% : cycleNum% = 0
+        IF cycleNum% = numCycleFrame% THEN cycleNumChange% = -1 : p1currFrame% = (p1currFrame% + 1) MOD p1numFrames% : cycleNum% = 0
     ELSE BEGIN
         player1.numLives% = player1.numLives% - 1
         ' change player state
@@ -713,29 +834,38 @@ WHILE player1.numLives% > 0
 
     xoffset% = xoffset% + scrollx%
 
+    bulletCycle% = bulletCycle% + 1
+    bulletCycleChange% = 0
+    IF bulletCycle% = bulletMaxCycle% THEN bulletCycleChange% = -1 : bulletCycle% = 0
+
+    bulletSpeedCycle% = bulletSpeedCycle% + 1
+    bulletSpeedCycleChange% = 0
+    IF bulletSpeedCycle% = bulletSpeedMaxCycle% THEN bulletSpeedCycleChange% = -1 : bulletSpeedCycle% = 0
+
     FOR I% = 0 TO NumP1Bullets% - 1
-        b1state% = bullet1state%(I%)
-        b1x% = bullet1x%(I%) - scrollx% \ SPLIT%
-        b1y% = bullet1y%(I%)
+        b1state% = Bullet1State%(I%)
+        b1x% = Bullet1X%(I%) - scrollx% \ SPLIT%
+        b1y% = Bullet1Y%(I%)
 
         IF b1state% = BulletStateMove% THEN BEGIN
-            b1x% = b1x% + bullet1speedX%(I%)
-            b1y% = b1y% + bullet1speedY%(I%)
+            b1x% = b1x% + Bullet1SpeedX%(I%)
+            b1y% = b1y% + Bullet1SpeedY%(I%)
             IF b1x% < 0% OR b1x% > GAMESCRW% OR b1y% < 0 OR b1y% > GAMESCRH% THEN b1state% = BulletStateEmpty%
-            bullet1state%(I%) = b1state%
+            Bullet1State%(I%) = b1state%
+            IF bulletCycleChange% THEN Bullet1SpriteIdx%(I%) = (Bullet1SpriteIdx%(I%) + 1) MOD Bullet1NumSprites%(I%)
         ELSE BEGIN
             IF b1state% = BulletStateFire% THEN BEGIN
                 p1frame% = AFRAME%(nextp1state%, p1moveDirNum%, p1currFrame% + 1)
-                bullet1state%(I%) = BulletStateMove%
+                Bullet1State%(I%) = BulletStateMove%
                 b1x% = p1x% + PLAYERSHOOT%(p1frame%, 0)
                 b1y% = p1y% + PLAYERSHOOT%(p1frame%, 1)
-                bullet1speedX%(I%) = PLAYERSHOOT%(p1frame%, 2)
-                bullet1speedY%(I%) = PLAYERSHOOT%(p1frame%, 3)
+                Bullet1SpeedX%(I%) = PLAYERSHOOT%(p1frame%, 2)
+                Bullet1SpeedY%(I%) = PLAYERSHOOT%(p1frame%, 3)
             END IF
         END IF
 
-        bullet1x%(I%) = b1x%
-        bullet1y%(I%) = b1y%
+        Bullet1X%(I%) = b1x%
+        Bullet1Y%(I%) = b1y%
 
     NEXT I%
 
@@ -745,9 +875,12 @@ WHILE player1.numLives% > 0
         eby% = EnemyBulletY%(I%)
 
         IF ebstate% = EnemyBulletStateMove% THEN BEGIN
-            ebx% = ebx% + EnemyBulletSpeedX%(I%)
-            eby% = eby% + EnemyBulletSpeedY%(I%)
+            IF bulletSpeedCycleChange% THEN ebx% = ebx% + EnemyBulletSpeedX%(I%)
+            IF bulletSpeedCycleChange% THEN eby% = eby% + EnemyBulletSpeedY%(I%)
             IF ebx% < 0% OR ebx% > GAMESCRW% OR eby% < 0 OR eby% > GAMESCRH% THEN ebstate% = EnemyBulletStateEmpty%
+
+            IF bulletCycleChange% THEN EnemyBulletSpriteIdx%(I%) = (EnemyBulletSpriteIdx%(I%) + 1) MOD EnemyBulletNumSprites%(I%)
+
             ' Check collision with player
             r1x1% = p1x% + p1bbx1% : r1y1% = p1y% + p1bby1% : r1x2% = p1x% + p1bbx2% : r1y2% = p1y% + p1bby2%
             r2x1% = ebx% : r2y1% = eby% : r2x2% = ebx% +  + BULLETW% \ SPLIT% : r2y2% = eby% + BULLETH% \ SPLIT%
@@ -758,15 +891,12 @@ WHILE player1.numLives% > 0
                 ' set player state to dead
                 ' reduce players lives
                 player1.numLives% = player1.numLives% - 1
-                PRINT "Collision", collision%, r1x1%, r1y1%, r1x2%, r1y2%, r2x1%, r2y1%, r2x2%, r2y2%, player1.numLives%
+                'PRINT "Collision", collision%, r1x1%, r1y1%, r1x2%, r1y2%, r2x1%, r2y1%, r2x2%, r2y2%, player1.numLives%
             END IF
             EnemyBulletState%(I%) = ebstate%
         ELSE BEGIN
             IF ebstate% = EnemyBulletStateFire% THEN BEGIN
-                PRINT "EnemyBullet"
                 EnemyBulletState%(I%) = EnemyBulletStateMove%
-                EnemyBulletSpeedX%(I%) = 0
-                EnemyBulletSpeedY%(I%) = 1
             END IF
         END IF
 
@@ -864,6 +994,17 @@ FOR I% = 0 TO numLavaFall% - 1
     LavaFallShootPosX%(I%) = VAL(tokens(4)) \ SPLIT%
     LavaFallShootPosY%(I%) = VAL(tokens(5)) \ SPLIT%
     LavaFallInterval%(I%) = VAL(tokens(6)) * 1000
+NEXT I%
+
+' Read tank1
+LINE INPUT#1, mapline$ : AUTO tokens = SPLIT$(mapline$, ",") : numTank1% = VAL(tokens(0))
+FOR I% = 0 TO numTank1% - 1
+    LINE INPUT#1, mapline$ : AUTO tokens = SPLIT$(mapline$, ",")
+    Tank1X%(I%) = VAL(tokens(2)) * GAMEW%
+    Tank1Y%(I%) = VAL(tokens(3)) * GAMEH%
+    Tank1ShootPosX%(I%) = VAL(tokens(4)) \ SPLIT%
+    Tank1ShootPosY%(I%) = VAL(tokens(5)) \ SPLIT%
+    Tank1Interval%(I%) = VAL(tokens(6)) * 1000
 NEXT I%
 
 CLOSE #1
