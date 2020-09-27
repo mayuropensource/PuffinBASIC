@@ -1326,6 +1326,14 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
     }
 
     @Override
+    public void exitFuncTimerMillis(PuffinBasicParser.FuncTimerMillisContext ctx) {
+        nodeToInstruction.put(ctx, ir.addInstruction(
+                sourceFile, currentLineNumber, ctx.start.getStartIndex(), ctx.stop.getStopIndex(),
+                OpCode.TIMERMILLIS, NULL_ID, NULL_ID,
+                ir.getSymbolTable().addTmp(INT64, c -> {})));
+    }
+
+    @Override
     public void exitFuncStringDlr(PuffinBasicParser.FuncStringDlrContext ctx) {
         int n = lookupInstruction(ctx.expr(0)).result;
         int jOrxdlr = lookupInstruction(ctx.expr(1)).result;

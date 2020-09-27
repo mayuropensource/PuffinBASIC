@@ -219,6 +219,7 @@ func
     | SGN LPAREN expr RPAREN                                # FuncSgn
     | ENVIRONDLR LPAREN expr RPAREN                         # FuncEnvironDlr
     | TIMER                                                 # FuncTimer
+    | TIMERMILLIS                                           # FuncTimerMillis
     | STRINGDLR LPAREN expr COMMA expr RPAREN               # FuncStringDlr
     | EOFFN LPAREN expr RPAREN                              # FuncEof
     | LOC LPAREN expr RPAREN                                # FuncLoc
@@ -934,6 +935,10 @@ SGN
 
 TIMER
     : T I M E R
+    ;
+
+TIMERMILLIS
+    : T I M E R M I L L I S
     ;
 
 STRINGDLR

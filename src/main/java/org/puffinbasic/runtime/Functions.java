@@ -15,6 +15,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import static org.puffinbasic.domain.PuffinBasicSymbolTable.NULL_ID;
 import static org.puffinbasic.domain.STObjects.PuffinBasicAtomTypeId.FLOAT;
@@ -577,6 +578,14 @@ public class Functions {
         var duration = Duration.between(midnight, Instant.now());
         var seconds = duration.getSeconds() + duration.getNano() / 1000_000_000.0;
         symbolTable.get(instruction.result).getValue().setFloat64(seconds);
+    }
+
+    public static void timerMillis(PuffinBasicSymbolTable symbolTable, Instruction instruction) {
+        var nowZoned = ZonedDateTime.now();
+        var midnight = nowZoned.toLocalDate().atStartOfDay(nowZoned.getZone()).toInstant();
+        var duration = Duration.between(midnight, Instant.now());
+        var millis = TimeUnit.SECONDS.toMillis(duration.getSeconds()) + TimeUnit.NANOSECONDS.toMillis(duration.getNano());
+        symbolTable.get(instruction.result).getValue().setInt64(millis);
     }
 
     public static void stringdlr(PuffinBasicSymbolTable symbolTable, Instruction instruction) {

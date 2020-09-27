@@ -118,6 +118,8 @@ public class PuffinBasicRuntime {
                     throw new PuffinBasicRuntimeError(e, instruction, ir.getCodeStreamFor(instruction));
                 }
             }
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
         } finally {
             GraphicsRuntime.end(graphicsState);
             soundState.close();
@@ -725,6 +727,9 @@ public class PuffinBasicRuntime {
                 break;
             case TIMER:
                 Functions.timer(ir.getSymbolTable(), instruction);
+                break;
+            case TIMERMILLIS:
+                Functions.timerMillis(ir.getSymbolTable(), instruction);
                 break;
             case STRINGDLR:
                 Functions.stringdlr(ir.getSymbolTable(), instruction);

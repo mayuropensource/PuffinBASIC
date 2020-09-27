@@ -171,6 +171,7 @@ public class PuffinBasicIR {
         RND("rnd"),
         SGN("sgn"),
         TIMER("timer"),
+        TIMERMILLIS("timerMillis"),
         STRINGDLR("string$"),
         OPEN("open"),
         CLOSE_ALL("close_all"),
@@ -246,8 +247,12 @@ public class PuffinBasicIR {
     }
 
     public String getCodeStreamFor(Instruction instruction) {
-        return instruction.getInputRef().sourceFile.getSourceCodeStream().getText(
-                new Interval(instruction.inputRef.inputStartIndex, instruction.inputRef.inputStopIndex));
+        try {
+            return instruction.getInputRef().sourceFile.getSourceCodeStream().getText(
+                    new Interval(instruction.inputRef.inputStartIndex, instruction.inputRef.inputStopIndex));
+        } catch (Exception e) {
+            return "Internal error: " + e.getMessage();
+        }
     }
 
     public List<Instruction> getInstructions() {

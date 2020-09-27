@@ -911,12 +911,22 @@ ENVIRON$(x$)
 
 ### TIMER
 
-Returns number of seconds (Float64) elapsed since mid-night in the local time zone.
+Returns number of seconds (Float64) elapsed since midnight in the local time zone.
 
 Syntax:
 
 ```
 TIMER
+```
+
+### TIMERMILLIS
+
+Returns number of milliseconds (Int64) elapsed since midnight in the local time zone.
+
+Syntax:
+
+```
+TIMERMILLIS
 ```
 
 ### INPUT$

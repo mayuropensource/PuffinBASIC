@@ -150,6 +150,37 @@ DIM BgEntitySpriteItr%(MaxBgEntities%)
 DIM BgEntityKind%(MaxBgEntities%)
 DIM BgEntitySprites%(MaxBgEntities%, BgEntityMaxNumSprites%)
 
+' Lava Fall
+LavaFallStateDormant% = 0
+LavaFallStateDead% = 1
+
+MaxLavaFall% = 32
+startLavaFallIdx% = 0
+numLavaFall% = 0
+DIM LavaFallX%(MaxLavaFall%)
+DIM LavaFallY%(MaxLavaFall%)
+DIM LavaFallShootPosX%(MaxLavaFall%)
+DIM LavaFallShootPosY%(MaxLavaFall%)
+DIM LavaFallSpeedY%(MaxLavaFall%)
+DIM LavaFallState%(MaxLavaFall%)
+DIM LavaFallTimer@(MaxLavaFall%)
+DIM LavaFallInterval%(MaxLavaFall%)
+DIM LavaFallSprite%(MaxLavaFall%)
+
+' Enemy bullet config
+EnemyBulletStateEmpty% = 0
+EnemyBulletStateFire% = 1
+EnemyBulletStateMove% = 2
+
+NumEnemyBullets% = 8
+DIM EnemyBulletX%(NumEnemyBullets%)
+DIM EnemyBulletY%(NumEnemyBullets%)
+DIM EnemyBulletSpeedX%(NumEnemyBullets%)
+DIM EnemyBulletSpeedY%(NumEnemyBullets%)
+DIM EnemyBulletState%(NumEnemyBullets%)
+DIM EnemyBulletEntity%(NumEnemyBullets%)
+DIM EnemyBulletSprite%(NumEnemyBullets%)
+
 LIST<DIM %> bgSprites
 mapFile$ = MAPROOT$ + "game_level1.map"
 GOSUB "LoadMaps"
@@ -212,9 +243,12 @@ loadAndAddSprite(IMAGEROOT$, "player/SIT_L_1.png", PLAYERSITL1%, playerSprites)
 ' Load bullet sprites
 
 LIST<DIM %> bulletSprites
+LIST<DIM %> enemyBulletSprites
 BULLETW% = 16 : BULLETH% = 16
 DIM BULLET1%(BULLETH%, BULLETW%)         ' 0
+DIM LavaFallEnemyBullet1%(BULLETH%, BULLETW%)  ' 0
 loadAndAddSprite(IMAGEROOT$, "Bullet_1.png", BULLET1%, bulletSprites)
+loadAndAddSprite(IMAGEROOT$, "LavaFallBullet1.png", LavaFallEnemyBullet1%, enemyBulletSprites)
 
 ' Player Config
 
@@ -452,7 +486,7 @@ player1.x% = 1
 player1.y% = 1
 player1.vertSpeedIdx% = FALLVERTSPEED%
 player1.state% = StateFall%
-player1.numLives% = 1
+player1.numLives% = 10
 p1numFrames% = AFRAME%(player1.state%, player1.moveDirNum%, 0)
 p1currFrame% = 0
 
@@ -466,8 +500,13 @@ cycleSinceLastP1Jump% = 0
 cycleSinceLastP1Shoot% = 0
 P1ActionNumCycles% = 5
 
+shiftX% = 0
+shiftY% = 0
+
 ' Play bg sound
 PLAYWAV SOUNDLEVEL1BG1%
+
+timer0@ = TIMERMILLIS
 
 ' Game loop
 WHILE player1.numLives% > 0
@@ -492,7 +531,7 @@ WHILE player1.numLives% > 0
     '  Draw Player1
     AUTO p1sprite = playerSprites.get(p1frame%)
     PUT(p1scrX%, p1scrY%), p1sprite, "MIX"
-    'LINE (p1scrX% + p1bbx1% * GAMEW%, p1scrY% + p1bby1% * GAMEH%) - (p1scrX% + p1bbx2% * GAMEW%, p1scrY% + p1bby2% * GAMEH%), "B"
+    LINE (p1scrX% + p1bbx1% * GAMEW%, p1scrY% + p1bby1% * GAMEH%) - (p1scrX% + p1bbx2% * GAMEW%, p1scrY% + p1bby2% * GAMEH%), "B"
 
     ' Draw bullets
     FOR I% = 0 TO NumP1Bullets% - 1
@@ -504,8 +543,18 @@ WHILE player1.numLives% > 0
         END IF
     NEXT I%
 
+    ' Draw enemy bullets
+    FOR I% = 0 TO NumEnemyBullets% - 1
+        ebstate% = EnemyBulletState%(I%)
+        IF ebstate% = EnemyBulletStateMove% THEN BEGIN
+            ebscrX% = EnemyBulletX%(I%) * SPLIT%
+            ebscrY% = EnemyBulletY%(I%) * SPLIT%
+            PUT(ebscrX%, ebscrY%), LavaFallEnemyBullet1%, "MIX"
+        END IF
+    NEXT I%
+
     REPAINT
-    timer1 = TIMER
+    timer1@ = TIMERMILLIS
 
     key$ = INKEY$
     kpU% = ISKEYPRESSED(KeyUp$)
@@ -583,6 +632,40 @@ WHILE player1.numLives% > 0
     cycleSinceLastP1Shoot% = cycleSinceLastP1Shoot% + 1
     cycleSinceLastP1Jump% = cycleSinceLastP1Jump% + 1
 
+    ' Handle Lava Fall
+    nextStartLavaFallIdx% = startLavaFallIdx%
+    FOR I% = startLavaFallIdx% TO numLavaFall% - 1
+        state% = LavaFallState%(I%)
+        IF state% <> LavaFallStateDead% THEN BEGIN
+            x% = LavaFallX%(I%) + LavaFallShootPosX%(I%) + shiftX%
+            y% = LavaFallY%(I%) + LavaFallShootPosY%(I%) + shiftY%
+            IF x% >= 0 AND y% >=0 AND x% < GAMESCRW% AND y% < GAMESCRH% THEN BEGIN
+                dt@ = timer1@ - LavaFallTimer@(I%)
+                interval% = LavaFallInterval%(I%)
+                IF dt@ > interval% THEN BEGIN
+                    J% = 0
+                    slot% = -1
+                    WHILE slot%  = -1 AND J% < NumEnemyBullets%
+                        IF EnemyBulletState%(J%) = EnemyBulletStateEmpty% THEN slot% = J%
+                        J% = J% + 1
+                    WEND
+                    IF slot% > -1 THEN BEGIN
+                        PRINT "FIRE Lava" : LavaFallTimer@(I%) = timer1@
+                        EnemyBulletState%(slot%) = EnemyBulletStateFire%
+                        EnemyBulletX%(slot%) = x%
+                        EnemyBulletY%(slot%) = y%
+                        EnemyBulletEntity%(slot%) = 0
+                        EnemyBulletSprite%(slot%) = 0
+                        PRINT I%, x%, y%, GAMESCRW%, GAMESCRH%, state%
+                        'PLAYWAV SOUNDBULLET1%
+                    END IF
+                END IF
+            END IF
+            IF x% < 0 THEN LavaFallState%(I%) = LavaFallStateDead% : nextStartLavaFallIdx% = I% + 1
+        END IF
+    NEXT I%
+    startLavaFallIdx% = nextStartLavaFallIdx%
+
     ' Handle vertical speed changes
     canChangeVertSpeed% = 0
     IF p1state% <> nextp1state% THEN BEGIN
@@ -609,9 +692,10 @@ WHILE player1.numLives% > 0
         IF cycleNum% = numCycleFrame% THEN p1currFrame% = (p1currFrame% + 1) MOD p1numFrames% : cycleNum% = 0
     ELSE BEGIN
         player1.numLives% = player1.numLives% - 1
+        ' change player state
+        ' find spawn position
+        ' set new x and y
     END IF
-
-    'PRINT p1currFrame%, "state", nextp1state%, "spdY", p1speedY%, "spdX", p1speedX%, "Y", p1y%, "X", p1x%
 
     IF p1x% > GAMESCRSCROLLW% AND colstart% < BGNCOLS% - BGSCRW% THEN BEGIN
         scrollx% = ScrollX%
@@ -655,10 +739,45 @@ WHILE player1.numLives% > 0
 
     NEXT I%
 
-    IF scrollx% > 0 THEN ARRAY2DSHIFTHOR GAMEMAP%, -GameMapScrollX%
+    FOR I% = 0 TO NumEnemyBullets% - 1
+        ebstate% = EnemyBulletState%(I%)
+        ebx% = EnemyBulletX%(I%) - scrollx% \ SPLIT%
+        eby% = EnemyBulletY%(I%)
+
+        IF ebstate% = EnemyBulletStateMove% THEN BEGIN
+            ebx% = ebx% + EnemyBulletSpeedX%(I%)
+            eby% = eby% + EnemyBulletSpeedY%(I%)
+            IF ebx% < 0% OR ebx% > GAMESCRW% OR eby% < 0 OR eby% > GAMESCRH% THEN ebstate% = EnemyBulletStateEmpty%
+            ' Check collision with player
+            r1x1% = p1x% + p1bbx1% : r1y1% = p1y% + p1bby1% : r1x2% = p1x% + p1bbx2% : r1y2% = p1y% + p1bby2%
+            r2x1% = ebx% : r2y1% = eby% : r2x2% = ebx% +  + BULLETW% \ SPLIT% : r2y2% = eby% + BULLETH% \ SPLIT%
+            collision% = r2x1% <= r1x2% AND r2y1% <= r1y2% AND r2x2% >= r1x1% AND r2y2% >= r1y1%
+            IF collision% THEN BEGIN
+                ebstate% = EnemyBulletStateEmpty%
+                ' draw collision animation
+                ' set player state to dead
+                ' reduce players lives
+                player1.numLives% = player1.numLives% - 1
+                PRINT "Collision", collision%, r1x1%, r1y1%, r1x2%, r1y2%, r2x1%, r2y1%, r2x2%, r2y2%, player1.numLives%
+            END IF
+            EnemyBulletState%(I%) = ebstate%
+        ELSE BEGIN
+            IF ebstate% = EnemyBulletStateFire% THEN BEGIN
+                PRINT "EnemyBullet"
+                EnemyBulletState%(I%) = EnemyBulletStateMove%
+                EnemyBulletSpeedX%(I%) = 0
+                EnemyBulletSpeedY%(I%) = 1
+            END IF
+        END IF
+
+        EnemyBulletX%(I%) = ebx%
+        EnemyBulletY%(I%) = eby%
+
+    NEXT I%
+
+    IF scrollx% > 0 THEN ARRAY2DSHIFTHOR GAMEMAP%, -GameMapScrollX% : shiftX% = shiftX% - GameMapScrollX%
     ' Scroll the bg map and game map
     IF xoffset% = BGTILEW% THEN BEGIN
-        'ARRAY2DSHIFTHOR GAMEMAP%, -SPLIT%
         ARRAY2DSHIFTHOR BGMAP%, -1
         xoffset% = 0
         colstart% = colstart% + 1
@@ -668,8 +787,8 @@ WHILE player1.numLives% > 0
     IF bgCycleNum% = numBgCycleFrame% THEN incrBgAnimation% = 1 : bgCycleNum% = 0 ELSE incrBgAnimation% = 0 : bgCycleNum% = bgCycleNum% + 1
     drawBg%(BGMAP%, BGSCRW%, BGSCRH%, BGTILEW%, BGTILEH%, xoffset%, bgSprites, numMapEntities%, BgEntityNumSprites%, BgEntitySpriteItr%, BgEntitySprites%, incrBgAnimation%)
 
-    sleepTime% = MAX(0, 40 - CINT(1000 * (TIMER - timer1)))
-    IF sleepTime% > 0 THEN SLEEP sleepTime%
+    sleepTime@ = MAX(0, 40 - (TIMERMILLIS - timer1@))
+    IF sleepTime@ > 0 THEN SLEEP sleepTime@
 
 WEND
 
@@ -734,6 +853,17 @@ FOR I% = 0 TO BGNCOLS% - 1
             NEXT L%
         NEXT K%
     NEXT J%
+NEXT I%
+
+' Read num LAVA falls
+LINE INPUT#1, mapline$ : AUTO tokens = SPLIT$(mapline$, ",") : numLavaFall% = VAL(tokens(0))
+FOR I% = 0 TO numLavaFall% - 1
+    LINE INPUT#1, mapline$ : AUTO tokens = SPLIT$(mapline$, ",")
+    LavaFallX%(I%) = VAL(tokens(2)) * GAMEW%
+    LavaFallY%(I%) = VAL(tokens(3)) * GAMEH%
+    LavaFallShootPosX%(I%) = VAL(tokens(4)) \ SPLIT%
+    LavaFallShootPosY%(I%) = VAL(tokens(5)) \ SPLIT%
+    LavaFallInterval%(I%) = VAL(tokens(6)) * 1000
 NEXT I%
 
 CLOSE #1
