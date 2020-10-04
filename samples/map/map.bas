@@ -333,7 +333,7 @@ loadAndAddSprite(IMAGEROOT$, "TankBullet_1_1.png", Tank1EnemyBullet1S1%, tank1Bu
 loadAndAddSprite(IMAGEROOT$, "TankBullet_1_2.png", Tank1EnemyBullet1S2%, tank1BulletSprites)
 
 ' EnemyFly1
-EnemyFly1W% = 64 : EnemyFly1H% = 64
+EnemyFly1W% = 32 : EnemyFly1H% = 32
 
 DIM EnemyFly1S1%(EnemyFly1H%, EnemyFly1W%)
 DIM EnemyFly1S2%(EnemyFly1H%, EnemyFly1W%)
