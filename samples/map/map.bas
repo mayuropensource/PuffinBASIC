@@ -296,6 +296,29 @@ loadAndAddSprite(IMAGEROOT$, "player/JUMP_L_1.png", PLAYERJUMPL1%, playerSprites
 loadAndAddSprite(IMAGEROOT$, "player/JUMP_L_2.png", PLAYERJUMPL2%, playerSprites)
 loadAndAddSprite(IMAGEROOT$, "player/SIT_L_1.png", PLAYERSITL1%, playerSprites)
 
+' EnemyCyborg1 Sprites
+
+EnemyCyborg1W% = 128 : EnemyCyborg1H% = 128
+
+DIM EnemyCyborg1%(EnemyCyborg1H%, EnemyCyborg1W%)   ' 0
+DIM EnemyCyborg2%(EnemyCyborg1H%, EnemyCyborg1W%)   ' 0
+DIM EnemyCyborg3%(EnemyCyborg1H%, EnemyCyborg1W%)   ' 0
+DIM EnemyCyborg4%(EnemyCyborg1H%, EnemyCyborg1W%)   ' 0
+DIM EnemyCyborg5%(EnemyCyborg1H%, EnemyCyborg1W%)   ' 0
+DIM EnemyCyborg6%(EnemyCyborg1H%, EnemyCyborg1W%)   ' 0
+DIM EnemyCyborg7%(EnemyCyborg1H%, EnemyCyborg1W%)   ' 0
+DIM EnemyCyborg8%(EnemyCyborg1H%, EnemyCyborg1W%)   ' 0
+
+LIST<DIM %> enemyCyborg1Sprites
+loadAndAddSprite(IMAGEROOT$, "EnemyCyborg1_L_1.png", EnemyCyborg1%, enemyCyborg1Sprites)
+loadAndAddSprite(IMAGEROOT$, "EnemyCyborg1_L_2.png", EnemyCyborg2%, enemyCyborg1Sprites)
+loadAndAddSprite(IMAGEROOT$, "EnemyCyborg1_L_3.png", EnemyCyborg3%, enemyCyborg1Sprites)
+loadAndAddSprite(IMAGEROOT$, "EnemyCyborg1_L_4.png", EnemyCyborg4%, enemyCyborg1Sprites)
+loadAndAddSprite(IMAGEROOT$, "EnemyCyborg1_R_1.png", EnemyCyborg5%, enemyCyborg1Sprites)
+loadAndAddSprite(IMAGEROOT$, "EnemyCyborg1_R_2.png", EnemyCyborg6%, enemyCyborg1Sprites)
+loadAndAddSprite(IMAGEROOT$, "EnemyCyborg1_R_3.png", EnemyCyborg7%, enemyCyborg1Sprites)
+loadAndAddSprite(IMAGEROOT$, "EnemyCyborg1_R_4.png", EnemyCyborg8%, enemyCyborg1Sprites)
+
 ' Load lives
 
 LIVESW% = 32 : LIVESH% = 32
@@ -679,9 +702,10 @@ blast1MaxCycle% = 8
 shiftX% = 0
 shiftY% = 0
 
+c1% = 0
+
 ' Play bg sound
 LOOPWAV SOUNDLEVEL1BG2%
-
 timer0@ = TIMERMILLIS
 
 ' Game loop
@@ -706,13 +730,17 @@ WHILE player1.numLives% > 0
 
     ' Draw lives
     FOR I% = 1 TO MIN(3, player1.numLives%)
-        PUT(I% * LIVESW% + 2, 16), LIVES1%, "MIX"
+        PUT(I% * LIVESW% + 2, 2), LIVES1%, "MIX"
     NEXT I%
 
     '  Draw Player1
     AUTO p1sprite = playerSprites.get(p1frame%)
     PUT(p1scrX%, p1scrY%), p1sprite, "MIX"
     'LINE (p1scrX% + p1bbx1% * GAMEW%, p1scrY% + p1bby1% * GAMEH%) - (p1scrX% + p1bbx2% * GAMEW%, p1scrY% + p1bby2% * GAMEH%), "B"
+
+    IF cycleNum% = 0 THEN c1% = (c1% + 1) MOD 4
+    AUTO enemyCyborg1Sprite = enemyCyborg1Sprites.get(c1%)
+    PUT(128, 128), enemyCyborg1Sprite, "MIX"
 
     ' Draw bullets
     FOR I% = 0 TO NumP1Bullets% - 1
