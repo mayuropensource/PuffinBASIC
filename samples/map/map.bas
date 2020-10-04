@@ -170,7 +170,8 @@ DIM LavaFallInterval%(MaxLavaFall%)
 ' Tank1
 Tank1StateDormant% = 0
 Tank1StateActive% = 1
-Tank1StateDead% = 2
+Tank1StateHit% = 2
+Tank1StateDead% = 3
 
 MaxTank1% = 32
 startTank1Idx% = 0
@@ -186,7 +187,9 @@ DIM Tank1Interval%(MaxTank1%)
 
 ' EnemyFly1Tank
 EnemyFly1TankStateDormant% = 0
-EnemyFly1TankStateDead% = 1
+EnemyFly1TankStateActive% = 1
+EnemyFly1TankStateHit% = 2
+EnemyFly1TankStateDead% = 3
 
 MaxEnemyFly1Tank% = 32
 startEnemyFly1TankIdx% = 0
@@ -339,10 +342,23 @@ loadAndAddSprite(IMAGEROOT$, "ENEMY_FLY1_L_2.png", EnemyFly1S2%, enemyFly1Sprite
 loadAndAddSprite(IMAGEROOT$, "ENEMY_FLY1_R_1.png", EnemyFly1S3%, enemyFly1Sprites)
 loadAndAddSprite(IMAGEROOT$, "ENEMY_FLY1_R_2.png", EnemyFly1S4%, enemyFly1Sprites)
 
+' Blast1
+Blast1W% = 32 : Blast1H% = 32
+DIM Blast1S1%(Blast1H%, Blast1W%)
+DIM Blast1S2%(Blast1H%, Blast1W%)
+DIM Blast1S3%(Blast1H%, Blast1W%)
+
+NumBlastSprites% = 3
+LIST<DIM %> blast1Sprites
+loadAndAddSprite(IMAGEROOT$, "Blast1_0.png", Blast1S1%, blast1Sprites)
+loadAndAddSprite(IMAGEROOT$, "Blast1_1.png", Blast1S2%, blast1Sprites)
+loadAndAddSprite(IMAGEROOT$, "Blast1_2.png", Blast1S3%, blast1Sprites)
+
 ' EnemyFly1 config
 EnemyFly1StateEmpty% = 0
 EnemyFly1StateFire% = 1
 EnemyFly1StateMove% = 2
+EnemyFly1StateHit% = 3
 
 EnemyFly1DirLeft% = 0
 EnemyFly1DirRight% = 1
@@ -355,6 +371,7 @@ DIM EnemyFly1SpeedY%(NumEnemyFly1%)
 DIM EnemyFly1State%(NumEnemyFly1%)
 DIM EnemyFly1SpriteIdx%(NumEnemyFly1%)
 DIM EnemyFly1NumSprites%(NumEnemyFly1%)
+DIM EnemyFly1HitSpriteIdx%(NumEnemyFly1%)
 DIM EnemyFly1Dir%(NumEnemyFly1%)
 NumEnemyFly1Sprites% = 2
 DIM EnemyFly1Sprite%(2, NumEnemyFly1Sprites%)
@@ -625,6 +642,9 @@ enemyFly1MaxCycle% = 4
 enemyFly1SpeedCycle% = 0
 enemyFly1SpeedMaxCycle% = 4
 
+blast1Cycle% = 0
+blast1MaxCycle% = 8
+
 shiftX% = 0
 shiftY% = 0
 
@@ -688,6 +708,10 @@ WHILE player1.numLives% > 0
         END IF
     NEXT I%
 
+    blast1Cycle% = blast1Cycle% + 1
+    blast1CycleChange% = 0
+    IF blast1Cycle% = blast1MaxCycle% THEN blast1CycleChange% = -1 : blast1Cycle% = 0
+
     ' Draw EnemyFly1
     FOR I% = 0 TO NumEnemyFly1% - 1
         ebstate% = EnemyFly1State%(I%)
@@ -699,6 +723,15 @@ WHILE player1.numLives% > 0
             spriteIdx2% = EnemyFly1Sprite%(dir%, spriteIdx%)
             AUTO enemyFly1Sprite = enemyFly1Sprites.get(spriteIdx2%)
             PUT(ebscrX%, ebscrY%), enemyFly1Sprite, "MIX"
+        END IF
+        IF ebstate% = EnemyFly1StateHit% THEN BEGIN
+            ebscrX% = EnemyFly1X%(I%) * SPLIT%
+            ebscrY% = EnemyFly1Y%(I%) * SPLIT%
+            spriteIdx% = EnemyFly1SpriteIdx%(I%)
+            AUTO blast1Sprite = blast1Sprites.get(spriteIdx%)
+            PUT(ebscrX%, ebscrY%), blast1Sprite, "MIX"
+            IF blast1CycleChange% THEN EnemyFly1SpriteIdx%(I%) = spriteIdx% + 1
+            IF EnemyFly1SpriteIdx%(I%) = NumBlastSprites% THEN EnemyFly1State%(I%) = EnemyFly1StateEmpty% : EnemyFly1SpriteIdx%(I%) = 0
         END IF
     NEXT I%
 
@@ -823,7 +856,7 @@ WHILE player1.numLives% > 0
     nextStartTank1Idx% = startTank1Idx%
     FOR I% = startTank1Idx% TO numTank1% - 1
         state% = Tank1State%(I%)
-        IF state% <> Tank1StateDead% THEN BEGIN
+        IF state% = Tank1StateDormant% OR state% = Tank1StateActive% THEN BEGIN
             x% = Tank1X%(I%) + Tank1ShootPosX%(I%) + shiftX%
             y% = Tank1Y%(I%) + Tank1ShootPosY%(I%) + shiftY%
             IF x% >= 0 AND y% >=0 AND x% < GAMESCRW% AND y% < GAMESCRH% THEN BEGIN
@@ -865,10 +898,11 @@ WHILE player1.numLives% > 0
     nextStartEnemyFly1TankIdx% = startEnemyFly1TankIdx%
     FOR I% = startEnemyFly1TankIdx% TO numEnemyFly1Tank% - 1
         state% = EnemyFly1TankState%(I%)
-        IF state% <> EnemyFly1TankStateDead% THEN BEGIN
+        IF state% = EnemyFly1TankStateDormant% OR state% = EnemyFly1TankStateActive% THEN BEGIN
             x% = EnemyFly1TankX%(I%) + EnemyFly1TankShootPosX%(I%) + shiftX%
             y% = EnemyFly1TankY%(I%) + EnemyFly1TankShootPosY%(I%) + shiftY%
             IF x% >= 0 AND y% >=0 AND x% < GAMESCRW% AND y% < GAMESCRH% THEN BEGIN
+                EnemyFly1TankState%(I%) = EnemyFly1TankStateActive%
                 dt@ = timer1@ - EnemyFly1TankTimer@(I%)
                 interval% = EnemyFly1TankInterval%(I%)
                 IF dt@ > interval% THEN BEGIN
@@ -884,6 +918,7 @@ WHILE player1.numLives% > 0
                         EnemyFly1X%(slot%) = x%
                         EnemyFly1Y%(slot%) = y%
                         EnemyFly1SpriteIdx%(slot%) = 0
+                        EnemyFly1HitSpriteIdx%(slot%) = 0
                         EnemyFly1NumSprites%(slot%) = NumEnemyFly1Sprites%
                         dx% = p1x% - x%
                         dy% = p1y% - y%
@@ -984,7 +1019,7 @@ WHILE player1.numLives% > 0
                         ' draw collision animation
                         ' set enemy fly1 state to dead
                         PRINT "Collision FlyEnemy1: ", collision%, r1x1%, r1y1%, r1x2%, r1y2%, r2x1%, r2y1%, r2x2%, r2y2%
-                        EnemyFly1State%(E%) = EnemyFly1StateEmpty%
+                        EnemyFly1State%(E%) = EnemyFly1StateHit%
                         b1state% = BulletStateEmpty%
                         Bullet1State%(I%) = b1state%
                     END IF
@@ -1008,7 +1043,7 @@ WHILE player1.numLives% > 0
                         ' draw collision animation
                         ' set enemy fly1 state to dead
                         PRINT "Collision Tank1: ", collision%, r1x1%, r1y1%, r1x2%, r1y2%, r2x1%, r2y1%, r2x2%, r2y2%
-                        Tank1State%(E%) = Tank1StateDead%
+                        Tank1State%(E%) = Tank1StateHit%
                         b1state% = BulletStateEmpty%
                         Bullet1State%(I%) = b1state%
                     END IF
