@@ -1001,7 +1001,7 @@ WHILE player1.numLives% > 0
                         IF dx% <> 0 THEN angle% = TODEG(ATN(ABS(dy%) / ABS(dx%))) ELSE angle% = 90
                         angleIdx% = ROUND(angle% / 15.0)
                         EnemyFly1SpeedX%(slot%) = SGN(dx%) * ShootAngleSpeedX%(angleIdx%)
-                        EnemyFly1SpeedY%(slot%) = SGN(dy%) * ShootAngleSpeedY%(angleIdx%)
+                        EnemyFly1SpeedY%(slot%) = 2
                         'PLAYWAV SOUNDBULLET1%
                     END IF
                 END IF
