@@ -712,7 +712,7 @@ WHILE player1.numLives% > 0
     '  Draw Player1
     AUTO p1sprite = playerSprites.get(p1frame%)
     PUT(p1scrX%, p1scrY%), p1sprite, "MIX"
-    LINE (p1scrX% + p1bbx1% * GAMEW%, p1scrY% + p1bby1% * GAMEH%) - (p1scrX% + p1bbx2% * GAMEW%, p1scrY% + p1bby2% * GAMEH%), "B"
+    'LINE (p1scrX% + p1bbx1% * GAMEW%, p1scrY% + p1bby1% * GAMEH%) - (p1scrX% + p1bbx2% * GAMEW%, p1scrY% + p1bby2% * GAMEH%), "B"
 
     ' Draw bullets
     FOR I% = 0 TO NumP1Bullets% - 1
