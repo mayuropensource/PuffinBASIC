@@ -729,7 +729,7 @@ WHILE player1.numLives% > 0
     p1scrY% = p1y% * GAMEH%
 
     ' Draw lives
-    FOR I% = 1 TO MIN(3, player1.numLives%)
+    FOR I% = 1 TO MIN(3, player1.numLives% - 1)
         PUT(I% * LIVESW% + 2, 2), LIVES1%, "MIX"
     NEXT I%
 
@@ -1213,6 +1213,7 @@ WHILE player1.numLives% > 0
                 dy% = p1y% - eby%
                 IF dx% <> 0 THEN angle% = TODEG(ATN(ABS(dy%) / ABS(dx%))) ELSE angle% = 90
                 angleIdx% = ROUND(angle% / 15.0)
+                IF dx% = 0 AND dy% = 0 THEN dx% = 2 : angleIdx% = 0
                 EnemyFly1SpeedX%(I%) = SGN(dx%) * ShootAngleSpeedX%(angleIdx%)
                 EnemyFly1SpeedY%(I%) = SGN(dy%) * ShootAngleSpeedY%(angleIdx%)
             END IF
