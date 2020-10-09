@@ -1314,7 +1314,7 @@ FOR I% = 0 TO BGNCOLS% - 1
     LINE INPUT#1, mapline$
     AUTO tokens = SPLIT$(mapline$, ",")
     maxtokenidx% = LEN(tokens) - 1
-    maxtokenidx2% = SPLIT% * LEN(tokens) - 1
+    maxtokenidx2% = SPLIT% * (LEN(tokens) - 1)
     FOR J% = 0 TO maxtokenidx%
         value% = VAL(tokens(J%))
         BGMAP%(maxtokenidx% - J%, I%) = value%

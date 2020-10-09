@@ -140,26 +140,13 @@ expr
     | LPAREN expr RPAREN        # ExprParen
     | string                    # ExprString
     | expr EXPONENT expr        # ExprExp
-    | expr MUL expr             # ExprMul
-    | expr FLOAT_DIV expr       # ExprFloatDiv
-    | expr INT_DIV expr         # ExprIntDiv
+    | expr (MUL|FLOAT_DIV|INT_DIV) expr # ExprMulDiv
     | expr MOD expr             # ExprMod
-    | expr PLUS expr            # ExprPlus
-    | expr MINUS expr           # ExprMinus
-    | expr RELEQ expr           # ExprRelEq
-    | expr RELNEQ expr          # ExprRelNeq
-    | expr RELLT expr           # ExprRelLt
-    | expr RELGT expr           # ExprRelGt
-    | expr RELLE expr           # ExprRelLe
-    | expr RELGE expr           # ExprRelGe
+    | expr (PLUS|MINUS) expr    # ExprPlusMinus
+    | expr (RELEQ|RELNEQ|RELLT|RELGT|RELLE|RELGE) expr # ExprRelational
     | LOGNOT expr               # ExprLogNot
-    | expr LOGAND expr          # ExprLogAnd
-    | expr LOGOR expr           # ExprLogOr
-    | expr LOGXOR expr          # ExprLogXor
-    | expr LOGEQV expr          # ExprLogEqv
-    | expr LOGIMP expr          # ExprLogImp
-    | expr BWLSFT expr          # ExprBitwiseLeftShift
-    | expr BWRSFT expr          # ExprBitwiseRightShift
+    | expr (LOGAND|LOGOR|LOGXOR|LOGEQV|LOGIMP) expr    # ExprLogical
+    | expr (BWLSFT|BWRSFT) expr # ExprBitwise
     ;
 
 func
