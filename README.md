@@ -347,46 +347,40 @@ Y(0,0) = 3 ' Both X%(0,0) and Y(0,0) have value 3.
 
 ## Operators
 
-Order of operations:
+Order of operations (lower number means higher precedence):
 
 1. Arithmetic
 1. Relational
 1. Logical or bit-wise
 
-Arithmetic:
+For same precedence, the order is left to right.
+
+Arithmetic (lower number means higher precedence):
 1. '^'    Exponentiation
 1. '-'    Unary minus
-1. '*'    Multiplication
-1. '/'    Floating point division
-1. '\\'    Integer division
+1. '*' or '/' or '\\' Multiplication or Floating point division or Integer division
 1. 'mod'  Modulus
-1. '+'    Addition
-1. '-'    Subtraction
+1. '+' or '-' Addition or Subtraction
 
 Relational operators return -1 for true and 0 for false.
 Relational operators work with both numbers and Strings.
 
-Relational:
-1. '='    Equals
-1. '<>'   Not equals
-1. '<'    Less than
-1. '>'    Greate than
-1. '<='   Less than or equal
-1. '>='   Greater than or equal
+Relational (all have same precedence):
+* '='    Equals
+* '<>'   Not equals
+* '<'    Less than
+* '>'    Greate than
+* '<='   Less than or equal
+* '>='   Greater than or equal
 
 If inputs to logical operators is -1 and 0, they return -1 for true and 0 for false.
 Otherwise, logical operators work like bit-wise operators.
 '>>' and '<<' are bitwise right-shift and left-shift operators.
 
-Logical or bit-wise:
+Logical or bit-wise (lower number means higher precedence):
 1. 'NOT'
-1. 'AND'
-1. 'OR'
-1. 'XOR'
-1. 'EQV'
-1. 'IMP'
-1. '>>'
-1. '<<'
+1. 'AND' or 'OR' or 'XOR' or 'EQV' or 'IMP'
+1. '>>' or <<'
 
 ## Built-in functions
 
