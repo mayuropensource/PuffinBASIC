@@ -31,6 +31,7 @@ import org.puffinbasic.domain.Variable.VariableKindHint;
 import org.puffinbasic.domain.Variable.VariableName;
 import org.puffinbasic.error.PuffinBasicInternalError;
 import org.puffinbasic.error.PuffinBasicSemanticError;
+import org.puffinbasic.error.PuffinBasicSyntaxError;
 import org.puffinbasic.file.PuffinBasicFile.FileAccessMode;
 import org.puffinbasic.file.PuffinBasicFile.FileOpenMode;
 import org.puffinbasic.file.PuffinBasicFile.LockMode;
@@ -2596,6 +2597,14 @@ public class PuffinBasicIRListener extends PuffinBasicBaseListener {
                         variableName1 -> Variable.of(variableName1, VariableKindHint.DERIVE_FROM_NAME, () -> getCtxString(ctx)),
                         (id1, e1, v1) -> {});
                 var variable = ((STVariable) ir.getSymbolTable().get(id)).getVariable();
+
+                if (forLoopStateList.isEmpty()) {
+                    throw new PuffinBasicSemanticError(
+                            NEXT_WITHOUT_FOR,
+                            getCtxString(ctx),
+                            "NEXT without FOR"
+                    );
+                }
 
                 var state = forLoopStateList.removeLast();
                 if (state.variable.equals(variable)) {
